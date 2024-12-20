@@ -1,0 +1,19 @@
+{
+  "name": "nodewebapp",
+  "version": "1.0.0",
+  "main": "app.js",
+  "scripts": {
+    "start": "nodemon app"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "db": "^6.0.3",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "mongo": "^0.1.0",
+    "mongoose": "^8.9.2",
+    "nodemon": "^3.1.9"
+  }
+}
