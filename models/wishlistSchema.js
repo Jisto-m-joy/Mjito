@@ -18,7 +18,7 @@ const wishlistSchema = new Schema({
             default: Date.now
         }
     }]
-})
+},)
 
 const Wishlist = mongoose.model('Wishlist', wishlistSchema);
 

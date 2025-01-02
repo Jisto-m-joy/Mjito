@@ -1,9 +1,8 @@
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
-
 const productSchema = new Schema({
-    productName : {
+    product_name: {
         type: String,
         required: true,
     },
@@ -27,22 +26,34 @@ const productSchema = new Schema({
     salesPrice: {
         type: Number,
         required: true,
-    },
-    productOffer: {
-        type: Number,
-        default: 0,
+        validate: {
+            validator: function (value) {
+                return value <= this.regularPrice;
+            },
+            message: 'Sales price should not exceed the regular price.',
+        },
     },
     quantity: {
         type: Number,
-        default: true,
+        default: 0,
     },
     color: {
+        type: String,
+        required: true,
+    },
+    size: {
         type: String,
         required: true,
     },
     productImage: {
         type: [String],
         required: true,
+        validate: {
+            validator: function (array) {
+                return array.length > 0;
+            },
+            message: 'At least one product image is required.',
+        },
     },
     isBlocked: {
         type: Boolean,
@@ -50,12 +61,12 @@ const productSchema = new Schema({
     },
     status: {
         type: String,
-        enum: ["Available", "out of stock", "Discountinued"],
+        enum: ["Available", "Out of Stock", "Discontinued"],
         required: true,
         default: "Available",
     },
-},{timestamps: true});
+}, { timestamps: true });
 
-const Product = mongoose.Model("Product",productSchema);
+const Product = mongoose.model("Product", productSchema);
 
 module.exports = Product;

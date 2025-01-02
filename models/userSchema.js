@@ -2,7 +2,12 @@ const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
 const userSchema = new Schema({
-    name: {
+    first_name: {
+        type: String,
+        required: true,
+        trim: true
+    },
+    last_name: {
         type: String,
         required: true,
         trim: true
@@ -11,24 +16,30 @@ const userSchema = new Schema({
         type: String,
         required: true,
         unique: true,
+        trim: true,
+        match: [/\S+@\S+\.\S+/, 'is invalid']
+    },
+    mobile_number: {
+        type: String,
+        required: true,
+        unique: true,
         trim: true
     },
-    phone: {
+    alt_mobile_number: {
         type: String,
-        required: false,
+        required: false,  // Optional
         unique: true,
         trim: true,
         sparse: true,
         default: null   
     },
-    googleId: {
-        type: String,
-        unique: true
+    date_of_birth: {
+        type: Date,        
+        required: true
     },
-    password : {
+    password: {
         type: String,
-        required: false,
-        unique: true
+        required: true,    
     },
     isBlocked: {
         type: Boolean,
@@ -54,36 +65,20 @@ const userSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: "Order"
     }],
-    createdOn: {
-        type: Date,
-        default: Date.now,
-    },
-    referalCode: {
-        type: String
-    },
-    redeemed: {
-        type: Boolean,
-    },
-    redeemedUsers: [{
-        type: Schema.Types.ObjectId,
-        ref: "User"
-    }],
-    searchHistory: [{
-        category: {
-            type: Schema.Types.ObjectId,
-            ref: 'Category'
-        },
-        brand: {
-            type: String
-        },
-        searchOn: {
-            type: Date,
-            default: Date.now
-        }
-    }]
-      
-})
+    status: {
+        type: String,
+        enum: ["blocked", "unblocked"],
+        default: "unblocked"
+    }
+}, {
+    timestamps: { 
+        createdAt: 'created_at', 
+        updatedAt: 'updated_at' 
+    }
+});
 
-const User = mongoose.model("User",userSchema);
+
+
+const User = mongoose.model("User", userSchema);
 
 module.exports = User;

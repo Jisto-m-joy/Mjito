@@ -24,8 +24,14 @@ const bannerSchema = new Schema({
     endDate: {
         type: Date,
         required: true,
-    }
-})
+    },
+    status: {
+        type: String,
+        enum: ["Active", "Inactive"],
+        required: true,
+        default: "Active",
+    },
+},{ timestamps: true })
 
 const Banner = mongoose.model("Banner", bannerSchema);
 

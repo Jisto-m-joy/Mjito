@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { Schema } = mongoose();
+const { Schema } = mongoose;
 
 const cartSchema = new Schema({
     userId: {
@@ -28,14 +28,10 @@ const cartSchema = new Schema({
         status: {
             type: String,
             default: 'placed'
-        },
-        cancellationReason: {
-            type: String,
-            default: "none"
         }
     }]
 
-})
+},{ timestamps : true });
 
 const Cart = mongoose.model("Cart", cartSchema);
 module.exports = Cart;
