@@ -506,12 +506,25 @@ ol {
 .header__nav__option {
 	text-align: right;
 	padding: 30px 0;
+	display: flex;
+	align-items: center;
+	width: 300px;
 }
+
+/* .header__nav__option button {
+	border-radius: 10px;
+	border: none;
+}*/
+
+.header__nav__option a:hover {
+	color: rgba(249, 183, 0, 0.614);
+  } 
 
 .header__nav__option a {
 	display: inline-block;
 	margin-right: 26px;
 	position: relative;
+	color: #000;
 }
 
 .header__nav__option a span {
@@ -535,6 +548,7 @@ ol {
 	position: relative;
 	top: 3px;
 }
+
 
 .offcanvas-menu-wrapper {
 	display: none;

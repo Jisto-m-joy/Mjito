@@ -21,13 +21,13 @@ const userSchema = new Schema({
     },
     mobile_number: {
         type: String,
-        required: true,
+        // required: true,
         unique: true,
         trim: true
     },
     alt_mobile_number: {
         type: String,
-        required: false,  // Optional
+        // required: false,  // Optional
         unique: true,
         trim: true,
         sparse: true,
@@ -35,7 +35,7 @@ const userSchema = new Schema({
     },
     date_of_birth: {
         type: Date,        
-        required: true
+        // required: true
     },
     password: {
         type: String,
@@ -49,33 +49,28 @@ const userSchema = new Schema({
         type: Boolean,
         default: false
     },
-    cart: [{
-        type: Schema.Types.ObjectId,
-        ref: 'Cart',
-    }],
-    wallet: {
-        type: Number,
-        default: 0,
-    },
-    wishlist: [{
-        type: Schema.Types.ObjectId,
-        ref: "Wishlist"
-    }],
-    orderHistory: [{
-        type: Schema.Types.ObjectId,
-        ref: "Order"
-    }],
+    // cart: [{
+    //     type: Schema.Types.ObjectId,
+    //     ref: 'Cart',
+    // }],
+    // wallet: {
+    //     type: Schema.Types.ObjectId,
+    //     ref: "Wallet"
+    // },
+    // wishlist: [{
+    //     type: Schema.Types.ObjectId,
+    //     ref: "Wishlist"
+    // }],
+    // orderHistory: [{
+    //     type: Schema.Types.ObjectId,
+    //     ref: "Order"
+    // }],
     status: {
         type: String,
         enum: ["blocked", "unblocked"],
         default: "unblocked"
     }
-}, {
-    timestamps: { 
-        createdAt: 'created_at', 
-        updatedAt: 'updated_at' 
-    }
-});
+}, { timestamps: true });
 
 
 

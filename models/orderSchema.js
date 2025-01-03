@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
-const { Schema } = mongoose();
-const {v4:uuidv4} = require('uuid');
+const { Schema } = mongoose;
+const { v4: uuidv4 } = require('uuid');
 
 const orderSchema = new Schema({
     orderId: {
@@ -27,6 +27,14 @@ const orderSchema = new Schema({
         type: Number,
         required: true,
     },
+    shippingCharge: { 
+        type: Number,
+        required: true,
+    },
+    taxCharge: { 
+        type: Number,
+        required: true,
+    },
     discount: {
         type: Number,
         required: true,
@@ -37,27 +45,31 @@ const orderSchema = new Schema({
     },
     address: {
         type: Schema.Types.ObjectId,
-        ref: 'User',
+        ref: 'Address', 
         required: true,
     },
-    invoiceDate: {
-        type: Date
+    orderDate: { 
+        type: Date,
+        required: true
+    },
+    deliveryDate: { 
+        type: Date,
+        required: true
     },
     status: {
         type: String,
         required: true,
-        enum: ['Pending','Processing','Shipped','Delivered','Cancelled','Return Request','Returned']
+        enum: ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled', 'Return Request', 'Returned']
     },
     createdOn: {
         type: Date,
-        default: Date.now,
-        required: true
+        default: Date.now 
     },
     couponApplied: {
         type: Boolean,
-        default: false
+        default: false 
     }
-})
+});
 
 const Order = mongoose.model("Order", orderSchema);
 module.exports = Order;
