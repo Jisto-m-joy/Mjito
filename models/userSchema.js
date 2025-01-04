@@ -19,20 +19,20 @@ const userSchema = new Schema({
         trim: true,
         match: [/\S+@\S+\.\S+/, 'is invalid']
     },
-    mobile_number: {
-        type: String,
-        // required: true,
-        unique: true,
-        trim: true
-    },
-    alt_mobile_number: {
-        type: String,
-        // required: false,  // Optional
-        unique: true,
-        trim: true,
-        sparse: true,
-        default: null   
-    },
+    // mobile_number: {
+    //     type: String,
+    //     // required: true,
+    //     // unique: true,
+    //     trim: truers
+    // },
+    // alt_mobile_number: {
+    //     type: String,
+    //     // required: false,  // Optional
+    //     // unique: true,
+    //     trim: true,
+    //     sparse: true,
+    //     default: null   
+    // },
     date_of_birth: {
         type: Date,        
         // required: true

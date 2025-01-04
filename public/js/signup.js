@@ -5,6 +5,13 @@ function signupValidation() {
     const password = document.getElementById('password').value;
     const confirmPassword = document.getElementById('confirm_password').value;
 
+    const error1 = document.getElementById('error1');
+    const error2 = document.getElementById('error2');
+    const error3 = document.getElementById('error3');
+    const error4 = document.getElementById('error4');
+    const signform = document.getElementById('signform');
+
+   
     if (!firstName) {
         alert('First name is required!');
         return false;
