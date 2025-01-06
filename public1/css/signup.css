@@ -37,6 +37,10 @@ h1 {
     margin-bottom: 20px;
 }
 
+a {
+    text-decoration: none;
+}
+
 form {
     display: flex;
     flex-direction: column;

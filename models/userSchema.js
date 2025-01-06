@@ -2,12 +2,7 @@ const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
 const userSchema = new Schema({
-    first_name: {
-        type: String,
-        required: true,
-        trim: true
-    },
-    last_name: {
+    name: {
         type: String,
         required: true,
         trim: true
@@ -18,6 +13,10 @@ const userSchema = new Schema({
         unique: true,
         trim: true,
         match: [/\S+@\S+\.\S+/, 'is invalid']
+    },
+    googleId : {
+        type: String,
+        unique: true 
     },
     // mobile_number: {
     //     type: String,
@@ -39,7 +38,7 @@ const userSchema = new Schema({
     },
     password: {
         type: String,
-        required: true,    
+        required: false,    
     },
     isBlocked: {
         type: Boolean,

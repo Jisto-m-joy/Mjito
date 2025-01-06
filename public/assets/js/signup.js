@@ -1,24 +1,18 @@
 function signupValidation() {
-    const firstName = document.getElementById('first_name').value.trim();
-    const lastName = document.getElementById('last_name').value.trim();
+    const name = document.getElementById('name').value.trim();
     const email = document.getElementById('email').value.trim();
     const password = document.getElementById('password').value;
     const confirmPassword = document.getElementById('confirm_password').value;
 
-    const error1 = document.getElementById('error1');
-    const error2 = document.getElementById('error2');
-    const error3 = document.getElementById('error3');
-    const error4 = document.getElementById('error4');
-    const signform = document.getElementById('signform');
+    // const error1 = document.getElementById('error1');
+    // const error2 = document.getElementById('error2');
+    // const error3 = document.getElementById('error3');
+    // const error4 = document.getElementById('error4');
+    // const signform = document.getElementById('signform');
 
    
-    if (!firstName) {
-        alert('First name is required!');
-        return false;
-    }
-
-    if (!lastName) {
-        alert('Last name is required!');
+    if (!name) {
+        alert('Name is required!');
         return false;
     }
 

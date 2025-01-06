@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signup</title>
+    <link rel="stylesheet" href="/css/signup.css">
+</head>
+<body>
+    <div class="container">
+        <img src="/img/Teams_Page/TeamPage2.webp" alt="Background" class="background-image">
+        <div class="form-container">
+            <h1>REGISTER NOW</h1>
+            <form id="signform" action="/signup"  method="POST" onsubmit="return signupValidation()">
+                <input type="text" name="first_name" id="first_name" placeholder="Enter your first name" >
+                <div id="error1" class="error-message"></div>
+
+                <input type="text" name="last_name" id="last_name" placeholder="Enter your last name" >
+                <div id="error1" class="error-message"></div>
+
+                <input type="email" name="email" id="email" placeholder="Enter your email" >
+                <div id="error2" class="error-message"></div>
+
+                <input type="password" name="password" id="password" placeholder="Password" >
+                <div id="error3" class="error-message"></div>
+
+                <input type="password" name="confirm_password" id="confirm_password" placeholder="Confirm password" >
+                <div id="error4" class="error-message"></div>
+
+                <button type="submit">Signup</button>
+            </form>
+            <div class="divider">OR</div>
+            <a href="/auth/google" class="google-btn">Sign in with Google</a>
+            <p>Have an account? <a href="/login">Sign In</a></p>
+        </div>
+    </div>
+    <script src="/js/signup.js"></script>
+</body>
+</html>
