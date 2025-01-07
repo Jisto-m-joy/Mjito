@@ -16,7 +16,7 @@
       <div class="login-register__container container grid">
         <div class="login">
           <h3 class="section__title">Login</h3>
-          <form class="form grid" id="signform" action="/signup"  method="POST" onsubmit="return signupValidation()">
+          <form class="form grid">
             <input
               type="email"
               placeholder="Your Email"
@@ -34,7 +34,7 @@
         </div>
         <div class="register">
           <h3 class="section__title">Create an Account</h3>
-          <form class="form grid">
+          <form class="form grid" id="signform" action="/signup"  method="POST" onsubmit="return signupValidation()">
             <input
               name="name"
               id="name"
@@ -97,7 +97,6 @@
       </div>
     </section>
   </main>
-  <!-- <%-include("../../views/user/partials/footer")%> -->
     <!--=============== FOOTER ===============-->
  <footer class="footer container">
   <div class="footer__container grid">
