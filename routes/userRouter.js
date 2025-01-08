@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const userController = require('../controllers/user/userController');
 const passport = require("passport");
+const validateSession = require('../middlewares/session-validation');
 
 
 router.get("/pageNotFound", userController.pageNotFound);
@@ -9,6 +10,7 @@ router.get('/',userController.loadHomepage);
 router.get("/signup", userController.loadSignup)
 router.post("/signup", userController.signup);
 router.post("/verify-otp",userController.verifyOtp);
+router.post("/verify-otp", validateSession, userController.verifyOtp);
 router.post("/resend-otp", userController.resendOtp);
 
 router.get('/auth/google', passport.authenticate('google', {

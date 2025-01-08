@@ -89,52 +89,30 @@ const signup = async ( req, res) => {
     }
 
     const otp = generateOtp();
+    // req.session.userOtp = otp;
+    // req.session.userData = { name, email, password };
 
     const emailSent = await sendVerificationEmail( email, otp);
+    console.log(emailSent,"EMAIL SENT")
 
     if(!emailSent){
-        return res.json("email-error")
+        // return res.json("email-error")
+        return res.render("signup", { message: "Failed to send verification email. Please try again." });
+
     }
 
     req.session.userOtp = otp;
     req.session.userData = { name, email, password};
 
+    console.log("Session Data during signup:", req.session.userData);
     res.render("verify-otp");
     console.log('OTP Sent',otp);
 } catch (error) {
         
-    console.error('signup error',error);
+    console.error('Signup error:',error);
     res.redirect('/pageNotFound')
     }
 }
-
-// const signup = (req, res) => {
-//     const { name, email, password, confirm_password } = req.body;
-//     console.log(req.body,"req-body-signup")
-//     if (password !== confirm_password) {
-//         return res.status(400).json({ success: false, message: "Passwords do not match" });
-//     }
-
-//     // Save user data in session
-//     req.session.userData = { name, email };
-//     const otp = generateOtp();
-//     req.session.userOtp = otp;
-
-//     console.log("Session after signup:", req.session);
-
-//     sendVerificationEmail(email, otp)
-//         .then(() => {
-//             // Redirect to the OTP verification page
-//             res.render('verify-otp'); // Replace with your OTP page route
-//         })
-//         .catch((err) => {
-//             console.error("Error sending OTP email:", err);
-//             res.status(500).json({ success: false, message: "Failed to send OTP" });
-//         });
-// };
-
-
-
 
 
 const securePassword = async (password) => {
@@ -148,42 +126,37 @@ const securePassword = async (password) => {
     }
 }
 
-const verifyOtp = async (req, res) => {
+const verifyOtp = (req, res) => {
     try {
-        const { otp } = req.body;
-        console.log(req.body,"req-body")
-
-        if (!req.session.userOtp || !req.session.userData) {
-            return res.status(400).json({ success: false, message: "Session expired, please sign up again." });
-        }
-
-        if (otp === req.session.userOtp) {
-            const user = req.session.userData;
-            const passwordHash = await securePassword(user.password); // Hash the password
-
-            const saveUserData = new User({
-                name: user.name,
-                email: user.email,
-                password: passwordHash
-            });
-
-            await saveUserData.save(); // Save to the database
-            req.session.user = saveUserData._id;
-            res.json({ success: true, redirectUrl: "/" });
-        } else {
-            res.status(400).json({ success: false, message: "Invalid OTP, please try again." });
-        }
+      const userOtp = req.body.otp; // Get OTP from user input
+      const sessionOtp = req.session.otp; // OTP stored in session
+  
+      if (!userOtp || !sessionOtp) {
+        return res.status(400).send("OTP not found. Please try again.");
+      }
+  
+      // Check if OTP matches
+      if (userOtp === sessionOtp) {
+        // Clear OTP from session after successful verification
+        req.session.otp = null;
+        return res.redirect("/signup-success"); // Adjust the redirect route as needed
+      } else {
+        return res.status(400).send("Invalid OTP. Please try again.");
+      }
     } catch (error) {
-        console.error("Error Verifying OTP", error);
-        res.status(500).json({ success: false, message: "An error occurred." });
+      console.error("Error Verifying OTP", error);
+      return res.status(500).send("Internal Server Error");
     }
-};
+  };
+  
 
 
 
 const resendOtp = async (req, res) => {
+
+    console.log("Session Data during OTP resend:", req.session.userData);
+
     try {
-        console.log("Session Data on Resend OTP:", req.session.userData);
 
         const userData = req.session.userData;
         console.log("Resend OTP User Data:", userData); 
