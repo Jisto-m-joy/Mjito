@@ -40,11 +40,6 @@ function generateOtp(){
 async function sendVerificationEmail(email, otp) {
     console.log("sendVerificationEmail called with:", email, otp);   
 
-    if (!email || !/\S+@\S+\.\S+/.test(email)) {
-        console.error("Invalid or missing email address:", email);
-        return false;
-    }
-
     try {
         const transporter = nodemailer.createTransport({
             service: "gmail",
@@ -55,7 +50,7 @@ async function sendVerificationEmail(email, otp) {
                 user: process.env.NODEMAILER_EMAIL,
                 pass: process.env.NODEMAILER_PASSWORD
             }
-        });
+        })
 
         const info = await transporter.sendMail({
             from: process.env.NODEMAILER_EMAIL,
@@ -89,16 +84,12 @@ const signup = async ( req, res) => {
     }
 
     const otp = generateOtp();
-    // req.session.userOtp = otp;
-    // req.session.userData = { name, email, password };
 
     const emailSent = await sendVerificationEmail( email, otp);
     console.log(emailSent,"EMAIL SENT")
 
     if(!emailSent){
-        // return res.json("email-error")
-        return res.render("signup", { message: "Failed to send verification email. Please try again." });
-
+        return res.json("email-error")
     }
 
     req.session.userOtp = otp;
@@ -109,8 +100,9 @@ const signup = async ( req, res) => {
     console.log('OTP Sent',otp);
 } catch (error) {
         
-    console.error('Signup error:',error);
+    console.error('Signup error',error);
     res.redirect('/pageNotFound')
+
     }
 }
 
@@ -121,33 +113,41 @@ const securePassword = async (password) => {
         const passwordHash = await bcrypt.hash(password,10);
 
         return passwordHash;
+
     } catch (error) {
         
     }
 }
 
-const verifyOtp = (req, res) => {
+const verifyOtp = async ( req, res) => {
     try {
-      const userOtp = req.body.otp; // Get OTP from user input
-      const sessionOtp = req.session.otp; // OTP stored in session
-  
-      if (!userOtp || !sessionOtp) {
-        return res.status(400).send("OTP not found. Please try again.");
-      }
-  
-      // Check if OTP matches
-      if (userOtp === sessionOtp) {
-        // Clear OTP from session after successful verification
-        req.session.otp = null;
-        return res.redirect("/signup-success"); // Adjust the redirect route as needed
-      } else {
-        return res.status(400).send("Invalid OTP. Please try again.");
-      }
+        
+        const {otp} = req.body;
+
+        console.log(otp);
+
+        if(otp === req.session.userOtp){
+           const user = req.session.userData;
+           const passwordHash = await securePassword(user.password); 
+
+           const saveUserData = new User({
+            name: user.name,
+            email: user.email,
+            password: passwordHash
+           })
+
+           await saveUserData.save();
+           req.session.user = saveUserData._id;
+           res.json({ success: true, redirectUrl:"/"})
+        }else {
+            res.status(400).json({ success:false, message:"Invalid OTP, Please try again"})
+        }
     } catch (error) {
-      console.error("Error Verifying OTP", error);
-      return res.status(500).send("Internal Server Error");
+        
+        console.error("Error Verifying OTP",error);
+        res.status(500).json({ success:false, message: "An error occured"})
     }
-  };
+}
   
 
 

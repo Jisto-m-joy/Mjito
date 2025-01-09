@@ -30,7 +30,7 @@ function validateOTPForm() {
 
   $.ajax({
     type: "POST",
-    url: "/verify-otp",
+    url: "verify-otp",
     data: { otp: otpInput },
     success: function (response) {
       if (response.success) {
@@ -56,41 +56,53 @@ function validateOTPForm() {
         title: "Invalid OTP",
         text: "Please try again",
       });
-    },
+    }
   });
   return false;
 }
 
-function resendOTP() {
-  $.ajax({
-    type: "POST",
-    url: "/resend-otp",
-    success: function (response) {
-      if (response.success) {
-        Swal.fire({
-          icon: "success",
-          title: "OTP Resent Successfully",
-          showConfirmButton: false,
-          timer: 1500,
-        });
+// function resendOTP() {
+//   $.ajax({
+//     type: "POST",
+//     url: "/resend-otp",
+//     success: function (response) {
+//       if (response.success) {
+//         Swal.fire({
+//           icon: "success",
+//           title: "OTP Resent Successfully",
+//           showConfirmButton: false,
+//           timer: 1500,
+//         });
 
-        // Restart the timer when OTP is resent
-        startTimer();
-      } else {
-        Swal.fire({
-          icon: "error",
-          title: "Error",
-          text: response.message,
-        });
-      }
-    },
-    error: function () {
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: "An error occurred while resending OTP. Please try again.",
-      });
-    },
-  });
-  return false;
+//         // Restart the timer when OTP is resent
+//         startTimer();
+//       } else {
+//         Swal.fire({
+//           icon: "error",
+//           title: "Error",
+//           text: response.message,
+//         });
+//       }
+//     },
+//     error: function () {
+//       Swal.fire({
+//         icon: "error",
+//         title: "Error",
+//         text: "An error occurred while resending OTP. Please try again.",
+//       });
+//     },
+//   });
+//   return false;
+// }
+
+
+function resendOTP(){
+  clearInterval(timerInterval);
+  time=60;
+  
+  document.getElementById("otp").disabled = false;
+  document.getElementById("timervalue").classList.remove("expired");
+  startTimer();
+
+  $.aja
 }
