@@ -8,13 +8,21 @@ const bcrypt = require("bcrypt");
 
 const loadSignup = async (req, res) => {
     try {
-        return res.render('login-signup');
+        return res.render('signup');
     } catch (error) {
         console.log('Signup Page not loading:', error);
         res.redirect('/pageNotFound')
     }
 }
 
+const loadlogin = async (req, res) => {
+    try {
+        return res.render('login');
+    } catch (error) {
+        console.log('Login Page not loading:', error);
+        res.redirect('/pageNotFound')
+    }
+}
 
 const pageNotFound = async(req, res) => {
     try {
@@ -76,12 +84,12 @@ const signup = async ( req, res) => {
     const { name, email, password, confirm_password } = req.body;
 
     if(password !== confirm_password){
-        return res.render("login-signup", {message: "Passwords do not match"});
+        return res.render("signup", {message: "Passwords do not match"});
     }
 
     const findUser = await User.findOne({ email });
     if(findUser){
-        return res.render("login-signup", {message: "User with this email already exists"});
+        return res.render("signup", {message: "User with this email already exists"});
     }
 
     const otp = generateOtp();
@@ -188,16 +196,16 @@ const login = async (req, res) => {
         const findUser = await User.findOne({isAdmin: 0, email: email});
 
         if(!findUser){
-            return res.render("login-signup", {message: "User not found"});
+            return res.render("login", {message: "User not found"});
         }
         if(findUser.isBlocked){
-            return res.render("login-signup", {message: "User is blocked"});
+            return res.render("login", {message: "User is blocked"});
         }
 
         const passwordMatch = await bcrypt.compare(password, findUser.password);
 
         if(!passwordMatch){
-            return res.render("login-signup", {message: "Invalid password"});
+            return res.render("login", {message: "Invalid password"});
         }
 
         req.session.user = findUser._id;
@@ -217,6 +225,7 @@ module.exports = {
     loadHomepage,
     pageNotFound,
     loadSignup,
+    loadlogin,
     signup,
     verifyOtp,
     resendOtp,

@@ -158,6 +158,11 @@ table {
   -moz-border-radius: 0.25rem;
   -ms-border-radius: 0.25rem;
   -o-border-radius: 0.25rem;
+  width: 100%;
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 0.25rem;
 }
 
 .new__price {
@@ -334,6 +339,23 @@ table {
 .active-link,
 .nav__link:hover {
   color: var(--first-color);
+}
+
+.header__top-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.header__top-action {
+  color: #fff;
+  background-color: #007bff;
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  text-decoration: none;
+}
+
+.header__top-action:hover {
+  background-color: #0056b3;
 }
 
 /*=============== HOME ===============*/
@@ -1636,19 +1658,16 @@ table {
 
 /*=============== LOGIN & REGISTER ===============*/
 .login-register__container {
-  grid-template-columns: repeat(2, 1fr);
+  display: flex;
+  justify-content: space-between;
   align-items: flex-start;
+  gap: 2rem;
 }
 
 .login,
 .register {
-  border: 1px solid var(--border-color-alt);
-  padding: 2rem;
-  border-radius: 0.5rem;
-  -webkit-border-radius: 0.5rem;
-  -moz-border-radius: 0.5rem;
-  -ms-border-radius: 0.5rem;
-  -o-border-radius: 0.5rem;
+  flex: 1;
+  min-width: 300px;
 }
 
 /*=============== ACCOUNTS ===============*/

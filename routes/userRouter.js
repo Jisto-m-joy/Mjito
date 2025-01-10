@@ -8,7 +8,8 @@ const validateSession = require('../middlewares/session-validation');
 
 router.get("/pageNotFound", userController.pageNotFound);
 router.get('/',userController.loadHomepage);
-router.get("/login-signup", userController.loadSignup)
+router.get("/signup", userController.loadSignup)
+router.get("/login", userController.loadlogin)
 router.post("/signup", userController.signup);
 router.post("/verify-otp", validateSession, userController.verifyOtp);
 router.post("/resend-otp", userController.resendOtp);

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signup Page</title>
+    <!-- CSS LINK  -->
+    <link rel="stylesheet" href="assets/css/signup.css">
+    <!-- BOOTSTRAP CSS LINK  -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+</head>
+<body>
+    <div class="signup__container">
+        <div class="container__child signup__thumbnail">
+          <div class="thumbnail__logo">
+            <h1 class="logo__text">Spectre</h1>
+          </div>
+          <div class="thumbnail__content text-center">
+            <h1 class="heading--primary">Welcome to MI6.</h1>
+            <h2 class="heading--secondary">Are you ready to join the elite?</h2>
+          </div>
+          <div class="thumbnail__links">
+            <ul class="list-inline m-b-0 text-center">
+              <li><a href="http://alexdevero.com/" target="_blank"><i class="fa fa-globe"></i></a></li>
+              <li><a href="https://www.behance.net/alexdevero" target="_blank"><fa class="fa fa-behance"></fa></a></li>
+              <li><a href="https://github.com/alexdevero" target="_blank"><i class="fa fa-github"></i></a></li>
+              <li><a href="https://twitter.com/alexdevero" target="_blank"><i class="fa fa-twitter"></i></a></li>
+            </ul>
+          </div>
+          <div class="signup__overlay"></div>
+        </div>
+        <div class="container__child signup__form">
+          <form  id="signform" action="/signup" method="POST" onsubmit="return signupValidation()">
+            <div class="form-group">
+              <label for="username">Username</label>
+              <input class="form-control" type="text" name="name" id="signup_name" placeholder="james.bond" />
+            </div>
+            <div id="error1" class="error-message"></div>
+
+            <div class="form-group">
+              <label for="email">Email</label>
+              <input class="form-control" type="text" name="email" id="signup_email" placeholder="james.bond@spectre.com" />
+            </div>
+            <div id="error2" class="error-message"></div>
+
+            <div class="form-group">
+              <label for="password">Password</label>
+              <input class="form-control" type="password" name="password" id="password" placeholder="********"  />
+              <div id="error1" class="error-message"></div>
+            </div>
+            <div id="error3" class="error-message"></div>
+
+            <div class="form-group">
+              <label for="passwordRepeat">Repeat Password</label>
+              <input class="form-control" type="password" name="confirm_password" id="signup_confirm_password" placeholder="********" />
+            </div>
+            <div id="error4" class="error-message"></div>
+
+            <div class="m-t-lg">
+              <ul class="list-inline">
+                <li>
+                  <input class="btn btn--form" type="submit" value="Register" />
+                </li>
+                <li>
+                  <a class="signup__link" href="#">I am already a member</a>
+                </li>
+              </ul>
+            </div>
+            <button class="btn"><a href="/auth/google" class="google-btn">Sign in with Google</a></button>
+          </form>  
+        </div>
+      </div>
+
+      <!--=============== SIGNUP JS ===============-->
+      <script src="assets/js/signup.js"></script>
+      <script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
+
+      <!-- BOOTSTRAP JS LINK -->
+      <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js" integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqruptLy" crossorigin="anonymous"></script>
+</body>
+</html>
