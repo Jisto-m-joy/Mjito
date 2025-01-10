@@ -1,16 +1,17 @@
-
 const User = require("../../models/userSchema");
 const env = require("dotenv").config();
 const nodemailer = require("nodemailer");
 const bcrypt = require("bcrypt"); 
 
 
+
+
 const loadSignup = async (req, res) => {
     try {
-        return res.render('signup');
+        return res.render('login-signup');
     } catch (error) {
         console.log('Signup Page not loading:', error);
-        res.status(500).send('Server Error');
+        res.redirect('/pageNotFound')
     }
 }
 
@@ -75,12 +76,12 @@ const signup = async ( req, res) => {
     const { name, email, password, confirm_password } = req.body;
 
     if(password !== confirm_password){
-        return res.render("signup", {message: "Passwords do not match"});
+        return res.render("login-signup", {message: "Passwords do not match"});
     }
 
     const findUser = await User.findOne({ email });
     if(findUser){
-        return res.render("signup", {message: "User with this email already exists"});
+        return res.render("login-signup", {message: "User with this email already exists"});
     }
 
     const otp = generateOtp();
@@ -153,33 +154,62 @@ const verifyOtp = async ( req, res) => {
 
 
 const resendOtp = async (req, res) => {
-
     console.log("Session Data during OTP resend:", req.session.userData);
 
     try {
-
-        const userData = req.session.userData;
-        console.log("Resend OTP User Data:", userData); 
-        if (!userData || !userData.email) {
+        const { email } = req.session.userData;
+        if (!email) {
             return res.status(400).json({ success: false, message: "Email not found in session" });
         }
 
         const otp = generateOtp();
         req.session.userOtp = otp;
 
-        const emailSent = await sendVerificationEmail(userData.email, otp);
+        const emailSent = await sendVerificationEmail(email, otp); // Pass email and otp correctly
         if (emailSent) {
-            console.log("Resend OTP: ", otp);
-            res.status(200).json({ success: true, message: "OTP Resent Successfully" });
+            console.log("Resend OTP:", otp);
+            return res.status(200).json({ success: true, message: "OTP Resent Successfully" });
         } else {
-            res.status(500).json({ success: false, message: "Failed to resend OTP. Please try again" });
+            return res.status(500).json({ success: false, message: "Failed to resend OTP. Please try again." });
         }
     } catch (error) {
         console.error("Error resending OTP", error);
-        res.status(500).json({ success: false, message: "Internal Server Error. Please try again" });
+        return res.status(500).json({ success: false, message: "Internal Server Error. Please try again." });
     }
 };
 
+
+const login = async (req, res) => {
+    try {
+
+        const { email, password } = req.body;
+        console.log(email,password, "LOGIN DATA");
+
+        const findUser = await User.findOne({isAdmin: 0, email: email});
+
+        if(!findUser){
+            return res.render("login-signup", {message: "User not found"});
+        }
+        if(findUser.isBlocked){
+            return res.render("login-signup", {message: "User is blocked"});
+        }
+
+        const passwordMatch = await bcrypt.compare(password, findUser.password);
+
+        if(!passwordMatch){
+            return res.render("login-signup", {message: "Invalid password"});
+        }
+
+        req.session.user = findUser._id;
+        res.redirect("/");  
+        
+    } catch (error) {
+        
+        console.error("Login Error",error);
+        res.redirect("/pageNotFound")
+
+    }
+}
 
 
 
@@ -189,5 +219,6 @@ module.exports = {
     loadSignup,
     signup,
     verifyOtp,
-    resendOtp
+    resendOtp,
+    login
 }

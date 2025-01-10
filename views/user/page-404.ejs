@@ -4,48 +4,41 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Page Not Found</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f4f4f4;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            color: #333;
-        }
-        .container {
-            text-align: center;
-        }
-        .error {
-            font-size: 6rem;
-            font-weight: bold;
-            color: #e74c3c;
-        }
-        .message {
-            font-size: 1.5rem;
-            margin: 1rem 0;
-        }
-        a {
-            color: white;
-            background: #007bff;
-            padding: 0.7rem 1.5rem;
-            text-decoration: none;
-            border-radius: 5px;
-            font-size: 1rem;
-        }
-        a:hover {
-            background: #0056b3;
-        }
-    </style>
 </head>
 <body>
-    <div class="container">
-        <div class="error">404</div>
-        <div class="message">Oops! The page you are looking for doesn't exist.</div>
-        <a href="/">Return to Home</a>
-    </div>
+<%- include("../../views/user/partials/header") %>
+
+<!--=============== MAIN ===============-->
+<main class="main">
+    <!--=============== BREADCRUMB ===============-->
+    <section class="breadcrumb">
+        <ul class="breadcrumb__list flex container">
+            <li><a href="/" class="breadcrumb__link">Home</a></li>
+            <li><span class="breadcrumb__link">></span></li>
+            <li><span class="breadcrumb__link">404</span></li>
+        </ul>
+    </section>
+
+    <!--=============== 404 PAGE ===============-->
+    <section class="error-page section--lg">
+        <div class="error-page__container container grid">
+            <div class="error">
+                <h1 class="error__title">404</h1>
+                <p class="error__message">Oops! The page you are looking for doesn't exist.</p>
+                <a href="/" class="btn">Return to Home</a>
+            </div>
+        </div>
+    </section>
+</main>
+
+<!--=============== FOOTER ===============-->
+<%- include("../../views/user/partials/footer") %>
+
+<!--=============== SWIPER JS ===============-->
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+
+<!--=============== MAIN JS ===============-->
+<script src="assets/js/main.js"></script>
+<script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
 </body>
 </html>

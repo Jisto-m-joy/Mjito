@@ -16,22 +16,24 @@ const userSchema = new Schema({
     },
     googleId : {
         type: String,
-        unique: true 
+        unique: true,
+        sparse: true
     },
-    // mobile_number: {
-    //     type: String,
-    //     // required: true,
-    //     // unique: true,
-    //     trim: truers
-    // },
-    // alt_mobile_number: {
-    //     type: String,
-    //     // required: false,  // Optional
-    //     // unique: true,
-    //     trim: true,
-    //     sparse: true,
-    //     default: null   
-    // },
+    mobile_number: {
+        type: String,
+        // required: true,
+        // unique: true,
+        trim: true,
+        sparse: true
+    },
+    alt_mobile_number: {
+        type: String,
+        // required: false,  // Optional
+        // unique: true,
+        trim: true,
+        sparse: true,
+        // default: null   
+    },
     date_of_birth: {
         type: Date,        
         // required: true
@@ -48,22 +50,6 @@ const userSchema = new Schema({
         type: Boolean,
         default: false
     },
-    // cart: [{
-    //     type: Schema.Types.ObjectId,
-    //     ref: 'Cart',
-    // }],
-    // wallet: {
-    //     type: Schema.Types.ObjectId,
-    //     ref: "Wallet"
-    // },
-    // wishlist: [{
-    //     type: Schema.Types.ObjectId,
-    //     ref: "Wishlist"
-    // }],
-    // orderHistory: [{
-    //     type: Schema.Types.ObjectId,
-    //     ref: "Order"
-    // }],
     status: {
         type: String,
         enum: ["blocked", "unblocked"],
