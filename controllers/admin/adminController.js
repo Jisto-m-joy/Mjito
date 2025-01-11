@@ -7,7 +7,7 @@ const loadLogin = async (req, res) => {
     if(req.session.admin){
         return res.redirect('/admin/dashboard');
     }
-    res.render('admin-login',{message: null});
+    res.render('adminLogin',{message: null});
 }
 
 
