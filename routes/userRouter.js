@@ -10,6 +10,7 @@ router.get("/pageNotFound", userController.pageNotFound);
 router.get('/', userController.loadHomepage);
 router.get("/signup", userController.loadSignup);
 router.get("/login", userController.loadLogin);
+router.get("/logout", userController.logout);
 router.post("/signup", userController.signup);
 router.post("/verify-otp", validateSession, userController.verifyOtp);
 router.post("/resend-otp", userController.resendOtp);

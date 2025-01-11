@@ -178,7 +178,7 @@ const resendOtp = async (req, res) => {
 const login = async (req, res) => {
     try {
         const { email, password } = req.body;
-        
+
         const findUser = await User.findOne({ isAdmin: 0, email });
 
         if (!findUser) {
@@ -199,6 +199,16 @@ const login = async (req, res) => {
     }
 };
 
+const logout = (req, res) => {
+    req.session.destroy((err) => {
+        if (err) {
+            console.error('Error destroying session:', err);
+            return res.status(500).send('Server error');
+        }
+        res.redirect('/login');
+    });
+};
+
 module.exports = {
     loadHomepage,
     pageNotFound,
@@ -207,5 +217,6 @@ module.exports = {
     signup,
     verifyOtp,
     resendOtp,
-    login
+    login,
+    logout
 };
