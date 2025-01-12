@@ -16,15 +16,15 @@
     <% } %>
     <form id="adminLoginForm" method="post" action="/admin/login">
       <div class="field">
-        <input type="email" id="adminEmail" name="email" required>
+        <input type="email" id="adminEmail" name="email" placeholder="example@gmail.com">
         <span class="fas fa-user"></span>
-        <label for="adminEmail">Email address</label>
+        <label for="adminEmail"></label>
         <div id="emailError" class="error-message"></div>
       </div>
       <div class="field">
-        <input type="password" id="adminPassword" name="password" required>
+        <input type="password" id="adminPassword" name="password" placeholder="******">
         <span class="fas fa-lock"></span>
-        <label for="adminPassword">Password</label>
+        <label for="adminPassword"></label>
         <div id="passwordError" class="error-message"></div>
       </div>
       <div class="forgot-pass">
