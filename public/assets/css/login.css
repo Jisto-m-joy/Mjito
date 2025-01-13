@@ -61,6 +61,7 @@ body{
   justify-content: space-between;
   font-size: 14.5px;
   margin: -15px 0 15px;
+  text-align: right;
 }
 .remember-forgot label input{
   accent-color: #fff;

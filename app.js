@@ -35,9 +35,11 @@ app.use(passport.session());
 
 app.set("view engine", "ejs");
 app.set("views",[path.join(__dirname,'views/user'),path.join(__dirname,'views/admin')]);
-
 app.use("/",userRouter);
 app.use("/admin",adminRouter);
+
+
+
 
 app.listen(process.env.PORT, () => {
     console.log('Server running');

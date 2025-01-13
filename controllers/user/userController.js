@@ -178,24 +178,27 @@ const resendOtp = async (req, res) => {
 const login = async (req, res) => {
     try {
         const { email, password } = req.body;
+        const user = await User.findOne({ email });
 
-        const findUser = await User.findOne({ isAdmin: 0, email });
-
-        if (!findUser) {
-            return res.render("login", { message: "User not found" });
+        if (!user) {
+            return res.render('login', { message: 'User not found' });
         }
 
-        const passwordMatch = await bcrypt.compare(password, findUser.password);
+        if (user.isBlocked) {
+            return res.render('login', { message: 'User is blocked by admin' });
+        }
+
+        const passwordMatch = await bcrypt.compare(password, user.password);
 
         if (!passwordMatch) {
-            return res.render("login", { message: "Invalid password" });
+            return res.render('login', { message: 'Invalid password' });
         }
 
-        req.session.user = findUser;
-        res.redirect("/");
+        req.session.user = user;
+        res.redirect('/');
     } catch (error) {
-        console.error("Login Error", error);
-        res.redirect("/pageNotFound");
+        console.error('Login Error', error);
+        res.status(500).send('Server error');
     }
 };
 
