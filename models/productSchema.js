@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
 const productSchema = new Schema({
-    product_name: {
+    name: {
         type: String,
         required: true,
     },
@@ -10,32 +10,18 @@ const productSchema = new Schema({
         type: String,
         required: true,
     },
+    regularPrice: {
+        type: Number,
+        required: true,
+    },
     brand: {
         type: String,
         required: true,
     },
     category: {
-        type: Schema.Types.ObjectId,
+        type: mongoose.Schema.Types.ObjectId,
         ref: 'Category',
         required: true,
-    },
-    regularPrice: {
-        type: Number,
-        required: true,
-    },
-    salesPrice: {
-        type: Number,
-        required: true,
-        validate: {
-            validator: function (value) {
-                return value <= this.regularPrice;
-            },
-            message: 'Sales price should not exceed the regular price.',
-        },
-    },
-    quantity: {
-        type: Number,
-        default: 0,
     },
     color: {
         type: String,
@@ -45,15 +31,9 @@ const productSchema = new Schema({
         type: String,
         required: true,
     },
-    productImage: {
+    images: {
         type: [String],
         required: true,
-        validate: {
-            validator: function (array) {
-                return array.length > 0;
-            },
-            message: 'At least one product image is required.',
-        },
     },
     isBlocked: {
         type: Boolean,
