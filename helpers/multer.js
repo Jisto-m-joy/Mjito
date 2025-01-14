@@ -1,17 +1,27 @@
+
 const multer = require('multer');
 const path = require('path');
 
+const storage = {
+    _handleFile(req, file, cb) {
+        const uploadPath = path.join(__dirname, '../public/uploads', file.originalname);
+        const outStream = require('fs').createWriteStream(uploadPath);
 
-const storage = multer.diskStorage({
-    destination: (req, file, next) => {
-        cb(null,path.join(__dirname, '../public/uploads/re-image'));
-
+        file.stream.pipe(outStream);
+        outStream.on('error', cb);
+        outStream.on('finish', function () {
+            cb(null, {
+                path: uploadPath,
+                size: outStream.bytesWritten
+            });
+        });
     },
-    filename: (req, file, cb) => {
-        cb(null, Date.now() + "-" + file.originalname);
+    _removeFile(req, file, cb) {
+        const fs = require('fs');
+        const path = file.path;
+
+        fs.unlink(path, cb);
     }
-})
-
-
+};
 
 module.exports = storage;
