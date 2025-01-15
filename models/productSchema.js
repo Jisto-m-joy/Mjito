@@ -14,6 +14,15 @@ const productSchema = new Schema({
         type: Number,
         required: true,
     },
+    salesPrice: {
+        type: Number,
+        required: true,
+    },
+    offer: {
+        type: Number,
+        required: true,
+        default: 0,
+    },
     brand: {
         type: String,
         required: true,
@@ -25,6 +34,10 @@ const productSchema = new Schema({
     },
     color: {
         type: String,
+        required: true,
+    },
+    quantity: {
+        type: Number,
         required: true,
     },
     size: {

@@ -182,7 +182,7 @@
                     type="file"
                     name="images"
                     id="input1"
-                    accept="image/png, image/jpeg, image/jpg"
+                    accept="image/webp, image/jpeg, image/jpg"
                     onchange="viewImage1(event), viewImage(event, 1)"
                     multiple
                     
@@ -219,7 +219,7 @@
                     type="file"
                     name="images"
                     id="input2"
-                    accept="image/png, image/jpeg, image/jpg"
+                    accept="image/webp, image/jpeg, image/jpg"
                     onchange="viewImage2(event),viewImage(event, 2)"
                   />
                 </div>
@@ -253,7 +253,7 @@
                     type="file"
                     name="images"
                     id="input3"
-                    accept="image/png, image/jpeg, image/jpg"
+                    accept="image/webp, image/jpeg, image/jpg"
                     onchange="viewImage3(event),viewImage(event, 3)"
                   />
                 </div>
@@ -287,7 +287,7 @@
                     type="file"
                     name="images"
                     id="input4"
-                    accept="image/png, image/jpeg, image/jpg"
+                    accept="image/webp, image/jpeg, image/jpg"
                     onchange="viewImage4(event),viewImage(event, 4)"
                   />
                 </div>
@@ -375,7 +375,7 @@
             croppedImage.src = croppedCanvas.toDataURL('image/jpeg',1.0);
 
             let timestamp = new Date().getTime();
-            let fileName = `cropped-img-${timestamp}-${index}.png`;
+            let fileName = `cropped-img-${timestamp}-${index}.webp`;
 
             await croppedCanvas.toBlob(blob => {
                 let input = document.getElementById('input' + index);
