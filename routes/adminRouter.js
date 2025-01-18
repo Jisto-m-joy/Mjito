@@ -45,8 +45,8 @@ router.post('/addOffer', productController.addOffer);
 router.post('/removeOffer', productController.removeOffer);
 router.get('/blockProduct', adminAuth, productController.blockProduct);
 router.get('/unblockProduct', adminAuth, productController.unblockProduct);
-router.get('/editProduct',adminAuth, productController.getEditProduct);
-router.post('/editProduct/:id', adminAuth, uploads.array('images',4),productController.editProduct);
-router.post('/deleteImage',adminAuth, productController.deleteSingleImage);
+router.get('/editProduct', adminAuth, productController.getEditProduct);
+router.post('/editProduct/:id', adminAuth, uploads.array('images', 4), productController.editProduct);
+router.post('/deleteImage',adminAuth, productController.deleteImage);
 
 module.exports = router;

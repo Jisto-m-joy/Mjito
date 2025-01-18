@@ -7,14 +7,20 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Poppins:400,500,600,700&display=swap">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
   <link rel="stylesheet" href="/assets/css/admin/adminLogin.css" />
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@700&display=swap" rel="stylesheet">
 </head>
 <body>
   <div class="content">
+    <!-- GoalZone Welcoming Message -->
+    <div class="logo">
+      <span class="goal">Goal</span><span class="zone">Zone</span>
+    </div>
     <div class="text">Admin Login</div>
     <% if (message) { %>
     <div class="alert alert-danger"><%= message %></div>
     <% } %>
-    <form id="adminLoginForm" method="post" action="/admin/login">
+    <form id="adminLoginForm" method="post" action="/admin/login" onsubmit="return validateAdminLogin()">
       <div class="field">
         <input type="email" id="adminEmail" name="email" placeholder="example@gmail.com">
         <span class="fas fa-user"></span>
@@ -31,11 +37,8 @@
         <a href="#">Forgot Password?</a>
       </div>
       <button type="submit">Log In</button>
-      <div class="sign-up">
-        Not a member? <a href="#">Sign up now</a>
-      </div>
     </form>
   </div>
-  <script src="assets/js/admin/adminLogin.js"></script>
+  <script src="/assets/js/admin/adminLogin.js"></script>
 </body>
 </html>

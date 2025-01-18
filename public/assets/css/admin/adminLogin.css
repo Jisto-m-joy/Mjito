@@ -1,4 +1,6 @@
 @import url('https://fonts.googleapis.com/css?family=Poppins:400,500,600,700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Raleway:wght@700&display=swap');
+
 * {
   margin: 0;
   padding: 0;
@@ -31,9 +33,7 @@ html, body {
   width: 100%;
   display: flex;
   position: relative;
-}
-.field:nth-child(2) {
-  margin-top: 20px;
+  margin-bottom: 20px;
 }
 .field input {
   height: 100%;
@@ -102,19 +102,36 @@ button:focus {
   box-shadow: inset 2px 2px 5px #BABECC,
              inset -5px -5px 10px #ffffff73;
 }
-.sign-up {
-  margin: 10px 0;
-  color: #595959;
-  font-size: 16px;
-}
-.sign-up a {
-  color: #3498db;
-  text-decoration: none;
-}
-.sign-up a:hover {
-  text-decoration: underline;
-}
 .error-message {
   color: red;
-  font-size: 0.875rem;
+  font-size: 0.9rem;
+  margin-top: 5px;
+  text-align: center; /* Aligns error messages to the center */
+  display: none;
+}
+
+/* GoalZone Styles */
+.logo {
+  font-size: 3rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 5px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 20px;
+}
+.logo .goal {
+  color: #ffffff; /* Bright White for "Goal" */
+  text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.6);
+}
+.logo .zone {
+  color: #f59e0b; /* Vibrant Yellow for "Zone" */
+  text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.6);
+}
+.welcome-message {
+  text-align: center;
+  font-size: 1.5rem;
+  margin-bottom: 20px;
+  color: #ffffff;
 }

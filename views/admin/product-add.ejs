@@ -57,7 +57,6 @@
                       class="form-select border"
                       style="width: 150px"
                       name="brand"
-                      
                     >
                       <% for (let i = 0; i < brands.length; i++) { %>
                       <option value="<%= brands[i].brandName %>">
@@ -432,7 +431,7 @@
 
   function validateForm() {
     clearErrorMessages();
-    const name = document.getElementsByName("productName")[0].value;
+    const name = document.getElementsByName("name")[0].value;
     const description = document.getElementById("descriptionid").value;
     const brand = document.getElementsByName("brand")[0].value;
     const price = document.getElementsByName("regularPrice")[0].value;
