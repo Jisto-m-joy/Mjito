@@ -7,27 +7,32 @@
   box-sizing: border-box;
   font-family: 'Poppins', sans-serif;
 }
-html, body {
+
+html,
+body {
   height: 100%;
   display: grid;
   place-items: center;
   background: #dde1e7;
   text-align: center;
 }
+
 .content {
   width: 330px;
   padding: 40px 30px;
   background: #dde1e7;
   border-radius: 10px;
   box-shadow: -3px -3px 7px #ffffff73,
-               2px 2px 5px rgba(94,104,121,0.288);
+    2px 2px 5px rgba(94, 104, 121, 0.288);
 }
+
 .text {
   font-size: 33px;
   font-weight: 600;
   margin-bottom: 35px;
   color: #595959;
 }
+
 .field {
   height: 50px;
   width: 100%;
@@ -35,6 +40,7 @@ html, body {
   position: relative;
   margin-bottom: 20px;
 }
+
 .field input {
   height: 100%;
   width: 100%;
@@ -46,18 +52,21 @@ html, body {
   color: #595959;
   border-radius: 25px;
   box-shadow: inset 2px 2px 5px #BABECC,
-              inset -5px -5px 10px #ffffff73;
+    inset -5px -5px 10px #ffffff73;
 }
+
 .field input:focus {
   box-shadow: inset 1px 1px 2px #BABECC,
-              inset -1px -1px 2px #ffffff73;
+    inset -1px -1px 2px #ffffff73;
 }
+
 .field span {
   position: absolute;
   color: #595959;
   width: 50px;
   line-height: 50px;
 }
+
 .field label {
   position: absolute;
   top: 50%;
@@ -66,21 +75,26 @@ html, body {
   pointer-events: none;
   color: #666666;
 }
-.field input:valid ~ label {
+
+.field input:valid~label {
   opacity: 0;
 }
+
 .forgot-pass {
   text-align: left;
   margin: 10px 0 10px 5px;
 }
+
 .forgot-pass a {
   font-size: 16px;
   color: #3498db;
   text-decoration: none;
 }
+
 .forgot-pass:hover a {
   text-decoration: underline;
 }
+
 button {
   margin: 15px 0;
   width: 100%;
@@ -95,18 +109,21 @@ button {
   cursor: pointer;
   color: #595959;
   box-shadow: 2px 2px 5px #BABECC,
-             -5px -5px 10px #ffffff73;
+    -5px -5px 10px #ffffff73;
 }
+
 button:focus {
   color: #3498db;
   box-shadow: inset 2px 2px 5px #BABECC,
-             inset -5px -5px 10px #ffffff73;
+    inset -5px -5px 10px #ffffff73;
 }
+
 .error-message {
   color: red;
   font-size: 0.9rem;
   margin-top: 5px;
-  text-align: center; /* Aligns error messages to the center */
+  text-align: center;
+  /* Aligns error messages to the center */
   display: none;
 }
 
@@ -121,14 +138,19 @@ button:focus {
   align-items: center;
   margin-bottom: 20px;
 }
+
 .logo .goal {
-  color: #ffffff; /* Bright White for "Goal" */
+  color: #ffffff;
+  /* Bright White for "Goal" */
   text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.6);
 }
+
 .logo .zone {
-  color: #f59e0b; /* Vibrant Yellow for "Zone" */
+  color: #f59e0b;
+  /* Vibrant Yellow for "Zone" */
   text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.6);
 }
+
 .welcome-message {
   text-align: center;
   font-size: 1.5rem;

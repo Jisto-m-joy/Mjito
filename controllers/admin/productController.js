@@ -25,9 +25,9 @@ const addProducts = async (req, res) => {
         const { name, description, regularPrice, salesPrice, quantity, brand, category, color, size } = req.body;
         const images = req.files.map(file => file.path); // Get the file paths from the uploaded files
 
-        if (!name || !description || !regularPrice || !salesPrice || !brand || !quantity || !category || !color || !size || images.length === 0) {
-            return res.status(400).send('All fields are required');
-        }
+        // if (!name || !description || !regularPrice || !salesPrice || !brand || !quantity || !category || !color || !size || images.length === 0) {
+        //     return res.status(400).send('All fields are required');
+        // }
 
         const categoryDoc = await Category.findOne({ name: category });
         if (!categoryDoc) {
@@ -160,24 +160,6 @@ const unblockProduct = async (req, res) => {
 }
 
 
-// const getEditProduct4 = async (req, res) => {
-//     try {
-//         const productId = req.query.id;
-//         const product = await Product.findById(productId).populate('category');
-//         const brand = await Brand.find();
-//         const cat = await Category.find();
-
-//         if (!product) {
-//             return res.status(404).send('Product not found');
-//         }
-
-        // res.render('edit-product', { product, brand, cat });
-//     } catch (error) {
-//         console.error('Error fetching product:', error);
-//         res.status(500).send('Server error');
-//     }
-// };
-
 const  getEditProduct = async (req, res) => {
     try {
 
@@ -193,41 +175,6 @@ const  getEditProduct = async (req, res) => {
     }
 };
 
-// const editProduct1 = async (req, res) => {
-//     try {
-//         const productId = req.params.id;
-//         const data = req.body;
-
-//         const product = await Product.findById(productId);
-//         if (!product) {
-//             return res.status(404).send('Product not found');
-//         }
-
-//         const images = productId.images;
-
-//         const updateFields = {
-//             name: data.name,
-//             description: data.description,
-//             brand: data.brand,
-//             category: data.category,
-//             regularPrice: data.regularPrice,
-//             salePrice: data.salePrice,
-//             size: data.size,
-//             color: data.color,
-//             quantity: data.quantity
-//         };
-
-//         if (images.length > 0) {
-//             updateFields.$push = { images: { $each: images } };
-//         }
-
-//         await Product.findByIdAndUpdate(productId, updateFields, images,{ new: true });
-//         res.redirect('/admin/products');
-//     } catch (error) {
-//         console.error('Error updating product:', error);
-//         res.status(500).send('Server error');
-//     }
-// };
 
 
 const editProduct = async (req, res) => {
@@ -284,31 +231,6 @@ const editProduct = async (req, res) => {
     }
 };
 
-
-// const deleteSingleImage=async (req,res) => {
-
-//     try {
-//         const { imageNameToServer, productIdToServer } = req.body
-        
-//         console.log('controller: Image Name:', imageNameToServer);  // Debug
-//         console.log('controller: Product ID:', productIdToServer);
-//         const product = await Product.findByIdAndUpdate(productIdToServer,{$pull:{productImage:imageNameToServer}});
-//         const imagePath=path.join("public","uploads","product-images",imageNameToServer)
-
-//         if(fs.existsSync(imagePath)){
-//             await fs.unlinkSync(imagePath)
-//             console.log(`Image ${imageNameToServer} deleted successfully`)
-
-//         }else{
-//             console.log(`Image ${imageNameToServer} not found`)
-//         }
-//   res.send({status:true});
-
-//     } catch (error) {
-    
-//         res.redirect('/pageerror')
-//     }
-// }
 
 
 const deleteImage = async (req, res) => {

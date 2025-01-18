@@ -1194,6 +1194,7 @@ table {
 .details__price .new__price {
   font-size: var(--h2-font-size);
 }
+
 .details__price .old__price {
   font-size: var(--normal-font-size);
   font-weight: var(--weight-500);
@@ -1323,6 +1324,7 @@ table {
   font-weight: var(--weight-500);
   text-align: left;
 }
+
 .info__table tr td {
   color: var(--text-color-light);
 }
@@ -1993,6 +1995,7 @@ table {
     height: 42px;
     line-height: 35px;
   }
+
   .btn--sm {
     height: 38px;
     line-height: 35px;
@@ -2081,6 +2084,7 @@ table {
   .category__img {
     margin-bottom: 1rem;
   }
+
   .deals__item,
   .checkout__group:nth-child(2) {
     padding: 1.25rem;

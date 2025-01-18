@@ -188,21 +188,17 @@ const resendOtp = async (req, res) => {
         .status(200)
         .json({ success: true, message: "OTP Resent Successfully" });
     } else {
-      return res
-        .status(500)
-        .json({
-          success: false,
-          message: "Failed to resend OTP. Please try again.",
-        });
+      return res.status(500).json({
+        success: false,
+        message: "Failed to resend OTP. Please try again.",
+      });
     }
   } catch (error) {
     console.error("Error resending OTP", error);
-    return res
-      .status(500)
-      .json({
-        success: false,
-        message: "Internal Server Error. Please try again.",
-      });
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error. Please try again.",
+    });
   }
 };
 
