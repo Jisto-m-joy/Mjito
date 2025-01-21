@@ -40,7 +40,7 @@
                 <td><%= data[i].salesPrice %></td>
                 <td>
                     <% if (data[i].offer) { %>
-                        <%= ((data[i].regularPrice - data[i].salePrice) / data[i].regularPrice * 100).toFixed(2) %>% 
+                        <%= ((data[i].regularPrice - data[i].salesPrice) / data[i].regularPrice * 100).toFixed(2) %>% 
                     <% } else { %>
                         0%
                     <% } %>

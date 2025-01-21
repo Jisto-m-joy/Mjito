@@ -65,6 +65,4 @@ router.post(
   uploads.array("images", 4),
   productController.editProduct
 );
-// Example with middleware
-// router.post("/deleteImage", adminAuth, productController.deleteImage);
 module.exports = router;

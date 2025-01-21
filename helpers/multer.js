@@ -4,7 +4,7 @@ const path = require('path');
 
 const storage = {
     _handleFile(req, file, cb) {
-        const uploadPath = path.join(__dirname, '../public/uploads', file.originalname);
+        const uploadPath = path.join(__dirname, '../public/uploads/productImages', file.originalname);
         const outStream = require('fs').createWriteStream(uploadPath);
 
         file.stream.pipe(outStream);
