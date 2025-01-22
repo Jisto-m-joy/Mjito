@@ -3,6 +3,7 @@ const Product = require("../../models/productSchema");
 const Brand = require("../../models/brandSchema");
 const Category = require("../../models/categorySchema");
 const fs = require("fs");
+const sharp = require("sharp");
 
 const getProductAddPage = async (req, res) => {
   try {
@@ -61,7 +62,7 @@ const addProducts = async (req, res) => {
       category: categoryDoc._id, // Use the ObjectId of the category
       color,
       size,
-      images,
+      images, // Ensure images are being saved here
     });
 
     await newProduct.save();
@@ -86,7 +87,7 @@ const getAllProducts = async (req, res) => {
     })
       .limit(limit * 1)
       .skip((page - 1) * limit)
-      .populate("category")
+      .populate("category") // Ensure category is populated
       .exec();
 
     const count = await Product.find({
@@ -114,6 +115,8 @@ const getAllProducts = async (req, res) => {
     res.redirect("/pageerror");
   }
 };
+
+
 
 const addOffer = async (req, res) => {
   try {
@@ -177,31 +180,32 @@ const unblockProduct = async (req, res) => {
 };
 
 const getEditProduct = async (req, res) => {
-    try {
-        const id = req.query.id; // Get the product ID from the query parameters
-        const product = await Product.findOne({ _id: id }).populate("category");
-        const cat = await Category.find({});
-        const brand = await Brand.find({});
+  try {
+    const id = req.query.id; // Get the product ID from the query parameters
+    const product = await Product.findOne({ _id: id }).populate("category");
+    const cat = await Category.find({});
+    const brands = await Brand.find({});
 
-        res.render("edit-product", { product, brand, cat });
-    } catch (error) {
-        console.error(error);
-        res.redirect("/pageerror");
-    }
+    // Log the product data to verify the images array
+    console.log(product);
+
+    res.render("edit-product", { product, brands, cat }); // Ensure product with images is passed to the view
+  } catch (error) {
+    console.error(error);
+    res.redirect("/pageerror");
+  }
 };
+
+
 
 const editProduct = async (req, res) => {
   try {
     const id = req.params.id;
-    console.log("Received request to edit product with ID:", id);
     const data = req.body;
-    console.log("Received data:", data);
 
     const category = await Category.findById(data.category);
-    console.log("Found category:", category);
-
     if (!category) {
-      return res.status(400).json({ error: "Category not found" });
+      return res.status(400).json({ error: 'Category not found' });
     }
 
     const existingProduct = await Product.findOne({
@@ -211,57 +215,74 @@ const editProduct = async (req, res) => {
 
     if (existingProduct) {
       return res.status(400).json({
-        error: "Product with this name already exists. Please try another name.",
+        error: 'Product with this name already exists. Please try another name.',
       });
     }
 
+    // Update fields
     const updateFields = {
       name: data.productName,
       description: data.description,
       brand: data.brand,
       category: data.category,
       regularPrice: data.regularPrice,
-      salesPrice: data.salePrice,  // Ensure this field is being updated
+      salesPrice: data.salePrice,
       size: data.size,
       color: data.color,
       quantity: data.quantity,
     };
 
-    const images = [];
+    const product = await Product.findById(id);
+
+    // Handle image replacement
+    const newImages = [];
     if (req.files && req.files.length > 0) {
       req.files.forEach(file => {
-        const imageField = file.fieldname.replace("replace_", "");
-        images.push({ imageField, filename: file.filename });
+        const imageField = file.fieldname.replace('replace_', '');
+        newImages.push({ imageField, filename: file.filename });
       });
     }
 
-    if (images.length > 0) {
-      for (const image of images) {
-        const product = await Product.findById(id);
-        const imagePath = path.join("public", image.imageField);
-        if (fs.existsSync(imagePath)) {
-          fs.unlinkSync(imagePath);
-        }
-        const imageIndex = product.images.indexOf(image.imageField);
-        if (imageIndex !== -1) {
-          product.images[imageIndex] = image.filename;
+    if (newImages.length > 0) {
+      for (const newImage of newImages) {
+        const oldImageIndex = product.images.indexOf(newImage.imageField);
+        if (oldImageIndex !== -1) {
+          // Remove old image from filesystem
+          const oldImagePath = path.join('public', newImage.imageField);
+          if (fs.existsSync(oldImagePath)) {
+            fs.unlinkSync(oldImagePath);
+          }
+          // Replace the old image with the new image in the database
+          product.images[oldImageIndex] = newImage.filename;
         } else {
-          product.images.push(image.filename);
+          if (product.images.length < 4) {
+            // Add new image if there are less than 4 images
+            product.images.push(newImage.filename);
+          } else {
+            // Remove the first image and add the new image to maintain exactly 4 images
+            const imageToRemove = product.images.shift();
+            const imagePathToRemove = path.join('public', 'uploads', 'productImages', imageToRemove);
+            if (fs.existsSync(imagePathToRemove)) {
+              fs.unlinkSync(imagePathToRemove);
+            }
+            product.images.push(newImage.filename);
+          }
         }
-        await product.save();
       }
     }
 
-    let result = await Product.findByIdAndUpdate(id, updateFields, {
-      new: true,
-    });
-    console.log("Updated product:", result);
-    res.redirect("/admin/products");
+    await product.save();
+    await Product.findByIdAndUpdate(id, updateFields, { new: true });
+
+    console.log('Updated product images:', product.images); // Log the updated images
+
+    res.redirect('/admin/products');
   } catch (error) {
-    console.error("Error updating product:", error);
-    res.redirect("/pageerror");
+    console.error('Error updating product:', error);
+    res.redirect('/pageerror');
   }
 };
+
 
 module.exports = {
   getProductAddPage,

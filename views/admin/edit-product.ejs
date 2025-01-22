@@ -129,33 +129,34 @@
                                 </div>
                                 <div class="card mb-4">
                                     <div class="card-header">
-                                        <h4>Edit Product Images</h4>
+                                      <h4>Edit Product Images</h4>
                                     </div>
                                     <div class="thumbnails-container">
-                                        <% if (product.images && product.images.length > 0) { %>
-                                        <% for (let i = 0; i < product.images.length; i++) { %>
-                                        <div class="thumbnail-container">
-                                            <div class="thumbnail">
-                                                <img src="/<%= product.images[i] %>" alt="Product Image" id="productImg<%= i %>">
-                                            </div>
-                                            <div class="input-upload">
-                                                <input type="file" accept="image/webp, image/jpeg, image/jpg" onchange="replaceImage(event, '<%= product.images[i] %>','<%= i %>')">
-                                            </div>
-                                            <div class="image-cropper-container" id="cropperContainer<%= i %>">
-                                                <div class="image-cropper">
-                                                    <img src="" id="cropperImg<%= i %>" alt="">
-                                                </div>
-                                                <div class="btn-container">
-                                                    <button type="button" id="saveButton<%= i %>" class="btn btn-sm btn-primary mt-2">Save</button>
-                                                </div>
-                                            </div>
+                                      <% if (product.images && product.images.length > 0) { %>
+                                      <% for (let i = 0; i < product.images.length; i++) { %>
+                                      <div class="thumbnail-container">
+                                        <div class="thumbnail">
+                                          <!-- Ensure the image path is correct -->
+                                          <img src="/<%= product.images[i] %>" alt="Product Image" id="productImg<%= i %>">
                                         </div>
-                                        <% } %>
-                                        <% } else { %>
-                                        <p class="text-center">No images found</p>
-                                        <% } %>
+                                        <div class="input-upload">
+                                          <input type="file" accept="image/webp, image/jpeg, image/jpg" onchange="replaceImage(event, '<%= product.images[i] %>','<%= i %>')">
+                                        </div>
+                                        <div class="image-cropper-container" id="cropperContainer<%= i %>">
+                                          <div class="image-cropper">
+                                            <img src="" id="cropperImg<%= i %>" alt="">
+                                          </div>
+                                          <div class="btn-container">
+                                            <button type="button" id="saveButton<%= i %>" class="btn btn-sm btn-primary mt-2">Save</button>
+                                          </div>
+                                        </div>
+                                      </div>
+                                      <% } %>
+                                      <% } else { %>
+                                      <p class="text-center">No images found</p>
+                                      <% } %>
                                     </div>
-                                </div>
+                                  </div>
                                 <div class="d-flex justify-content-between">
                                     <button type="submit" class="btn btn-md btn-danger">Save Changes</button>
                                     <a href="/admin/products" class="btn btn-secondary">Cancel</a>
@@ -231,66 +232,63 @@
         }
 
         function validateForm() {
-            clearErrorMessages();
-            const name = document.getElementsByName('productName')[0].value;
-            const description = document.getElementById('descriptionid').value;
-            const salesPrice = document.getElementsByName('salePrice')[0].value;
-            const regularPrice = document.getElementsByName('regularPrice')[0].value;
-            const category = document.getElementsByName('category')[0].value;
-            const quantity = document.getElementsByName('quantity')[0].value;
-            let isValid = true;
+        clearErrorMessages();
+        const name = document.getElementsByName('productName')[0].value;
+        const description = document.getElementById('descriptionid').value;
+        const salesPrice = document.getElementsByName('salePrice')[0].value;
+        const regularPrice = document.getElementsByName('regularPrice')[0].value;
+        const category = document.getElementsByName('category')[0].value;
+        const quantity = document.getElementsByName('quantity')[0].value;
+        let isValid = true;
 
-            if (name.trim() === "") {
-                displayErrorMessage('productName-error', 'Please enter a product name.');
-                isValid = false;
-            } else if (!/^[a-zA-Z\s]+$/.test(name.trim())) {
-                displayErrorMessage('productName-error', 'Product name should contain only alphabetic characters.');
-                isValid = false;
-            }
-
-            if (description.trim() === "") {
-                displayErrorMessage('description-error', 'Please enter a product description.');
-                isValid = false;
-            } else if (!/^[a-zA-Z\s]+$/.test(description.trim())) {
-                displayErrorMessage('description-error', 'Product description should contain only alphabetic characters.');
-                isValid = false;
-            }
-
-            if (!/^\d+(\.\d{1,2})?$/.test(quantity) || parseFloat(quantity) < 0) {
-                displayErrorMessage('quantity-error', 'Please enter a valid non-negative quantity.');
-                isValid = false;
-            }
-
-            if (!/^\d+(\.\d{1,2})?$/.test(regularPrice) || parseFloat(regularPrice) < 0) {
-                displayErrorMessage('regularPrice-error', 'Please enter a valid non-negative price.');
-                isValid = false;
-            }
-
-            if (!/^\d+(\.\d{1,2})?$/.test(salesPrice) || parseFloat(salesPrice) < 0 || parseFloat(salesPrice) >= parseFloat(regularPrice)) {
-                displayErrorMessage('salePrice-error', 'Please enter a valid non-negative sale price lower than the original price.');
-                isValid = false;
-            }
-
-            if (category.trim() === "") {
-                displayErrorMessage('category-error', 'Please select a category.');
-                isValid = false;
-            }
-
-            return isValid;
+        if (name.trim() === "") {
+            displayErrorMessage('productName-error', 'Please enter a product name.');
+            isValid = false;
+        } else if (!/^[a-zA-Z\s]+$/.test(name.trim())) {
+            displayErrorMessage('productName-error', 'Product name should contain only alphabetic characters.');
+            isValid = false;
         }
 
-        function displayErrorMessage(elementId, message) {
-            const errorElement = document.getElementById(elementId);
-            errorElement.innerText = message;
-            errorElement.style.display = "block";
+        if (description.trim() === "") {
+            displayErrorMessage('description-error', 'Please enter a product description.');
+            isValid = false;
+        } // Removed the alphabetic characters validation for description
+
+        if (!/^\d+(\.\d{1,2})?$/.test(quantity) || parseFloat(quantity) < 0) {
+            displayErrorMessage('quantity-error', 'Please enter a valid non-negative quantity.');
+            isValid = false;
         }
 
-        function clearErrorMessages() {
-            const errorElements = document.getElementsByClassName('error-message');
-            Array.from(errorElements).forEach(element => {
-                element.innerText = '';
-            });
+        if (!/^\d+(\.\d{1,2})?$/.test(regularPrice) || parseFloat(regularPrice) < 0) {
+            displayErrorMessage('regularPrice-error', 'Please enter a valid non-negative price.');
+            isValid = false;
         }
+
+        if (!/^\d+(\.\d{1,2})?$/.test(salesPrice) || parseFloat(salesPrice) < 0 || parseFloat(salesPrice) >= parseFloat(regularPrice)) {
+            displayErrorMessage('salePrice-error', 'Please enter a valid non-negative sale price lower than the original price.');
+            isValid = false;
+        }
+
+        if (category.trim() === "") {
+            displayErrorMessage('category-error', 'Please select a category.');
+            isValid = false;
+        }
+
+        return isValid;
+    }
+
+    function displayErrorMessage(elementId, message) {
+        const errorElement = document.getElementById(elementId);
+        errorElement.innerText = message;
+        errorElement.style.display = "block";
+    }
+
+    function clearErrorMessages() {
+        const errorElements = document.getElementsByClassName('error-message');
+        Array.from(errorElements).forEach(element => {
+            element.innerText = '';
+        });
+    }
     </script>
     <script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
 </body>

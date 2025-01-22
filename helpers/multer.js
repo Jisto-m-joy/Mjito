@@ -1,27 +1,32 @@
-
 const multer = require('multer');
 const path = require('path');
+const fs = require('fs');
 
-const storage = {
-    _handleFile(req, file, cb) {
-        const uploadPath = path.join(__dirname, '../public/uploads/productImages', file.originalname);
-        const outStream = require('fs').createWriteStream(uploadPath);
-
-        file.stream.pipe(outStream);
-        outStream.on('error', cb);
-        outStream.on('finish', function () {
-            cb(null, {
-                path: uploadPath,
-                size: outStream.bytesWritten
-            });
-        });
+// Define the storage engine
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        // Define the destination folder for uploaded files
+        const uploadPath = path.join(__dirname, '../public/uploads/productImages');
+        fs.mkdirSync(uploadPath, { recursive: true }); // Create the directory if it doesn't exist
+        cb(null, uploadPath);
     },
-    _removeFile(req, file, cb) {
-        const fs = require('fs');
-        const path = file.path;
-
-        fs.unlink(path, cb);
+    filename: function (req, file, cb) {
+        // Define the filename for uploaded files
+        cb(null, Date.now() + '-' + file.originalname);
     }
-};
+});
 
-module.exports = storage;
+// Set up multer with the defined storage engine and file filter
+const upload = multer({
+    storage: storage,
+    fileFilter: function (req, file, cb) {
+        // Allow files with names that start with 'replace_' or are 'images' or 'image'
+        if (file.fieldname.startsWith('replace_') || file.fieldname === 'images' || file.fieldname === 'image') {
+            cb(null, true);
+        } else {
+            cb(new multer.MulterError('LIMIT_UNEXPECTED_FILE', file.fieldname));
+        }
+    }
+});
+
+module.exports = upload;

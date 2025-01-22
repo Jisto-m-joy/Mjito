@@ -8,8 +8,8 @@ const brandController = require("../controllers/admin/brandController");
 const productController = require("../controllers/admin/productController");
 const { userAuth, adminAuth } = require("../middlewares/auth");
 const multer = require("multer");
-const storage = require("../helpers/multer");
-const uploads = multer({ storage: storage });
+const upload = require('../helpers/multer');
+
 
 // Error Page
 router.get("/pageerror", adminController.pageerror);
@@ -41,28 +41,18 @@ router.get("/editCategory", adminAuth, categoryController.getEditCategory);
 router.post("/editCategory/:id", adminAuth, categoryController.editCategory);
 // Brand Management
 router.get("/brands", adminAuth, brandController.getBrandPage);
-router.post("/addBrand", uploads.single("image"), brandController.addBrand);
-router.get("/blockBrand", adminAuth, brandController.blockBrand);
+router.post("/addBrand", upload.single('image'), brandController.addBrand); 
 router.get("/unBlockBrand", adminAuth, brandController.unBlockBrand);
 router.get("/deleteBrand", adminAuth, brandController.deleteBrand);
 // Product Management
 router.get("/addProducts", adminAuth, productController.getProductAddPage);
-router.post(
-  "/addProducts",
-  adminAuth,
-  uploads.array("images", 4),
-  productController.addProducts
-);
+router.post("/addProducts", adminAuth, upload.array("images", 4), productController.addProducts);
 router.get("/products", adminAuth, productController.getAllProducts);
 router.post("/addOffer", productController.addOffer);
 router.post("/removeOffer", productController.removeOffer);
 router.get("/blockProduct", adminAuth, productController.blockProduct);
 router.get("/unblockProduct", adminAuth, productController.unblockProduct);
 router.get("/editProduct", adminAuth, productController.getEditProduct);
-router.post(
-  "/editProduct/:id",
-  adminAuth,
-  uploads.array("images", 4),
-  productController.editProduct
-);
+router.post('/editProduct/:id', adminAuth, upload.any(), productController.editProduct);
+
 module.exports = router;

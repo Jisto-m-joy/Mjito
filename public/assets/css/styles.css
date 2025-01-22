@@ -383,7 +383,7 @@ table {
 }
 
 .home__title span {
-  color: var(--first-color);
+  color: red;
   font-size: var(--big-font-size);
 }
 

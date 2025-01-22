@@ -22,11 +22,20 @@ const getBrandPage = async (req, res) => {
     }
 }
 
-
 const addBrand = async (req, res) => {
     try {
+        // Log the request to check if the file is being uploaded
+        console.log('Request Body:', req.body);
+        console.log('Request File:', req.file);
+
+        // Check if req.file is defined
+        if (!req.file) {
+            console.error('No file uploaded');
+            return res.status(400).send('No file uploaded');
+        }
+
         const brand = req.body.name;
-        const Image = req.file.path; // Get the file path from the uploaded file
+        const Image = req.file.filename; // Get the file path from the uploaded file
 
         const findBrand = await Brand.findOne({ brandName: brand });
         if (!findBrand) {
@@ -44,7 +53,6 @@ const addBrand = async (req, res) => {
         res.redirect('/pageerror');
     }
 };
-
 
 const blockBrand = async (req, res) => {
     try {

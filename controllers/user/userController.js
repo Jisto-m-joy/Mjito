@@ -47,9 +47,9 @@ const loadHomepage = async (req, res) => {
     if (user) {
       const userData = await User.findOne({ _id: user._id });
 
-      return res.render("home", { user: userData, products: productData });
+      return res.render("home", { user: userData, products: productData});
     } else {
-      res.render("home", { products: productData });
+      return res.render("home", { products: productData });
     }
   } catch (error) {
     console.log("Home Page not found:", error);
