@@ -13,6 +13,7 @@
     <meta property="og:image" content="">
     <link rel="shortcut icon" type="image/x-icon" href="#">
     <link href="/assets/css/admin/main.css" rel="stylesheet" type="text/css" />
+    <link rel="stylesheet" href="/assets/css/logo.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@10.16.6/dist/sweetalert2.min.css">
     <script src="https://kit.fontawesome.com/16d4885483.js" crossorigin="anonymous"></script>
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
@@ -49,6 +50,12 @@
             background-color: #33053d;
             color: #ffffff;
         }
+        .a {
+            text-decoration: none;
+        }
+        .nav__logo {
+        text-decoration: none; /* Remove underline from logo */
+    }
     </style>
 </head>
 
@@ -56,9 +63,12 @@
     <div class="screen-overlay"></div>
     <aside class="navbar-aside" id="offcanvas_aside">
         <div class="aside-top">
-            <a href="#" class="brand-wrap">
-                <img src="/img/logo.png" class="logo" alt="Mjito Dashboard">
-            </a>
+            <a href="/admin/users/" class="nav__logo">
+                <!-- New Logo Design -->
+                <div class="logo">
+                  <span class="goal">Goal</span><span class="zone">Zone</span>
+                </div>
+              </a>
             <div>
                 <button class="btn btn-icon btn-aside-minimize"> <i class="text-muted material-icons md-menu_open"></i>
                 </button>

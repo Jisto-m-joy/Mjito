@@ -118,11 +118,20 @@
                                     <input name="color" type="text" value="<%= product.color %>" class="form-control border">
                                     <div id="color-error" class="error-message"></div>
                                 </div>
+                                <!-- <div class="mb-4">
+                                    <label class="form-label">Brand</label>
+                                    <select class="form-select" name="brand">
+                                        <% for(let i = 0; i < brands.length; i++) { %>
+                                            <option value="<%= product.brand %>"><%= brands[i].name %></option>
+                                        <% } %>
+                                    </select>
+                                    <div id="brand-error" class="error-message"></div>
+                                </div> -->
                                 <div class="mb-4">
                                     <label class="form-label">Category</label>
                                     <select class="form-select" name="category">
                                         <% for(let i=0; i < cat.length; i++) { %>
-                                        <option value="<%= cat[i]._id %>"><%= cat[i].name %></option>
+                                            <option value="<%= cat[i]._id %>" <%= product.category && product.category._id.toString() === cat[i]._id.toString() ? 'selected' : '' %>><%= cat[i].name %></option>
                                         <% } %>
                                     </select>
                                     <div id="category-error" class="error-message"></div>
@@ -137,7 +146,7 @@
                                       <div class="thumbnail-container">
                                         <div class="thumbnail">
                                           <!-- Ensure the image path is correct -->
-                                          <img src="/<%= product.images[i] %>" alt="Product Image" id="productImg<%= i %>">
+                                          <img src="/<%= product.images[i].replace(/\\/g, '/') %>" alt="Product Image" id="productImg<%= i %>">
                                         </div>
                                         <div class="input-upload">
                                           <input type="file" accept="image/webp, image/jpeg, image/jpg" onchange="replaceImage(event, '<%= product.images[i] %>','<%= i %>')">
@@ -237,6 +246,7 @@
         const description = document.getElementById('descriptionid').value;
         const salesPrice = document.getElementsByName('salePrice')[0].value;
         const regularPrice = document.getElementsByName('regularPrice')[0].value;
+        const brand = document.getElementsByName('brand')[0].value;
         const category = document.getElementsByName('category')[0].value;
         const quantity = document.getElementsByName('quantity')[0].value;
         let isValid = true;
@@ -266,6 +276,11 @@
 
         if (!/^\d+(\.\d{1,2})?$/.test(salesPrice) || parseFloat(salesPrice) < 0 || parseFloat(salesPrice) >= parseFloat(regularPrice)) {
             displayErrorMessage('salePrice-error', 'Please enter a valid non-negative sale price lower than the original price.');
+            isValid = false;
+        }
+
+        if (brand.trim() === "") {
+            displayErrorMessage('brand-error', 'Please select a brand.');
             isValid = false;
         }
 

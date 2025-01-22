@@ -1,5 +1,9 @@
 <%-include("../../views/user/partials/header")%>
-
+<head>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/elevatezoom/3.0.8/css/elevatezoom.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/elevatezoom/3.0.8/jquery.elevatezoom.min.js"></script>
+</head>
 
 <!--=============== MAIN ===============-->
 <main class="main">
@@ -19,25 +23,30 @@
       <div class="details__container container grid">
         <div class="details__group">
           <img
-            src="/<%=product.images[0]%>"
+            id="zoom_01"
+            src="<%= product.images[0].replace(/\\/g, '/') %>"
+            data-zoom-image="<%= product.images[0].replace(/\\/g, '/') %>"
             alt="product image"
             class="details__img"
           />
           <div class="details__small-images grid">
             <img
-              src="/<%=product.images[1]%>"
+              src="<%= product.images[1].replace(/\\/g, '/') %>"
               alt="product image"
               class="details__small-img"
+              onclick="changeImage(this)"
             />
             <img
-              src="/<%=product.images[2]%>"
+              src="<%= product.images[2].replace(/\\/g, '/') %>"
               alt="product image"
               class="details__small-img"
+              onclick="changeImage(this)"
             />
             <img
-              src="/<%=product.images[3]%>"
+              src="<%= product.images[3].replace(/\\/g, '/') %>"
               alt="product image"
               class="details__small-img"
+              onclick="changeImage(this)"
             />
           </div>
         </div>
@@ -401,3 +410,25 @@
 
 
   <%-include("../../views/user/partials/footer")%>
+
+
+  <script>
+    $(document).ready(function(){
+      console.log("Document is ready, initializing zoom...");
+      console.log("Main Image Path:", $("#zoom_01").attr('src'));
+  
+      $("#zoom_01").elevateZoom({
+        zoomType: "lens",
+        lensShape: "round",
+        lensSize: 200
+      });
+  
+      window.changeImage = function (element) {
+        console.log("Image clicked, changing zoom image...");
+        var newImage = $(element).attr('src');
+        console.log("New Image Path:", newImage);
+        $("#zoom_01").attr('src', newImage);
+        $("#zoom_01").data('zoom-image', newImage).elevateZoom();
+      };
+    });
+  </script>

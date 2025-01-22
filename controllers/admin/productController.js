@@ -182,7 +182,7 @@ const unblockProduct = async (req, res) => {
 const getEditProduct = async (req, res) => {
   try {
     const id = req.query.id; // Get the product ID from the query parameters
-    const product = await Product.findOne({ _id: id }).populate("category");
+    const product = await Product.findOne({ _id: id }).populate("category").populate("brand"); 
     const cat = await Category.find({});
     const brands = await Brand.find({});
 
@@ -239,7 +239,7 @@ const editProduct = async (req, res) => {
     if (req.files && req.files.length > 0) {
       req.files.forEach(file => {
         const imageField = file.fieldname.replace('replace_', '');
-        newImages.push({ imageField, filename: file.filename });
+        newImages.push({ imageField, filename: path.join('uploads', 'productImages', file.filename) });
       });
     }
 
