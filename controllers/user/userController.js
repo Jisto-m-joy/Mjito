@@ -42,12 +42,12 @@ const loadHomepage = async (req, res) => {
     });
 
     productData.sort((a, b) => new Date(b.createdOn) - new Date(a.createdOn));
-    productData = productData.slice(0, 4);
+    productData = productData.slice(0, 10);
 
     if (user) {
       const userData = await User.findOne({ _id: user._id });
 
-      return res.render("home", { user: userData, products: productData});
+      return res.render("home", { user: userData, products: productData });
     } else {
       return res.render("home", { products: productData });
     }

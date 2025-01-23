@@ -7,19 +7,22 @@ const brandController = require("../controllers/admin/brandController");
 const productController = require("../controllers/admin/productController");
 const { userAuth, adminAuth } = require("../middlewares/auth");
 const multer = require("multer");
-const upload = require('../helpers/multer');
+const upload = require("../helpers/multer");
 
 // Error Page
 router.get("/pageerror", adminController.pageerror);
+
 // Login Management
 router.get("/login", adminController.loadLogin);
 router.post("/login", adminController.login);
 router.get("/", adminAuth, adminController.loadDashboard);
 router.get("/logout", adminController.logout);
+
 // Customer Management
 router.get("/users", adminAuth, customerController.customerInfo);
-router.get("/blockCustomer", adminAuth, customerController.blockCustomer);
-router.get("/unblockCustomer", adminAuth, customerController.unblockCustomer);
+router.patch("/blockCustomer", adminAuth, customerController.blockCustomer);
+router.patch("/unblockCustomer", adminAuth, customerController.unblockCustomer);
+
 // Category Management
 router.get("/category", adminAuth, categoryController.categoryInfo);
 router.post("/addCategory", adminAuth, categoryController.addCategory);
@@ -28,8 +31,8 @@ router.post(
   adminAuth,
   categoryController.addCategoryOffer
 );
-router.post(
-  "/removeCategoryOffer",
+router.delete(
+  "/removeCategoryOffer/:categoryId", 
   adminAuth,
   categoryController.removeCategoryOffer
 );
@@ -37,16 +40,25 @@ router.get("/listCategory", adminAuth, categoryController.getlistCategory);
 router.get("/unlistCategory", adminAuth, categoryController.getUnlistCategory);
 router.get("/editCategory", adminAuth, categoryController.getEditCategory);
 router.post("/editCategory/:id", adminAuth, categoryController.editCategory);
+
 // Brand Management
 router.get("/brands", adminAuth, brandController.getBrandPage);
-router.post("/addBrand", upload.single('image'), brandController.addBrand); 
-router.get("/unBlockBrand", adminAuth, brandController.unBlockBrand);
-router.get("/deleteBrand", adminAuth, brandController.toggleBrandBlockStatus);
-router.get('/toggleBrandBlockStatus', adminAuth, brandController.toggleBrandBlockStatus);
-router.get('/checkBrandExists', adminAuth, brandController.checkBrandExists); // New route
+router.post("/addBrand", upload.single("image"), brandController.addBrand);
+router.get(
+  "/toggleBrandBlockStatus", 
+  adminAuth,
+  brandController.toggleBrandBlockStatus
+);
+router.get("/checkBrandExists", adminAuth, brandController.checkBrandExists); 
+
 // Product Management
 router.get("/addProducts", adminAuth, productController.getProductAddPage);
-router.post("/addProducts", adminAuth, upload.array("images", 4), productController.addProducts);
+router.post(
+  "/addProducts",
+  adminAuth,
+  upload.array("images", 4),
+  productController.addProducts
+);
 router.get("/products", adminAuth, productController.getAllProducts);
 router.post("/addOffer", productController.addOffer);
 router.post("/removeOffer", productController.removeOffer);

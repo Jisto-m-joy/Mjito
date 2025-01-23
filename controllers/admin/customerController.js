@@ -20,25 +20,25 @@ const customerInfo = async (req, res) => {
 };
 
 const blockCustomer = async (req, res) => {
-    try {
-        const userId = req.query.id;
-        await User.findByIdAndUpdate(userId, { isBlocked: true });
-        res.redirect('/admin/users');
-    } catch (error) {
-        console.error('Error blocking customer:', error);
-        res.status(500).send('Server error');
-    }
+  try {
+    const userId = req.body.id;
+    await User.findByIdAndUpdate(userId, { isBlocked: true });
+    res.sendStatus(200);
+  } catch (error) {
+    console.error("Error blocking customer:", error);
+    res.status(500).send("Server error");
+  }
 };
 
 const unblockCustomer = async (req, res) => {
-    try {
-        const userId = req.query.id;
-        await User.findByIdAndUpdate(userId, { isBlocked: false });
-        res.redirect('/admin/users');
-    } catch (error) {
-        console.error('Error unblocking customer:', error);
-        res.status(500).send('Server error');
-    }
+  try {
+    const userId = req.body.id;
+    await User.findByIdAndUpdate(userId, { isBlocked: false });
+    res.sendStatus(200);
+  } catch (error) {
+    console.error("Error unblocking customer:", error);
+    res.status(500).send("Server error");
+  }
 };
 
 module.exports = {

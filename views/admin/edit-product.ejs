@@ -88,8 +88,7 @@
                             <form method="post" action="/admin/editProduct/<%= product._id %>" enctype="multipart/form-data" onsubmit="return validateAndSubmit()">
                                 <div class="mb-4">
                                     <label for="product_name" class="form-label">Product Name</label>
-                                    <input type="text" placeholder="Type here" name="productName" value="<%= product.name %>" class="form-control" id="product_name">
-                                    <div id="productName-error" class="error-message"></div>
+                                    <input type="text" placeholder="Type here" name="productName" value="<%= product.name %>" class="form-control" id="product_name">                                    <div id="productName-error" class="error-message"></div>
                                 </div>
                                 <div class="mb-4">
                                     <label class="form-label">Description</label>
@@ -109,7 +108,7 @@
                                     </div>
                                     <div class="col-lg-4">
                                         <label class="form-label">Quantity</label>
-                                        <input placeholder="kg" name="quantity" type="text" class="form-control" value="<%= product.quantity %>">
+                                        <input placeholder="Type number" name="quantity" type="text" class="form-control" value="<%= product.quantity %>">
                                         <div id="quantity-error" class="error-message"></div>
                                     </div>
                                 </div>
@@ -183,7 +182,133 @@
 
     <%- include("../../views/admin/partials/footer") %>
     <script src="https://cdn.jsdelivr.net/npm/cropperjs/dist/cropper.min.js"></script>
-    <script src="/assets/js/admin/edit-product.js"></script>
+    <script>
+        let currentCropper = null;
+
+        function validateAndSubmit() {
+    const isValid = validateForm();
+    if (isValid) {
+        const formData = new FormData(document.querySelector('form'));
+        for (const [key, value] of formData.entries()) {
+            console.log(`${key}: ${value}`);
+        }
+    }
+    return isValid;
+}
+
+        function replaceImage(event, imageName, index) {
+            const input = event.target;
+            const file = input.files[0];
+            const reader = new FileReader();
+            input.name = `replace_${imageName}`;
+
+            reader.onload = function(e) {
+                const imgElement = document.getElementById(`cropperImg${index}`);
+                imgElement.src = e.target.result;
+
+                const cropperContainer = document.getElementById(`cropperContainer${index}`);
+                cropperContainer.style.display = 'flex';
+
+                if (currentCropper) {
+                    currentCropper.destroy();
+                }
+
+                currentCropper = new Cropper(imgElement, {
+                    aspectRatio: 1,
+                    viewMode: 2,
+                    guides: true,
+                    background: false,
+                    autoCropArea: 1,
+                    zoomable: true
+                });
+
+                const saveButton = document.getElementById(`saveButton${index}`);
+                saveButton.addEventListener('click', async function() {
+                    const croppedCanvas = currentCropper.getCroppedCanvas();
+                    const productImg = document.getElementById(`productImg${index}`);
+                    productImg.src = croppedCanvas.toDataURL('image/webp', 1.0);
+                    const timestamp = new Date().getTime();
+                    const fileName = `cropped-img-${timestamp}-${index}.webp`;
+
+                    await croppedCanvas.toBlob(blob => {
+                        const imgFile = new File([blob], fileName, { type: 'image/webp' });
+                        const dataTransfer = new DataTransfer();
+                        dataTransfer.items.add(imgFile);
+                        input.files = dataTransfer.files;
+                    });
+
+                    cropperContainer.style.display = 'none';
+                    currentCropper.destroy();
+                    currentCropper = null;
+                }, { once: true });
+            };
+
+            reader.readAsDataURL(file);
+        }
+
+        function validateForm() {
+    clearErrorMessages();
+    const name = document.getElementsByName('productName')[0].value;
+    const description = document.getElementById('descriptionid').value;
+    const salesPrice = document.getElementsByName('salePrice')[0].value;
+    const regularPrice = document.getElementsByName('regularPrice')[0].value;
+    const quantity = document.getElementsByName('quantity')[0].value;
+    const color = document.getElementsByName('color')[0].value;
+    const category = document.getElementsByName('category')[0].value;
+    let isValid = true;
+
+    if (name.trim() === "") {
+        displayErrorMessage('productName-error', 'Please enter a product name.');
+        isValid = false;
+    }
+
+    if (description.trim() === "") {
+        displayErrorMessage('description-error', 'Please enter a product description.');
+        isValid = false;
+    }
+
+    if (!/^\d+(\.\d{1,2})?$/.test(quantity) || parseFloat(quantity) < 0) {
+        displayErrorMessage('quantity-error', 'Please enter a valid non-negative quantity.');
+        isValid = false;
+    }
+
+    if (!/^\d+(\.\d{1,2})?$/.test(regularPrice) || parseFloat(regularPrice) < 0) {
+        displayErrorMessage('regularPrice-error', 'Please enter a valid non-negative price.');
+        isValid = false;
+    }
+
+    if (!/^\d+(\.\d{1,2})?$/.test(salesPrice) || parseFloat(salesPrice) < 0 || parseFloat(salesPrice) >= parseFloat(regularPrice)) {
+        displayErrorMessage('salePrice-error', 'Please enter a valid non-negative sale price lower than the original price.');
+        isValid = false;
+    }
+
+    if (category.trim() === "") {
+        displayErrorMessage('category-error', 'Please select a category.');
+        isValid = false;
+    }
+
+    if (color.trim() === "") {
+        displayErrorMessage('color-error', 'Please enter a color.');
+        isValid = false;
+    }
+
+    return isValid;
+}
+
+function displayErrorMessage(elementId, message) {
+    const errorElement = document.getElementById(elementId);
+    errorElement.innerText = message;
+    errorElement.style.display = "block";
+}
+
+function clearErrorMessages() {
+    const errorElements = document.getElementsByClassName('error-message');
+    Array.from(errorElements).forEach(element => {
+        element.innerText = '';
+        element.style.display = "none"; // Ensure it hides the error messages
+    });
+}
+    </script>
     <script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
 </body>
 

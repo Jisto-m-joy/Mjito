@@ -142,16 +142,10 @@ function validateForm() {
   if (description.trim() === "") {
     displayErrorMessage(
       "description-error",
-      "Please enter a product description."
+      "Please enter the product description."
     );
     isValid = false;
-  } else if (!/^[a-zA-Z0-9\s.,!?'-]+$/.test(description.trim())) {
-    displayErrorMessage(
-      "description-error",
-      "Product description should contain only alphabetic characters."
-    );
-    isValid = false;
-  }
+  } 
 
   if (parseInt(quantity) < 0 || isNaN(parseInt(quantity))) {
     displayErrorMessage(

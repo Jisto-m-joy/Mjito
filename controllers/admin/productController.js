@@ -7,9 +7,9 @@ const sharp = require("sharp");
 
 const getProductAddPage = async (req, res) => {
   try {
-    const brands = await Brand.find(); // Fetch all brands from the database
-    const categories = await Category.find(); // Fetch all categories from the database
-    res.render("product-add", { brands, categories }); // Pass the brands and categories to the view
+    const brands = await Brand.find({ isBlocked: false }); 
+    const categories = await Category.find({ isListed: true }); 
+    res.render("product-add", { brands, categories }); 
   } catch (error) {
     console.error("Error fetching brands or categories:", error);
     res.status(500).send("Server error");
@@ -183,8 +183,8 @@ const getEditProduct = async (req, res) => {
   try {
     const id = req.query.id; // Get the product ID from the query parameters
     const product = await Product.findOne({ _id: id }).populate("category").populate("brand"); 
-    const cat = await Category.find({});
-    const brands = await Brand.find({});
+    const cat = await Category.find({isListed: true });
+    const brands = await Brand.find({ isBlocked: false});
 
     // Log the product data to verify the images array
     console.log(product);
@@ -196,12 +196,12 @@ const getEditProduct = async (req, res) => {
   }
 };
 
-
-
 const editProduct = async (req, res) => {
   try {
     const id = req.params.id;
     const data = req.body;
+
+    console.log("Form data received:", data);
 
     const category = await Category.findById(data.category);
     if (!category) {
@@ -282,7 +282,6 @@ const editProduct = async (req, res) => {
     res.redirect('/pageerror');
   }
 };
-
 
 module.exports = {
   getProductAddPage,

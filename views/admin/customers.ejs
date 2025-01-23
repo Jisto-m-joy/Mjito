@@ -60,13 +60,9 @@
                   <td><%= data[i].email %></td>
                   <td>
                     <% if (data[i].isBlocked) { %>
-                      <button class="btn btn-danger" style="width: 100px;">
-                        <a href="/admin/unblockCustomer?id=<%= data[i]._id %>" class="text-white" style="text-decoration: none;">Unblock</a>
-                      </button>
+                      <button class="btn btn-danger" style="width: 100px;" onclick="unblockCustomer('<%= data[i]._id %>')">Unblock</button>
                     <% } else { %>
-                      <button class="btn btn-success" style="width: 80px;">
-                        <a href="/admin/blockCustomer?id=<%= data[i]._id %>" class="text-white" style="text-decoration: none;">Block</a>
-                      </button>
+                      <button class="btn btn-success" style="width: 80px;" onclick="blockCustomer('<%= data[i]._id %>')">Block</button>
                     <% } %>
                   </td>
                 </tr>
@@ -96,4 +92,35 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <%-include("../../views/admin/partials/footer")%>
+    <script>
+      function blockCustomer(userId) {
+        $.ajax({
+          url: '/admin/blockCustomer',
+          type: 'PATCH',
+          data: { id: userId },
+          success: function(result) {
+            location.reload();
+          },
+          error: function(err) {
+            console.error("Error blocking customer:", err);
+            alert("Error blocking customer");
+          }
+        });
+      }
+    
+      function unblockCustomer(userId) {
+        $.ajax({
+          url: '/admin/unblockCustomer',
+          type: 'PATCH',
+          data: { id: userId },
+          success: function(result) {
+            location.reload();
+          },
+          error: function(err) {
+            console.error("Error unblocking customer:", err);
+            alert("Error unblocking customer");
+          }
+        });
+      }
+    </script>
 </body>
