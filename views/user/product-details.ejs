@@ -394,7 +394,7 @@
           Sign in to Newsletter
         </h3>
         <p class="newsletter__description">
-          ...and receive $25 coupon for first shopping.
+          <!-- ...and receive $25 coupon for first shopping. -->
         </p>
         <form action="" class="newsletter__form">
           <input
@@ -411,24 +411,5 @@
 
   <%-include("../../views/user/partials/footer")%>
 
-
-  <script>
-    $(document).ready(function(){
-      console.log("Document is ready, initializing zoom...");
-      console.log("Main Image Path:", $("#zoom_01").attr('src'));
-  
-      $("#zoom_01").elevateZoom({
-        zoomType: "lens",
-        lensShape: "round",
-        lensSize: 200
-      });
-  
-      window.changeImage = function (element) {
-        console.log("Image clicked, changing zoom image...");
-        var newImage = $(element).attr('src');
-        console.log("New Image Path:", newImage);
-        $("#zoom_01").attr('src', newImage);
-        $("#zoom_01").data('zoom-image', newImage).elevateZoom();
-      };
-    });
-  </script>
+  <!--=============== PRODUCT DETAILS JS ===============-->
+  <script src="/assets/js/user/product-details.js"></script>

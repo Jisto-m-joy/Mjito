@@ -34,19 +34,19 @@ const categoryInfo = async (req, res) => {
 const addCategory = async (req, res) => {
     const { name, description } = req.body;
     try {
-        
-        const existingCategory = await Category.findOne({ name });
-        if(existingCategory){
-            return res.status(400).json({error: "Category already exists"});
+        // Convert the category name to lowercase for case-insensitive comparison
+        const existingCategory = await Category.findOne({ name: new RegExp(`^${name}$`, 'i') });
+        if (existingCategory) {
+            return res.status(400).json({ error: "Category already exists" });
         }
         const newCategory = new Category({
             name,
             description
-        })
+        });
         await newCategory.save();
-        return res.json({message: "Category added successfully"});
+        return res.status(201).json({ message: "Category added successfully" });
     } catch (error) {
-        return res.status(500).json({error: "Internal server error"});
+        return res.status(500).json({ error: "Internal server error" });
     }
 };
 
@@ -142,32 +142,33 @@ const getEditCategory = async (req, res) => {
     }
 }
 
-
 const editCategory = async (req, res) => {
     try {
         const id = req.params.id;
         const { categoryName, description } = req.body;
-        const existingCategory = await Category.findOne({ name: categoryName });
+        // Convert the category name to lowercase for case-insensitive comparison
+        const existingCategory = await Category.findOne({ name: new RegExp(`^${categoryName}$`, 'i') });
 
-        if(existingCategory){
-            return res.status(400).json({error: "Category already exists, Please choose another name"});
+        if (existingCategory && existingCategory._id.toString() !== id) {
+            return res.status(400).json({ error: "Category already exists, Please choose another name" });
         }
 
         const updateCategory = await Category.findByIdAndUpdate(id, {
             name: categoryName,
             description: description
-        },{new: true});
+        }, { new: true });
 
-        if(updateCategory){
+        if (updateCategory) {
             res.redirect('/admin/category');
-        }else {
-            res.status(404).json({error: "Category not found"});
+        } else {
+            res.status(404).json({ error: "Category not found" });
         }
 
     } catch (error) {
-        res.status(500).json({error: "Internal server error"});
+        res.status(500).json({ error: "Internal server error" });
     }
-}
+};
+
 
 module.exports = {
     categoryInfo,

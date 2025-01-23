@@ -1,7 +1,6 @@
 const Brand = require('../../models/brandSchema');
 const Product = require('../../models/productSchema');
 
-
 const getBrandPage = async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
@@ -24,23 +23,20 @@ const getBrandPage = async (req, res) => {
 
 const addBrand = async (req, res) => {
     try {
-        // Log the request to check if the file is being uploaded
-        console.log('Request Body:', req.body);
-        console.log('Request File:', req.file);
-
-        // Check if req.file is defined
         if (!req.file) {
             console.error('No file uploaded');
             return res.status(400).send('No file uploaded');
         }
 
         const brand = req.body.name;
-        const Image = req.file.filename; // Get the file path from the uploaded file
+        const description = req.body.description;
+        const Image = req.file.filename;
 
         const findBrand = await Brand.findOne({ brandName: brand });
         if (!findBrand) {
             const newBrand = new Brand({
                 brandName: brand,
+                description: description,
                 brandImage: Image
             });
             await newBrand.save();
@@ -54,51 +50,58 @@ const addBrand = async (req, res) => {
     }
 };
 
+const checkBrandExists = async (req, res) => {
+    try {
+        const brandName = req.query.name;
+        const findBrand = await Brand.findOne({ brandName: new RegExp(`^${brandName}$`, 'i') });
+        res.json({ exists: !!findBrand });
+    } catch (error) {
+        console.error('Error checking brand existence:', error);
+        res.status(500).send('Internal Server Error');
+    }
+};
+
 const blockBrand = async (req, res) => {
     try {
-        
         const id = req.query.id;
         await Brand.updateOne({ _id: id }, { $set: { isBlocked: true } });
         res.redirect('/admin/brands');
-
     } catch (error) {
         res.redirect('/pageerror');
     }
 }
-
 
 const unBlockBrand = async (req, res) => {
     try {
-        
         const id = req.query.id;
         await Brand.updateOne({ _id: id }, { $set: { isBlocked: false } });
         res.redirect('/admin/brands');
-
     } catch (error) {
         res.redirect('/pageerror');
     }
 }
 
-
-const deleteBrand = async (req, res) => {
+const toggleBrandBlockStatus = async (req, res) => {
     try {
         const id = req.query.id;
-        if(!id){
-            return res.status(400).redirect('/pageerror');
+        const brand = await Brand.findById(id);
+        if (brand) {
+            brand.isBlocked = !brand.isBlocked;
+            await brand.save();
+            res.redirect('/admin/brands');
+        } else {
+            res.status(404).send('Brand not found');
         }
-        await Brand.deleteOne({ _id:id});
-        res.redirect('/admin/brands');
-    }catch (error) {
-        console.error('Error deleting brand:', error);
-        res.status(500).redirect('/pageerror');
+    } catch (error) {
+        res.redirect('/pageerror');
     }
 }
-
 
 module.exports = {
     getBrandPage,
     addBrand,
     blockBrand,
     unBlockBrand,
-    deleteBrand
+    toggleBrandBlockStatus,
+    checkBrandExists
 };

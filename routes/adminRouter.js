@@ -1,4 +1,3 @@
-// Description: This file contains the routes for admin.
 const express = require("express");
 const router = express.Router();
 const adminController = require("../controllers/admin/adminController");
@@ -9,7 +8,6 @@ const productController = require("../controllers/admin/productController");
 const { userAuth, adminAuth } = require("../middlewares/auth");
 const multer = require("multer");
 const upload = require('../helpers/multer');
-
 
 // Error Page
 router.get("/pageerror", adminController.pageerror);
@@ -43,7 +41,9 @@ router.post("/editCategory/:id", adminAuth, categoryController.editCategory);
 router.get("/brands", adminAuth, brandController.getBrandPage);
 router.post("/addBrand", upload.single('image'), brandController.addBrand); 
 router.get("/unBlockBrand", adminAuth, brandController.unBlockBrand);
-router.get("/deleteBrand", adminAuth, brandController.deleteBrand);
+router.get("/deleteBrand", adminAuth, brandController.toggleBrandBlockStatus);
+router.get('/toggleBrandBlockStatus', adminAuth, brandController.toggleBrandBlockStatus);
+router.get('/checkBrandExists', adminAuth, brandController.checkBrandExists); // New route
 // Product Management
 router.get("/addProducts", adminAuth, productController.getProductAddPage);
 router.post("/addProducts", adminAuth, upload.array("images", 4), productController.addProducts);
