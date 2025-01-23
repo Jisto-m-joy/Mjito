@@ -37,6 +37,6 @@ router.get(
 
 
 //Product Management
-router.get("/productDetails", userAuth, productController.productDetails);
+router.get("/productDetails", productController.productDetails);
 
 module.exports = router;
