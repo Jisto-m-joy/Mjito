@@ -5,18 +5,17 @@ const Category = require("../../models/categorySchema");
 const fs = require("fs");
 const sharp = require("sharp");
 
-const getProductAddPage = async (req, res) => {
+const getProductAddPage = async (req, res, next) => {
   try {
     const brands = await Brand.find({ isBlocked: false }); 
     const categories = await Category.find({ isListed: true }); 
     res.render("product-add", { brands, categories }); 
   } catch (error) {
-    console.error("Error fetching brands or categories:", error);
-    res.status(500).send("Server error");
+    next(error);
   }
 };
 
-const addProducts = async (req, res) => {
+const addProducts = async (req, res, next) => {
   try {
     const {
       name,
@@ -68,12 +67,11 @@ const addProducts = async (req, res) => {
     await newProduct.save();
     res.status(201).json({ message: "Product added successfully" });
   } catch (error) {
-    console.error("Error saving product:", error);
-    res.status(500).json({ message: "Server error" });
+    next(error);
   }
 };
 
-const getAllProducts = async (req, res) => {
+const getAllProducts = async (req, res, next) => {
   try {
     const search = req.query.search || "";
     const page = req.query.page || 1;
@@ -112,13 +110,13 @@ const getAllProducts = async (req, res) => {
       res.render("page-404");
     }
   } catch (error) {
-    res.redirect("/pageerror");
+    next(error)
   }
 };
 
 
 
-const addOffer = async (req, res) => {
+const addOffer = async (req, res, next) => {
   try {
     const { productId, offer } = req.body;
     if (offer === undefined || offer === null) {
@@ -136,12 +134,11 @@ const addOffer = async (req, res) => {
     await product.save();
     res.json({ success: true, message: "Offer added successfully" });
   } catch (error) {
-    console.error("Error adding offer:", error);
-    res.status(500).json({ success: false, message: "Internal Server Error" });
+    next(error);
   }
 };
 
-const removeOffer = async (req, res) => {
+const removeOffer = async (req, res, next) => {
   try {
     const { productId } = req.body;
     const product = await Product.findById(productId);
@@ -154,32 +151,31 @@ const removeOffer = async (req, res) => {
     await product.save();
     res.json({ success: true, message: "Offer removed successfully" });
   } catch (error) {
-    console.error("Error removing offer:", error);
-    res.status(500).json({ success: false, message: "Internal Server Error" });
+    next(error);
   }
 };
 
-const blockProduct = async (req, res) => {
+const blockProduct = async (req, res, next) => {
   try {
     let id = req.query.id;
     await Product.updateOne({ _id: id }, { $set: { isBlocked: true } });
     res.redirect("/admin/products");
   } catch (error) {
-    res.redirect("/pageerror");
+    next(error);
   }
 };
 
-const unblockProduct = async (req, res) => {
+const unblockProduct = async (req, res, next) => {
   try {
     let id = req.query.id;
     await Product.updateOne({ _id: id }, { $set: { isBlocked: false } });
     res.redirect("/admin/products");
   } catch (error) {
-    res.redirect("/pageerror");
+    next(error);
   }
 };
 
-const getEditProduct = async (req, res) => {
+const getEditProduct = async (req, res, next) => {
   try {
     const id = req.query.id; // Get the product ID from the query parameters
     const product = await Product.findOne({ _id: id }).populate("category").populate("brand"); 
@@ -191,12 +187,11 @@ const getEditProduct = async (req, res) => {
 
     res.render("edit-product", { product, brands, cat }); // Ensure product with images is passed to the view
   } catch (error) {
-    console.error(error);
-    res.redirect("/pageerror");
+    next(error);
   }
 };
 
-const editProduct = async (req, res) => {
+const editProduct = async (req, res, next) => {
   try {
     const id = req.params.id;
     const data = req.body;
@@ -278,8 +273,7 @@ const editProduct = async (req, res) => {
 
     res.redirect('/admin/products');
   } catch (error) {
-    console.error('Error updating product:', error);
-    res.redirect('/pageerror');
+    next(error);
   }
 };
 

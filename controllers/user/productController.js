@@ -2,7 +2,8 @@ const Product = require("../../models/productSchema");
 const Category = require("../../models/categorySchema");
 const User = require("../../models/userSchema");
 
-const productDetails = async (req, res) => {
+
+const productDetails = async (req, res, next) => {
   try {
     const productId = req.query.id;
     const product = await Product.findById(productId).populate("category");
@@ -25,8 +26,7 @@ const productDetails = async (req, res) => {
       relatedProducts: relatedProducts, // Pass related products to the view
     });
   } catch (error) {
-    console.log("Product Details not found:", error);
-    res.redirect("/pageNotFound");
+    next(error);
   }
 };
 

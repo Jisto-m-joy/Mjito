@@ -13,7 +13,7 @@ const loadLogin = async (req, res) => {
   res.render("adminLogin", { message: null });
 };
 
-const login = async (req, res) => {
+const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
     const admin = await User.findOne({ email, isAdmin: true });
@@ -29,22 +29,21 @@ const login = async (req, res) => {
       return res.redirect("/login");
     }
   } catch (error) {
-    console.log("login error", error);
-    return res.redirect("/pageerror");
+    next(error);
   }
 };
 
-const loadDashboard = async (req, res) => {
+const loadDashboard = async (req, res, next) => {
   if (req.session.admin) {
     try {
       res.render("dashboard");
     } catch (error) {
-      res.redirect("/pageerror");
+      next(error);
     }
   }
 };
 
-const logout = async (req, res) => {
+const logout = async (req, res, next) => {
   try {
     req.session.destroy((err) => {
       if (err) {
@@ -54,8 +53,7 @@ const logout = async (req, res) => {
       res.redirect("/admin/login");
     });
   } catch (error) {
-    console.log("unexpected error logout error", error);
-    res.redirect("/pageerror");
+    next(error);
   }
 };
 

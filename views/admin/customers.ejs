@@ -60,9 +60,9 @@
                   <td><%= data[i].email %></td>
                   <td>
                     <% if (data[i].isBlocked) { %>
-                      <button class="btn btn-danger" style="width: 100px;" onclick="unblockCustomer('<%= data[i]._id %>')">Unblock</button>
+                      <button class="btn btn-danger" style="width: 100px;" onclick="confirmAction('unblock', '<%= data[i]._id %>')">Unblock</button>
                     <% } else { %>
-                      <button class="btn btn-success" style="width: 80px;" onclick="blockCustomer('<%= data[i]._id %>')">Block</button>
+                      <button class="btn btn-success" style="width: 80px;" onclick="confirmAction('block', '<%= data[i]._id %>')">Block</button>
                     <% } %>
                   </td>
                 </tr>
@@ -93,6 +93,25 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <%-include("../../views/admin/partials/footer")%>
     <script>
+      function confirmAction(action, userId) {
+        const actionText = action === 'block' ? 'Block' : 'Unblock';
+        Swal.fire({
+          title: `Are you sure you want to ${actionText} this customer?`,
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: 'Yes, do it!',
+          cancelButtonText: 'No, cancel!'
+        }).then((result) => {
+          if (result.isConfirmed) {
+            if (action === 'block') {
+              blockCustomer(userId);
+            } else {
+              unblockCustomer(userId);
+            }
+          }
+        });
+      }
+
       function blockCustomer(userId) {
         $.ajax({
           url: '/admin/blockCustomer',

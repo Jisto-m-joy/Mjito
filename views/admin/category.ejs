@@ -165,14 +165,14 @@
                         </td>
                         <td class="text-start">
                           <% if(category.isListed) { %>
-                            <button class="btn btn-danger" style="width: 70px">
-                              <a href="/admin/listCategory?id=<%=category._id%>" class="text-white">Unlist</a>
+                            <button class="btn btn-danger" style="width: 70px" onclick="confirmUnlist('<%=category._id%>')">
+                              Unlist
                             </button>
-                            <% } else { %>
-                              <button class="btn btn-success" style="width: 70px">
-                                <a href="/admin/unlistCategory?id=<%=category._id%>" class="text-white">List</a>
-                              </button>
-                              <% } %>
+                          <% } else { %>
+                            <button class="btn btn-success" style="width: 70px" onclick="confirmList('<%=category._id%>')">
+                              List
+                            </button>
+                          <% } %>
                         </td>
                         <td class="text-start">
                           <a href="/admin/editCategory?id=<%=category._id%>" class="btn btn-info text-white">Edit</a>

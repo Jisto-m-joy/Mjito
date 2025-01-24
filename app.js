@@ -7,6 +7,7 @@ const passport = require("./config/passport");
 const db = require("./config/db");
 const userRouter = require("./routes/userRouter");
 const adminRouter = require("./routes/adminRouter");
+const {errorHandler, adminErrorHandler} = require("./middlewares/errorHandler")
 db();
 
 app.use(express.json());
@@ -34,6 +35,7 @@ app.use((req, res, next) => {
 });
 app.use(passport.initialize());
 app.use(passport.session());
+app.use(errorHandler,adminErrorHandler);
 
 app.set("view engine", "ejs");
 app.set("views", [

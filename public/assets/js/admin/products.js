@@ -83,3 +83,32 @@ function removeOffer(productId) {
         }
     });
 }
+
+
+function confirmBlock(productId) {
+    Swal.fire({
+        title: 'Are you sure you want to block this product?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, block it!',
+        cancelButtonText: 'Cancel'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = `/admin/blockProduct?id=${productId}`;
+        }
+    });
+}
+
+function confirmUnblock(productId) {
+    Swal.fire({
+        title: 'Are you sure you want to unblock this product?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, unblock it!',
+        cancelButtonText: 'Cancel'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = `/admin/unblockProduct?id=${productId}`;
+        }
+    });
+}

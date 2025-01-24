@@ -8,6 +8,11 @@ const productController = require("../controllers/admin/productController");
 const { userAuth, adminAuth } = require("../middlewares/auth");
 const multer = require("multer");
 const upload = require("../helpers/multer");
+const { adminErrorHandler } = require('../middlewares/errorHandler')
+
+
+//Error Handling middleware
+router.use(adminErrorHandler);
 
 // Error Page
 router.get("/pageerror", adminController.pageerror);

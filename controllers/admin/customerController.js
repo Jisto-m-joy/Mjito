@@ -1,6 +1,6 @@
 const User = require('../../models/userSchema');
 
-const customerInfo = async (req, res) => {
+const customerInfo = async (req, res, next) => {
     try {
         const customers = await User.find({isAdmin:false}); // Fetch customer data from the database
         const itemsPerPage = 10; // Define items per page
@@ -14,30 +14,27 @@ const customerInfo = async (req, res) => {
             currentPage: currentPage
         });
     } catch (error) {
-        console.error('Error fetching customer data:', error);
-        res.status(500).send('Server error');
+        next(error);
     }
 };
 
-const blockCustomer = async (req, res) => {
+const blockCustomer = async (req, res, next) => {
   try {
     const userId = req.body.id;
     await User.findByIdAndUpdate(userId, { isBlocked: true });
     res.sendStatus(200);
   } catch (error) {
-    console.error("Error blocking customer:", error);
-    res.status(500).send("Server error");
+    next(error);
   }
 };
 
-const unblockCustomer = async (req, res) => {
+const unblockCustomer = async (req, res, next) => {
   try {
     const userId = req.body.id;
     await User.findByIdAndUpdate(userId, { isBlocked: false });
     res.sendStatus(200);
   } catch (error) {
-    console.error("Error unblocking customer:", error);
-    res.status(500).send("Server error");
+    next(error);
   }
 };
 

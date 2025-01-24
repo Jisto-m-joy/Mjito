@@ -5,33 +5,31 @@ const env = require("dotenv").config();
 const nodemailer = require("nodemailer");
 const bcrypt = require("bcrypt");
 
-const loadSignup = async (req, res) => {
+const loadSignup = async (req, res, next) => {
   try {
     return res.render("signup");
   } catch (error) {
-    console.log("Signup Page not loading:", error);
-    res.redirect("/pageNotFound");
+    next(error);
   }
 };
 
-const loadLogin = async (req, res) => {
+const loadLogin = async (req, res, next) => {
   try {
     return res.render("login");
   } catch (error) {
-    console.log("Login Page not loading:", error);
-    res.redirect("/pageNotFound");
+    next(error);
   }
 };
 
-const pageNotFound = async (req, res) => {
+const pageNotFound = async (req, res, next) => {
   try {
     res.render("page-404");
   } catch (error) {
-    res.redirect("/pageNotFound");
+    next(error);
   }
 };
 
-const loadHomepage = async (req, res) => {
+const loadHomepage = async (req, res, next) => {
   try {
     const user = req.session.user;
     const categories = await Category.find({ isListed: true });
@@ -52,8 +50,7 @@ const loadHomepage = async (req, res) => {
       return res.render("home", { products: productData });
     }
   } catch (error) {
-    console.log("Home Page not found:", error);
-    res.status(500).send("Server error");
+    next(error);
   }
 };
 
@@ -61,7 +58,7 @@ function generateOtp() {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
-async function sendVerificationEmail(email, otp) {
+async function sendVerificationEmail(email, otp, next) {
   console.log("sendVerificationEmail called with:", email, otp);
 
   try {
@@ -87,12 +84,11 @@ async function sendVerificationEmail(email, otp) {
     console.log("Email sent:", info.accepted); // Debugging line
     return info.accepted.length > 0;
   } catch (error) {
-    console.error("Error sending email", error);
-    return false;
+    next(error);
   }
 }
 
-const signup = async (req, res) => {
+const signup = async (req, res, next) => {
   try {
     const { name, email, password, confirm_password } = req.body;
 
@@ -123,8 +119,7 @@ const signup = async (req, res) => {
     res.render("verify-otp");
     console.log("OTP Sent", otp);
   } catch (error) {
-    console.error("Signup error", error);
-    res.redirect("/pageNotFound");
+    next(error);
   }
 };
 
@@ -137,7 +132,7 @@ const securePassword = async (password) => {
   }
 };
 
-const verifyOtp = async (req, res) => {
+const verifyOtp = async (req, res, next) => {
   try {
     const { otp } = req.body;
 
@@ -162,12 +157,11 @@ const verifyOtp = async (req, res) => {
         .json({ success: false, message: "Invalid OTP, Please try again" });
     }
   } catch (error) {
-    console.error("Error Verifying OTP", error);
-    res.status(500).json({ success: false, message: "An error occurred" });
+    next(error);
   }
 };
 
-const resendOtp = async (req, res) => {
+const resendOtp = async (req, res, next) => {
   console.log("Session Data during OTP resend:", req.session.userData);
 
   try {
@@ -194,15 +188,11 @@ const resendOtp = async (req, res) => {
       });
     }
   } catch (error) {
-    console.error("Error resending OTP", error);
-    return res.status(500).json({
-      success: false,
-      message: "Internal Server Error. Please try again.",
-    });
+    next(error);
   }
 };
 
-const login = async (req, res) => {
+const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
     const user = await User.findOne({ email });
@@ -224,8 +214,7 @@ const login = async (req, res) => {
     req.session.user = user;
     res.redirect("/");
   } catch (error) {
-    console.error("Login Error", error);
-    res.status(500).send("Server error");
+    next(error);
   }
 };
 
@@ -248,5 +237,5 @@ module.exports = {
   verifyOtp,
   resendOtp,
   login,
-  logout,
+  logout
 };

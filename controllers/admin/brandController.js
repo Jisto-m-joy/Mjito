@@ -1,7 +1,7 @@
 const Brand = require("../../models/brandSchema");
 const Product = require("../../models/productSchema");
 
-const getBrandPage = async (req, res) => {
+const getBrandPage = async (req, res, next) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = 6;
@@ -20,11 +20,11 @@ const getBrandPage = async (req, res) => {
       totalBrands: totalBrands,
     });
   } catch (error) {
-    res.redirect("/pageerror");
+    next(error);
   }
 };
 
-const addBrand = async (req, res) => {
+const addBrand = async (req, res, next) => {
   try {
     if (!req.file) {
       console.error("No file uploaded");
@@ -48,12 +48,11 @@ const addBrand = async (req, res) => {
       res.status(400).send("Brand already exists");
     }
   } catch (error) {
-    console.error("Error adding brand:", error);
-    res.redirect("/pageerror");
+    next(error);
   }
 };
 
-const checkBrandExists = async (req, res) => {
+const checkBrandExists = async (req, res, next) => {
   try {
     const brandName = req.query.name;
     const findBrand = await Brand.findOne({
@@ -61,12 +60,11 @@ const checkBrandExists = async (req, res) => {
     });
     res.json({ exists: !!findBrand });
   } catch (error) {
-    console.error("Error checking brand existence:", error);
-    res.status(500).send("Internal Server Error");
+    next(error);
   }
 };
 
-const toggleBrandBlockStatus = async (req, res) => {
+const toggleBrandBlockStatus = async (req, res, next) => {
   try {
     const id = req.query.id;
     const brand = await Brand.findById(id);
@@ -78,7 +76,7 @@ const toggleBrandBlockStatus = async (req, res) => {
       res.status(404).send("Brand not found");
     }
   } catch (error) {
-    res.redirect("/pageerror");
+    next(error);
   }
 };
 

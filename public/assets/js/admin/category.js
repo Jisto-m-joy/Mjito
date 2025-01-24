@@ -153,3 +153,62 @@ async function removeOffer(categoryId) {
     console.error("Error removing offer", error);
   }
 }
+
+
+async function confirmList(categoryId) {
+  const result = await Swal.fire({
+    title: 'Are you sure?',
+    text: "You want to list this category!",
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#3085d6',
+    cancelButtonColor: '#d33',
+    confirmButtonText: 'Yes, list it!'
+  });
+
+  if (result.isConfirmed) {
+    fetch(`/admin/unlistCategory?id=${categoryId}`, {
+      method: 'GET' 
+    }).then(() => {
+      Swal.fire(
+        'Listed!',
+        'The category has been listed.',
+        'success'
+      ).then(() => {
+        location.reload();
+      });
+    }).catch((error) => {
+      Swal.fire('Error', 'An error occurred while listing the category', 'error');
+      console.error('Error listing category', error);
+    });
+  }
+}
+
+async function confirmUnlist(categoryId) {
+  const result = await Swal.fire({
+    title: 'Are you sure?',
+    text: "You want to unlist this category!",
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#3085d6',
+    cancelButtonColor: '#d33',
+    confirmButtonText: 'Yes, unlist it!'
+  });
+
+  if (result.isConfirmed) {
+    fetch(`/admin/listCategory?id=${categoryId}`, {
+      method: 'GET' 
+    }).then(() => {
+      Swal.fire(
+        'Unlisted!',
+        'The category has been unlisted.',
+        'success'
+      ).then(() => {
+        location.reload();
+      });
+    }).catch((error) => {
+      Swal.fire('Error', 'An error occurred while unlisting the category', 'error');
+      console.error('Error unlisting category', error);
+    });
+  }
+}

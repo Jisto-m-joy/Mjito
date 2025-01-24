@@ -10,6 +10,10 @@ const {
 } = require("../middlewares/auth");
 const productController = require("../controllers/user/productController");
 const app = express();
+const {errorHandler} = require('../middlewares/errorHandler');
+
+//Error handling middleware
+router.use(errorHandler)
 
 router.get("/pageNotFound", userController.pageNotFound);
 router.get("/", checkBlockStatus, userController.loadHomepage);
@@ -35,5 +39,6 @@ router.get('/auth/google/callback',
 
 //Product Management
 router.get("/productDetails", productController.productDetails);
+
 
 module.exports = router;
