@@ -43,7 +43,7 @@ const checkBlockStatus = async (req, res, next) => {
           if (err) {
             console.error("Error destroying session:", err);
           }
-          res.redirect("/");
+          res.redirect("/login");
         });
       } else {
         next();

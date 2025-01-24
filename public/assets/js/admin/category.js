@@ -48,6 +48,7 @@ function handleFormSubmit(event) {
     });
 }
 
+
 function validateForm() {
   clearErrorMessages();
   const name = document.getElementsByName("name")[0].value.trim();
@@ -124,30 +125,31 @@ async function addOffer(categoryId) {
 }
 
 async function removeOffer(categoryId) {
-    try {
-      const response = await fetch(`/admin/removeCategoryOffer/${categoryId}`, { // Include categoryId in URL
-        method: "DELETE", // Change method to DELETE
-        headers: {
-          "content-type": "application/json",
-        },
-        body: JSON.stringify({
-          categoryId: categoryId,
-        }),
-      });
-  
-      const data = await response.json();
-  
-      if (response.ok && data.status === true) {
-        Swal.fire("Offer removed", "The offer has been removed", "success").then(
-          () => {
-            location.reload();
-          }
-        );
-      } else {
-        Swal.fire("Failed", data.message || "Removing offer failed", "error");
-      }
-    } catch (error) {
-      Swal.fire("Error", "An error occurred while removing the offer", "error");
-      console.error("Error removing offer", error);
+  try {
+    const response = await fetch(`/admin/removeCategoryOffer/${categoryId}`, {
+      // Include categoryId in URL
+      method: "DELETE", // Change method to DELETE
+      headers: {
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        categoryId: categoryId,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (response.ok && data.status === true) {
+      Swal.fire("Offer removed", "The offer has been removed", "success").then(
+        () => {
+          location.reload();
+        }
+      );
+    } else {
+      Swal.fire("Failed", data.message || "Removing offer failed", "error");
     }
+  } catch (error) {
+    Swal.fire("Error", "An error occurred while removing the offer", "error");
+    console.error("Error removing offer", error);
   }
+}

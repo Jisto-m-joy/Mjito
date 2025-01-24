@@ -22,22 +22,16 @@ router.post("/signup", userController.signup);
 router.post("/verify-otp", validateSession, userController.verifyOtp);
 router.post("/resend-otp", userController.resendOtp);
 
-router.get(
-  "/auth/google",
-  passport.authenticate("google", {
-    scope: ["profile", "email"],
-    prompt: "consent", // Forces the consent screen
-    access_type: "offline", // Requests a refresh token
-  })
-);
+router.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
 
-router.get(
-  "/auth/google/callback",
-  passport.authenticate("google", { failureRedirect: "/login-signup" }),
-  (req, res) => {
-    res.redirect("/");
-  }
-);
+// Google OAuth callback route
+router.get('/auth/google/callback', 
+    passport.authenticate('google', { failureRedirect: '/login' }),
+    (req, res) => {
+        // Successful authentication, redirect home.
+        req.session.user = req.user; // Set the user in the session
+        res.redirect('/');
+    });
 
 //Product Management
 router.get("/productDetails", productController.productDetails);

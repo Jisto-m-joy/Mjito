@@ -18,17 +18,17 @@ function signupValidation() {
   } else {
     clearError("error1");
   }
-
   // Email validation
   if (!email) {
     displayError("error2", "Email is required.");
     isValid = false;
-  } else if (!/\S+@\S+\.\S+/.test(email)) {
+  } else if (!/^[a-zA-Z0-9.!#$%&'+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(\.[a-zA-Z]{2,})+$/.test(email)) {
     displayError("error2", "Invalid email format.");
     isValid = false;
   } else {
     clearError("error2");
   }
+  
 
   // Password validation
   if (!password) {
