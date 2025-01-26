@@ -1,6 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const userController = require("../controllers/user/userController");
+const profileController = require("../controllers/user/profileController");
+const productController = require("../controllers/user/productController");
 const passport = require("passport");
 const validateSession = require("../middlewares/session-validation");
 const {
@@ -8,7 +10,6 @@ const {
   adminAuth,
   checkBlockStatus,
 } = require("../middlewares/auth");
-const productController = require("../controllers/user/productController");
 const app = express();
 const {errorHandler} = require('../middlewares/errorHandler');
 
@@ -26,9 +27,8 @@ router.post("/signup", userController.signup);
 router.post("/verify-otp", validateSession, userController.verifyOtp);
 router.post("/resend-otp", userController.resendOtp);
 
-router.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
-
 // Google OAuth callback route
+router.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
 router.get('/auth/google/callback', 
     passport.authenticate('google', { failureRedirect: '/login' }),
     (req, res) => {
@@ -40,5 +40,12 @@ router.get('/auth/google/callback',
 //Product Management
 router.get("/productDetails", productController.productDetails);
 
+
+//Profile Management
+router.get('/forgot-password', profileController.getForgotPassPage);
+router.post('/forgot-email-valid', profileController.forgotEmailValid);
+router.get('/forgot-email-valid', profileController.getEmailVerificationPage);
+router.post('/verify-passForgot-otp', profileController.verifyForgotPassOtp);
+router.get('/reset-password', profileController.getResetPassPage);
 
 module.exports = router;
