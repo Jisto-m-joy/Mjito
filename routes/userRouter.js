@@ -13,8 +13,6 @@ const { errorHandler } = require('../middlewares/errorHandler');
 router.use(errorHandler);
 
 router.get("/pageNotFound", userController.pageNotFound);
-router.get("/", checkBlockStatus, userController.loadHomepage);
-router.get("/home", checkBlockStatus, userController.loadHomepage);
 router.get("/signup", userController.loadSignup);
 router.get("/login", userController.loadLogin);
 router.post("/login", userController.login);
@@ -33,12 +31,19 @@ router.get('/auth/google/callback',
     res.redirect('/');
   });
 
+
+//Home Page & Shop Page
+router.get("/", checkBlockStatus, userController.loadHomepage);
+router.get("/home", checkBlockStatus, userController.loadHomepage);
+router.get('/shop', userController.loadShopingPage);
+
+
+
 // Product Management
 router.get("/productDetails", productController.productDetails);
 
 // Profile Management
 router.get('/forgot-password', profileController.getForgotPassPage);
-// router.get('/forgot-email-valid', profileController.getEmailVerificationPage);
 router.post('/forgot-email-valid', profileController.forgotEmailValid);
 router.post('/verify-passForgot-otp', profileController.verifyForgotPassOtp);
 router.get('/reset-password', profileController.getResetPassPage);

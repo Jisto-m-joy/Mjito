@@ -117,14 +117,12 @@ const getResetPassPage = async (req, res, next) => {
 const resendOtp = async (req, res, next) => {
   try {
     const otp = generateOtp();
-    const { email } = req.session.userData; 
+    const { email } = req.session.userData;
     if (!email) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "Session expired. Please restart the process.",
-        });
+      return res.status(400).json({
+        success: false,
+        message: "Session expired. Please restart the process.",
+      });
     }
     req.session.userData.userOtp = otp; // Update the OTP in session data
     console.log("Resending OTP to email:", email); // Debugging line
@@ -135,12 +133,10 @@ const resendOtp = async (req, res, next) => {
         .status(200)
         .json({ success: true, message: "Resend OTP sent successfully" });
     } else {
-      res
-        .status(500)
-        .json({
-          success: false,
-          message: "Failed to send OTP. Please try again.",
-        });
+      res.status(500).json({
+        success: false,
+        message: "Failed to send OTP. Please try again.",
+      });
     }
   } catch (error) {
     console.error("Error in resending OTP:", error); // Debugging line
@@ -159,26 +155,30 @@ const securePassword = async (password) => {
 };
 
 const postNewPassword = async (req, res, next) => {
-  try {
-    const { newPass1, newPass2 } = req.body;
-    const email = req.session.userData.email; 
-
-    if (newPass1 === newPass2) {
-      const passwordHash = await securePassword(newPass1);
-      await User.updateOne(
-        { email: email },
-        { $set: { password: passwordHash } }
-      );
-      res.redirect("/login");
-    } else {
-      res.render("reset-password", {
-        message: "Passwords do not match",
-      });
+    try {
+      // Check if userData exists in session
+      if (!req.session.userData || !req.session.userData.email) {
+        return res.status(400).json({ success: false, message: 'Session expired or invalid. Please restart the process.' });
+      }
+      
+      const { newPass1, newPass2 } = req.body;
+      const email = req.session.userData.email;
+  
+      if (newPass1 === newPass2) {
+        const passwordHash = await securePassword(newPass1);
+        await User.updateOne(
+          { email: email },
+          { $set: { password: passwordHash } }
+        );
+        res.status(200).json({ success: true, message: 'Password changed successfully' });
+      } else {
+        res.status(400).json({ success: false, message: 'Passwords do not match' });
+      }
+    } catch (error) {
+      res.status(500).json({ success: false, message: 'Internal server error' });
+      next(error);
     }
-  } catch (error) {
-    next(error);
-  }
-};
+  };
 
 module.exports = {
   getForgotPassPage,
