@@ -5,16 +5,12 @@ const profileController = require("../controllers/user/profileController");
 const productController = require("../controllers/user/productController");
 const passport = require("passport");
 const validateSession = require("../middlewares/session-validation");
-const {
-  userAuth,
-  adminAuth,
-  checkBlockStatus,
-} = require("../middlewares/auth");
+const { userAuth, adminAuth, checkBlockStatus } = require("../middlewares/auth");
 const app = express();
-const {errorHandler} = require('../middlewares/errorHandler');
+const { errorHandler } = require('../middlewares/errorHandler');
 
-//Error handling middleware
-router.use(errorHandler)
+// Error handling middleware
+router.use(errorHandler);
 
 router.get("/pageNotFound", userController.pageNotFound);
 router.get("/", checkBlockStatus, userController.loadHomepage);
@@ -29,23 +25,24 @@ router.post("/resend-otp", userController.resendOtp);
 
 // Google OAuth callback route
 router.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
-router.get('/auth/google/callback', 
-    passport.authenticate('google', { failureRedirect: '/login' }),
-    (req, res) => {
-        // Successful authentication, redirect home.
-        req.session.user = req.user; // Set the user in the session
-        res.redirect('/');
-    });
+router.get('/auth/google/callback',
+  passport.authenticate('google', { failureRedirect: '/login' }),
+  (req, res) => {
+    // Successful authentication, redirect home.
+    req.session.user = req.user; // Set the user in the session
+    res.redirect('/');
+  });
 
-//Product Management
+// Product Management
 router.get("/productDetails", productController.productDetails);
 
-
-//Profile Management
+// Profile Management
 router.get('/forgot-password', profileController.getForgotPassPage);
+// router.get('/forgot-email-valid', profileController.getEmailVerificationPage);
 router.post('/forgot-email-valid', profileController.forgotEmailValid);
-router.get('/forgot-email-valid', profileController.getEmailVerificationPage);
 router.post('/verify-passForgot-otp', profileController.verifyForgotPassOtp);
 router.get('/reset-password', profileController.getResetPassPage);
+router.post('/resend-forgot-otp', profileController.resendOtp);
+router.post('/reset-password', profileController.postNewPassword);
 
 module.exports = router;

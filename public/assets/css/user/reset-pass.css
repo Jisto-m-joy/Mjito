@@ -10,7 +10,7 @@
     justify-content: center;
     align-items: center;
     min-height: 100vh;
-    background: url(/assets/img/Teams_Page/football2.jpg) no-repeat;
+    background: url(/assets/img/Teams_Page/football.jpg) no-repeat;
     background-size: cover;
     background-position: center;
   }
@@ -174,7 +174,7 @@
   }
   
   .logo .zone {
-    color: #0ff50b;
+    color: #daf50b;
     /* Vibrant Yellow for "Zone" */
     text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.6);
   }

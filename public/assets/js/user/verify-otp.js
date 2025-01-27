@@ -2,11 +2,13 @@ document.getElementById("otp").focus();
 
 let timer = 60; // Set initial timer value
 let timerInterval;
+let timerExpired = false; // Add a flag to track if the timer has expired
 
 // Function to start or restart the timer
 function startTimer() {
   clearInterval(timerInterval); // Clear any existing interval
   timer = 60; // Reset the timer to 60 seconds
+  timerExpired = false; // Reset the timerExpired flag
   document.getElementById("timerValue").textContent = timer; // Reset the displayed value
   document.getElementById("timerValue").classList.remove("expired"); // Remove expired class if exists
   document.getElementById("otp").disabled = false; // Enable OTP input
@@ -16,6 +18,7 @@ function startTimer() {
     document.getElementById("timerValue").textContent = timer;
     if (timer <= 0) {
       clearInterval(timerInterval);
+      timerExpired = true; // Set the timerExpired flag to true
       document.getElementById("timerValue").classList.add("expired");
       document.getElementById("timerValue").textContent = "Expired";
       document.getElementById("otp").disabled = true;
@@ -61,13 +64,22 @@ function validateOTPForm() {
   return false;
 }
 
-
 function resendOTP() {
+  if (!timerExpired) {
+    Swal.fire({
+      icon: "warning",
+      title: "Warning",
+      text: "Resend OTP only works after the timer expires",
+    });
+    return false;
+  }
+
   clearInterval(timerInterval);
   timer = 60;
+  timerExpired = false; // Reset the timerExpired flag
 
   document.getElementById("otp").disabled = false;
-  document.getElementById("timerValue").classList.remove("expired"); // Corrected ID
+  document.getElementById("timerValue").classList.remove("expired");
   startTimer();
 
   $.ajax({
@@ -77,7 +89,7 @@ function resendOTP() {
       if (response.success) {
         Swal.fire({
           icon: "success",
-          title: "OTP Resend Successfully",
+          title: "OTP Resent Successfully",
           showConfirmButton: false,
           timer: 1500,
         });

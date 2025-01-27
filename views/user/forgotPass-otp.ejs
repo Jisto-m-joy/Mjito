@@ -1,83 +1,173 @@
 <!DOCTYPE html>
 <html lang="zxx">
-<head>
+  <head>
     <meta charset="UTF-8" />
     <title>Forgot Password - OTP Verification</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-    <link rel="stylesheet" href="assets/css/verify-otp.css">
-</head>
-<body>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css"
+    />
+    <link rel="stylesheet" href="assets/css/verify-otp.css" />
+  </head>
+  <body>
     <div class="wrapper">
-        <div class="title">
-            OTP Verification
+      <div class="title">OTP Verification</div>
+      <form
+        id="otpForm"
+        action="/verify-passForgot-otp"
+        method="post"
+        onsubmit="return validateOTPForm()"
+      >
+        <div class="field">
+          <input type="text" id="otp" name="otp" maxlength="6" pattern="\d*" />
+          <label for="otp">Enter OTP:</label>
         </div>
-        <form id="otpForm" action="/verify-passForgot-otp" method="post" onsubmit="return validateOTPForm()">
-            <div class="field">
-                <input type="text" id="otp" name="otp" required maxlength="6" pattern="\d*"/>
-                <label for="otp">Enter OTP:</label>
-            </div>
-            <div class="field">
-                <input type="submit" value="Verify OTP" class="btn-primary">
-            </div>
-            <div class="otp-timer">
-                <span id="timerValue">60</span> seconds left
-            </div>
-            <div class="field">
-                <input type="button" value="Resend OTP" class="btn-secondary" onclick="resendOTP()">
-            </div>
-            <% if (locals.message && message.length > 0) { %>
-                <div class="alert alert-danger text-center">
-                    <%= message %>
-                </div>
-            <% } %>
-        </form>
-        <div class="login-link">
-            <p>Already verified? <a href="/login">Login now</a></p>
+        <div class="field">
+          <input type="submit" value="Verify OTP" class="btn-primary" />
         </div>
+        <div class="otp-timer">
+          <span id="timerValue">60</span> seconds left
+        </div>
+        <div class="field">
+          <input
+            type="button"
+            value="Resend OTP"
+            class="btn-secondary"
+            onclick="resendOTP()"
+          />
+        </div>
+        <% if (locals.message && message.length > 0) { %>
+        <div class="alert alert-danger text-center"><%= message %></div>
+        <% } %>
+      </form>
+      <div class="login-link">
+        <p>Already verified? <a href="/login">Login now</a></p>
+      </div>
     </div>
 
     <!--=============== SWEETALERT CDN LINK ===============-->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <!--=============== FORGOT-PASS-OTP JS ===============-->
     <script>
+        document.getElementById("otp").focus();
+        
+        let timer = 60; // Set initial timer value
+        let timerInterval;
+        let timerExpired = false; // Add a flag to track if the timer has expired
+        
+        // Function to start or restart the timer
+        function startTimer() {
+          clearInterval(timerInterval); // Clear any existing interval
+          timer = 60; // Reset the timer to 60 seconds
+          timerExpired = false; // Reset the timerExpired flag
+          document.getElementById("timerValue").textContent = timer; // Reset the displayed value
+          document.getElementById("timerValue").classList.remove("expired"); // Remove expired class if exists
+          document.getElementById("otp").disabled = false; // Enable OTP input
+        
+          timerInterval = setInterval(() => {
+            timer--;
+            document.getElementById("timerValue").textContent = timer;
+            if (timer <= 0) {
+              clearInterval(timerInterval);
+              timerExpired = true; // Set the timerExpired flag to true
+              document.getElementById("timerValue").classList.add("expired");
+              document.getElementById("timerValue").textContent = "Expired";
+              document.getElementById("otp").disabled = true;
+            }
+          }, 1000);
+        }
+        
+        startTimer(); // Start the timer on page load
+        
         function validateOTPForm() {
-            const otpInput = document.getElementById('otp');
-            const otpValue = otpInput.value.trim();
-
-            if (otpValue === '' || otpValue.length !== 6 || isNaN(otpValue)) {
+          const otpInput = document.getElementById("otp").value;
+        
+          $.ajax({
+            type: "POST",
+            url: "/verify-passForgot-otp",
+            data: { otp: otpInput },
+            success: function (response) {
+              if (response.success) {
                 Swal.fire({
-                    icon: 'error',
-                    title: 'Invalid OTP',
-                    text: 'Please enter a valid 6-digit OTP.',
+                  icon: "success",
+                  title: "OTP Verified Successfully",
+                  showConfirmButton: false,
+                  timer: 1500,
+                }).then(() => {
+                  window.location.href = response.redirectUrl;
                 });
-                return false;
+              } else {
+                Swal.fire({
+                  icon: "error",
+                  title: "Invalid OTP",
+                  text: response.message,
+                });
+              }
+            },
+            error: function () {
+              Swal.fire({
+                icon: "error",
+                title: "Invalid OTP",
+                text: "Please try again",
+              });
             }
-            return true;
+          });
+          return false;
         }
-
+        
         function resendOTP() {
-            // Implement resend OTP functionality
+          if (!timerExpired) {
             Swal.fire({
-                icon: 'success',
-                title: 'OTP Sent',
-                text: 'A new OTP has been sent to your email.',
+              icon: "warning",
+              title: "Warning",
+              text: "Resend OTP only works after the timer expires",
             });
-        }
-
-        // Timer functionality
-        let timerValue = 60;
-        const timerElement = document.getElementById('timerValue');
-        const timerInterval = setInterval(() => {
-            if (timerValue > 0) {
-                timerValue--;
-                timerElement.textContent = timerValue;
-            } else {
-                clearInterval(timerInterval);
+            return false;
+          }
+        
+          clearInterval(timerInterval);
+          timer = 60;
+          timerExpired = false; // Reset the timerExpired flag
+        
+          document.getElementById("otp").disabled = false;
+          document.getElementById("timerValue").classList.remove("expired");
+          startTimer();
+        
+          $.ajax({
+            type: "POST",
+            url: "/resend-forgot-otp", // Ensure this URL matches the router
+            success: function (response) {
+              if (response.success) {
+                Swal.fire({
+                  icon: "success",
+                  title: "OTP Resent Successfully",
+                  showConfirmButton: false,
+                  timer: 1500,
+                });
+              } else {
+                Swal.fire({
+                  icon: "error",
+                  title: "Error",
+                  text: response.message,
+                });
+              }
+            },
+            error: function () {
+              Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: "An error occurred while resending OTP. Please try again.",
+              });
             }
-        }, 1000);
-    </script>
+          });
+          return false;
+        }
+        </script>
     <!--=============== JQUERY LINK ===============-->
     <script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
-</body>
+  </body>
 </html>
