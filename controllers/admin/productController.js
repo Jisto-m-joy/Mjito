@@ -2,6 +2,7 @@ const path = require("path");
 const Product = require("../../models/productSchema");
 const Brand = require("../../models/brandSchema");
 const Category = require("../../models/categorySchema");
+const cloudinary = require('../../config/cloudinary');
 const fs = require("fs");
 const sharp = require("sharp");
 
@@ -29,7 +30,17 @@ const addProducts = async (req, res, next) => {
       size,
     } = req.body;
 
-    const images = req.files.map((file) => path.relative('public', file.path));
+
+    //Cloudinary image uploading
+    const imageUrl = [];
+    if (req.files && req.files.length > 0) {
+      for (let i = 0; i < req.files.length; i++) {
+        const result = await cloudinary.uploader.upload(req.files[i].path, {
+          quality: "100",
+        });
+        imageUrl.push(result.secure_url); // Push the URL to the array
+      }
+    }
 
     if (
       !name ||
@@ -41,7 +52,7 @@ const addProducts = async (req, res, next) => {
       !category ||
       !color ||
       !size ||
-      images.length === 0
+      imageUrl.length === 0
     ) {
       return res.status(400).json({ message: "All fields are required" });
     }
@@ -61,7 +72,7 @@ const addProducts = async (req, res, next) => {
       category: categoryDoc._id, // Use the ObjectId of the category
       color,
       size,
-      images, // Ensure images are being saved here
+      images: imageUrl, // Ensure images are being saved here
     });
 
     await newProduct.save();
@@ -196,8 +207,6 @@ const editProduct = async (req, res, next) => {
     const id = req.params.id;
     const data = req.body;
 
-    console.log("Form data received:", data);
-
     const category = await Category.findById(data.category);
     if (!category) {
       return res.status(400).json({ error: 'Category not found' });
@@ -229,47 +238,33 @@ const editProduct = async (req, res, next) => {
 
     const product = await Product.findById(id);
 
-    // Handle image replacement
-    const newImages = [];
-    if (req.files && req.files.length > 0) {
-      req.files.forEach(file => {
-        const imageField = file.fieldname.replace('replace_', '');
-        newImages.push({ imageField, filename: path.join('uploads', 'productImages', file.filename) });
-      });
-    }
-
-    if (newImages.length > 0) {
-      for (const newImage of newImages) {
-        const oldImageIndex = product.images.indexOf(newImage.imageField);
-        if (oldImageIndex !== -1) {
-          // Remove old image from filesystem
-          const oldImagePath = path.join('public', newImage.imageField);
-          if (fs.existsSync(oldImagePath)) {
-            fs.unlinkSync(oldImagePath);
-          }
-          // Replace the old image with the new image in the database
-          product.images[oldImageIndex] = newImage.filename;
-        } else {
-          if (product.images.length < 4) {
-            // Add new image if there are less than 4 images
-            product.images.push(newImage.filename);
-          } else {
-            // Remove the first image and add the new image to maintain exactly 4 images
-            const imageToRemove = product.images.shift();
-            const imagePathToRemove = path.join('public', 'uploads', 'productImages', imageToRemove);
-            if (fs.existsSync(imagePathToRemove)) {
-              fs.unlinkSync(imagePathToRemove);
-            }
-            product.images.push(newImage.filename);
-          }
-        }
+    // Cloudinary image uploading
+    const images = [];
+    if (req.files && req.files.images) {
+      for (let i = 0; i < req.files.images.length; i++) {
+        const result = await cloudinary.uploader.upload(req.files.images[i].path, {
+          quality: "100",
+        });
+        images.push(result.secure_url);
       }
     }
 
-    await product.save();
-    await Product.findByIdAndUpdate(id, updateFields, { new: true });
+    // Handle image replacements
+    for (let i = 1; i <= 4; i++) {
+      if (req.files[`replace_image${i}`]) {
+        const result = await cloudinary.uploader.upload(req.files[`replace_image${i}`][0].path, {
+          quality: "100",
+        });
+        images[i - 1] = result.secure_url;
+      }
+    }
 
-    console.log('Updated product images:', product.images); // Log the updated images
+    // If new images are uploaded, update the images field
+    if (images.length > 0) {
+      updateFields.images = images;
+    }
+
+    await Product.findByIdAndUpdate(id, updateFields, { new: true });
 
     res.redirect('/admin/products');
   } catch (error) {

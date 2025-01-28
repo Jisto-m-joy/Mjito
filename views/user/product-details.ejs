@@ -24,26 +24,26 @@
         <div class="details__group">
           <img
             id="zoom_01"
-            src="<%= product.images[0].replace(/\\/g, '/') %>"
+            src="<%= product.images[0] %>"
             data-zoom-image="<%= product.images[0].replace(/\\/g, '/') %>"
             alt="product image"
             class="details__img"
           />
           <div class="details__small-images grid">
             <img
-              src="<%= product.images[1].replace(/\\/g, '/') %>"
+              src="<%= product.images[1] %>"
               alt="product image"
               class="details__small-img"
               onclick="changeImage(this)"
             />
             <img
-              src="<%= product.images[2].replace(/\\/g, '/') %>"
+              src="<%= product.images[2] %>"
               alt="product image"
               class="details__small-img"
               onclick="changeImage(this)"
             />
             <img
-              src="<%= product.images[3].replace(/\\/g, '/') %>"
+              src="<%= product.images[3] %>"
               alt="product image"
               class="details__small-img"
               onclick="changeImage(this)"
@@ -326,12 +326,12 @@
           <div class="product__banner">
             <a href="/productDetails?id=<%= relatedProduct._id %>" class="product__images">
               <img
-                src="/<%= relatedProduct.images[0] %>"
+                src="<%= relatedProduct.images[0] %>"
                 alt=""
                 class="product__img default"
               />
               <img
-                src="/<%= relatedProduct.images[1] %>"
+                src="<%= relatedProduct.images[1] %>"
                 alt=""
                 class="product__img hover"
               />

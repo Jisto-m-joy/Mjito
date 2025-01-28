@@ -7,15 +7,12 @@ const brandController = require("../controllers/admin/brandController");
 const productController = require("../controllers/admin/productController");
 const { userAuth, adminAuth } = require("../middlewares/auth");
 const multer = require("multer");
-const upload = require("../helpers/multer");
+const storage = require("../helpers/multer");
+const uploads = multer({ storage: storage });
 const { adminErrorHandler } = require('../middlewares/errorHandler')
 
-
-//Error Handling middleware
+// Error Handling middleware
 router.use(adminErrorHandler);
-
-// Error Page
-router.get("/pageerror", adminController.pageerror);
 
 // Login Management
 router.get("/login", adminController.loadLogin);
@@ -48,7 +45,7 @@ router.post("/editCategory/:id", adminAuth, categoryController.editCategory);
 
 // Brand Management
 router.get("/brands", adminAuth, brandController.getBrandPage);
-router.post("/addBrand", upload.single("image"), brandController.addBrand);
+router.post("/addBrand", uploads.single("image"), brandController.addBrand);
 router.get(
   "/toggleBrandBlockStatus", 
   adminAuth,
@@ -61,7 +58,7 @@ router.get("/addProducts", adminAuth, productController.getProductAddPage);
 router.post(
   "/addProducts",
   adminAuth,
-  upload.array("images", 4),
+  uploads.array("images", 4),
   productController.addProducts
 );
 router.get("/products", adminAuth, productController.getAllProducts);
@@ -70,6 +67,11 @@ router.post("/removeOffer", productController.removeOffer);
 router.get("/blockProduct", adminAuth, productController.blockProduct);
 router.get("/unblockProduct", adminAuth, productController.unblockProduct);
 router.get("/editProduct", adminAuth, productController.getEditProduct);
-router.post('/editProduct/:id', adminAuth, upload.any(), productController.editProduct);
-
+router.post('/editProduct/:id', adminAuth, uploads.fields([
+  { name: 'images', maxCount: 4 },
+  { name: 'replace_image1' },
+  { name: 'replace_image2' },
+  { name: 'replace_image3' },
+  { name: 'replace_image4' }
+]), productController.editProduct);
 module.exports = router;

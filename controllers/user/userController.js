@@ -44,9 +44,10 @@ const loadHomepage = async (req, res, next) => {
     productData.sort((a, b) => new Date(b.createdOn) - new Date(a.createdOn));
     productData = productData.slice(0, 10);
 
+    console.log(productData); // Log product data to verify image URLs
+
     if (user) {
       const userData = await User.findOne({ _id: user._id });
-
       return res.render("home", { user: userData, products: productData });
     } else {
       return res.render("home", { products: productData });
@@ -55,6 +56,7 @@ const loadHomepage = async (req, res, next) => {
     next(error);
   }
 };
+
 
 function generateOtp() {
   return Math.floor(100000 + Math.random() * 900000).toString();

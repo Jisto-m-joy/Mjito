@@ -85,8 +85,8 @@
                     <div class="card mb-4">
                         <div class="card-body">
                             <% if (product) { %>
-                            <form method="post" action="/admin/editProduct/<%= product._id %>" enctype="multipart/form-data" onsubmit="return validateAndSubmit()">
-                                <div class="mb-4">
+                                <form method="post" action="/admin/editProduct/<%= product._id %>" enctype="multipart/form-data" onsubmit="return validateAndSubmit()">
+                                    <div class="mb-4">
                                     <label for="product_name" class="form-label">Product Name</label>
                                     <input type="text" placeholder="Type here" name="productName" value="<%= product.name %>" class="form-control" id="product_name">                                    <div id="productName-error" class="error-message"></div>
                                 </div>
@@ -137,39 +137,37 @@
                                 </div>
                                 <div class="card mb-4">
                                     <div class="card-header">
-                                      <h4>Edit Product Images</h4>
+                                        <h4>Edit Product Images</h4>
                                     </div>
                                     <div class="thumbnails-container">
-                                      <% if (product.images && product.images.length > 0) { %>
-                                      <% for (let i = 0; i < product.images.length; i++) { %>
-                                      <div class="thumbnail-container">
-                                        <div class="thumbnail">
-                                          <!-- Ensure the image path is correct -->
-                                          <img src="/<%= product.images[i].replace(/\\/g, '/') %>" alt="Product Image" id="productImg<%= i %>">
-                                        </div>
-                                        <div class="input-upload">
-                                          <input type="file" accept="image/webp, image/jpeg, image/jpg" onchange="replaceImage(event, '<%= product.images[i] %>','<%= i %>')">
-                                        </div>
-                                        <div class="image-cropper-container" id="cropperContainer<%= i %>">
-                                          <div class="image-cropper">
-                                            <img src="" id="cropperImg<%= i %>" alt="">
-                                          </div>
-                                          <div class="btn-container">
-                                            <button type="button" id="saveButton<%= i %>" class="btn btn-sm btn-primary mt-2">Save</button>
-                                          </div>
-                                        </div>
+                                        <% if (product.images && product.images.length > 0) { %>
+                                          <% for (let i = 0; i < product.images.length; i++) { %>
+                                            <div class="thumbnail-container">
+                                              <div class="thumbnail">
+                                                <img src="<%= product.images[i] %>" alt="Product Image" id="productImg<%= i %>">
+                                              </div>
+                                              <div class="input-upload">
+                                                <input type="file" name="replace_image<%= i + 1 %>" accept="image/webp, image/png, image/jpg" onchange="replaceImage(event, '<%= product.images[i] %>', '<%= i %>')">
+                                              </div>
+                                              <div class="image-cropper-container" id="cropperContainer<%= i %>">
+                                                <div class="image-cropper">
+                                                  <img src="" id="cropperImg<%= i %>" alt="">
+                                                </div>
+                                                <div class="btn-container">
+                                                  <button type="button" id="saveButton<%= i %>" class="btn btn-sm btn-primary mt-2">Save</button>
+                                                </div>
+                                              </div>
+                                            </div>
+                                          <% } %>
+                                        <% } else { %>
+                                          <p class="text-center">No images found</p>
+                                        <% } %>
                                       </div>
-                                      <% } %>
-                                      <% } else { %>
-                                      <p class="text-center">No images found</p>
-                                      <% } %>
-                                    </div>
-                                  </div>
-                                <div class="d-flex justify-content-between">
-                                    <button type="submit" class="btn btn-md btn-danger">Save Changes</button>
-                                    <a href="/admin/products" class="btn btn-secondary">Cancel</a>
-                                </div>
-                            </form>
+                                      <div class="d-flex justify-content-between">
+                                        <button type="submit" class="btn btn-md btn-danger">Save Changes</button>
+                                        <a href="/admin/products" class="btn btn-secondary">Cancel</a>
+                                      </div>
+                                    </form>
                             <% } else { %>
                             <p>Product not found.</p>
                             <% } %>
