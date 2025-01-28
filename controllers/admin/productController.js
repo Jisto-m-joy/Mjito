@@ -18,42 +18,25 @@ const getProductAddPage = async (req, res, next) => {
 
 const addProducts = async (req, res, next) => {
   try {
-    const {
-      name,
-      description,
-      regularPrice,
-      salesPrice,
-      quantity,
-      brand,
-      category,
-      color,
-      size,
-    } = req.body;
+    const { name, description, brand, category, combos } = req.body;
 
-
-    //Cloudinary image uploading
+    // Cloudinary image uploading
     const imageUrl = [];
     if (req.files && req.files.length > 0) {
-      for (let i = 0; i < req.files.length; i++) {
-        const result = await cloudinary.uploader.upload(req.files[i].path, {
-          quality: "100",
-        });
-        imageUrl.push(result.secure_url); // Push the URL to the array
-      }
+      const uploadPromises = req.files.map(file =>
+        cloudinary.uploader.upload(file.path, { quality: "100" })
+      );
+      const uploadResults = await Promise.all(uploadPromises);
+      uploadResults.forEach(result => imageUrl.push(result.secure_url));
     }
 
-    if (
-      !name ||
-      !description ||
-      !regularPrice ||
-      !salesPrice ||
-      !brand ||
-      !quantity ||
-      !category ||
-      !color ||
-      !size ||
-      imageUrl.length === 0
-    ) {
+    // Parse combos if provided
+    let combosArray = [];
+    if (combos) {
+      combosArray = JSON.parse(combos);
+    }
+
+    if (!name || !description || !brand || !category || imageUrl.length === 0) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
@@ -65,22 +48,20 @@ const addProducts = async (req, res, next) => {
     const newProduct = new Product({
       name,
       description,
-      regularPrice,
-      salesPrice,
       brand,
-      quantity,
-      category: categoryDoc._id, // Use the ObjectId of the category
-      color,
-      size,
-      images: imageUrl, // Ensure images are being saved here
+      category: categoryDoc._id,
+      combos: combosArray,
+      images: imageUrl,
     });
 
     await newProduct.save();
     res.status(201).json({ message: "Product added successfully" });
   } catch (error) {
+    console.error("Error adding product:", error); // Log the error
     next(error);
   }
 };
+
 
 const getAllProducts = async (req, res, next) => {
   try {

@@ -54,7 +54,7 @@ router.get(
 router.get("/checkBrandExists", adminAuth, brandController.checkBrandExists); 
 
 // Product Management
-router.get("/addProducts", adminAuth, productController.getProductAddPage);
+router.get("/addProducts",  productController.getProductAddPage);
 router.post(
   "/addProducts",
   adminAuth,

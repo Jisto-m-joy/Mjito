@@ -2,6 +2,34 @@ function validateAndSubmit(event) {
   event.preventDefault();
   if (validateForm()) {
     submitForm(event);
+
+    // Collect combo data from the form
+    let combos = [];
+    const comboRows = document.querySelectorAll(".combo-row");
+
+    comboRows.forEach((row) => {
+      const salesPrice = row.querySelector('input[name="salesPrice"]').value;
+      const size = row.querySelector('input[name="size"]').value;
+      const quantity = row.querySelector('input[name="quantity"]').value;
+      const regularPrice = row.querySelector('input[name="regularPrice"]').value;
+      const color = row.querySelector('input[name="color"]').value;
+
+      combos.push({
+        size: size.split(','),
+        salesPrice: parseFloat(salesPrice),
+        quantity: parseInt(quantity, 10),
+        regularPrice: parseFloat(regularPrice),
+        color: color,
+      });
+    });
+
+    const combosField = document.createElement("input");
+    combosField.type = "hidden";
+    combosField.name = "combos";
+    combosField.value = JSON.stringify(combos); // Convert the combos array to a json string
+    document.forms[0].appendChild(combosField);
+
+    document.forms[0].submit();
   } else {
     iziToast.error({
       title: "Error",
@@ -10,6 +38,10 @@ function validateAndSubmit(event) {
     });
   }
 }
+
+
+
+
 function viewImage1(event) {
   document.getElementById("imgView1").src = URL.createObjectURL(
     event.target.files[0]
@@ -120,13 +152,11 @@ function validateForm() {
   const name = document.getElementsByName("name")[0].value;
   const description = document.getElementById("descriptionid").value;
   const brand = document.getElementsByName("brand")[0].value;
-  const price = document.getElementsByName("regularPrice")[0].value;
-  const salesprice = document.getElementsByName("salesPrice")[0].value;
-  const color = document.getElementsByName("color")[0].value;
   const category = document.getElementsByName("category")[0].value;
   const images = document.getElementById("input1");
-  const quantity = document.getElementsByName("quantity")[0].value;
   let isValid = true;
+
+  const comboSet = new Set();
 
   if (name.trim() === "") {
     displayErrorMessage("productName-error", "Please enter a product name.");
@@ -147,50 +177,62 @@ function validateForm() {
     isValid = false;
   } 
 
-  if (parseInt(quantity) < 0 || isNaN(parseInt(quantity))) {
-    displayErrorMessage(
-      "quantity-error",
-      "Please enter a valid non-negative quantity."
-    );
-    isValid = false;
-  }
-
-  if (
-    !/^\d+(\.\d{1,2})?$/.test(price) ||
-    parseFloat(price) < 0 ||
-    isNaN(parseFloat(price))
-  ) {
-    displayErrorMessage(
-      "regularPrice-error",
-      "Please enter a valid non-negative price."
-    );
-    isValid = false;
-  }
-
-  if (
-    !/^\d+(\.\d{1,2})?$/.test(salesprice) ||
-    parseFloat(salesprice) < 0 ||
-    isNaN(parseFloat(salesprice))
-  ) {
-    displayErrorMessage(
-      "salePrice-error",
-      "Please enter a valid non-negative price."
-    );
-    isValid = false;
-  }
-
-  if (parseFloat(price) <= parseFloat(salesprice)) {
-    displayErrorMessage(
-      "regularPrice-error",
-      "Regular price must be greater than sale price."
-    );
-    isValid = false;
-  }
-
-  if (color.trim() === "") {
-    displayErrorMessage("color-error", "Please enter a color.");
-    isValid = false;
-  }
+    // Validate Combos
+    const combos = document.querySelectorAll(".combo-row");
+    combos.forEach((combo, index) => {
+      const salesPrice = combo.querySelector('input[name="salesPrice"]').value.trim();
+      const size = combo.querySelector('input[name="size"]').value.trim();
+      const quantity = combo.querySelector('input[name="quantity"]').value.trim();
+      const regularPrice = combo
+        .querySelector('input[name="regularPrice"]')
+        .value.trim();
+      const color = combo.querySelector('input[name="color"]').value.trim();
+  
+      // Check if any field is empty
+      if (size === "") {
+        displayErrorMessage(`comboRAM-error-${index}`, "This is Empty");
+        isValid = false;
+      }
+  
+      if (quantity === "") {
+        displayErrorMessage(`comboQuantity-error-${index}`, "This is Empty");
+        isValid = false;
+      }
+  
+      if (regularPrice === "") {
+        displayErrorMessage(`comboReg-error-${index}`, "This is Empty");
+        isValid = false;
+      }
+  
+      if (salesPrice === "") {
+        displayErrorMessage(`comboSale-error-${index}`, "This is Empty");
+        isValid = false;
+      }
+  
+      if (color === "") {
+        displayErrorMessage(`comboColor-error-${index}`, "This is Empty");
+        isValid = false;
+      }
+  
+      // checking if regular price is greater than sale price
+      if (parseFloat(regularPrice) <= parseFloat(salesPrice)) {
+        displayErrorMessage(
+          `comboReg-error-${index}`,
+          "Regular price must be greater than sale price."
+        );
+        isValid = false;
+      }
+  
+      // Checing for duplicate combos
+      const comboKey = `${size}-${quantity}-${regularPrice}-${salesPrice}-${color}`;
+      if (comboSet.has(comboKey)) {
+        displayErrorMessage(`combo-error-${index}`, "Duplicate combo detected.");
+        isValid = false;
+      } else {
+        comboSet.add(comboKey); // Add comboKey to the set if unique
+      }
+    });
+  
 
   if (images.files.length === 0) {
     displayErrorMessage("images-error", "Please select an image.");
@@ -231,8 +273,7 @@ async function submitForm(event) {
     if (!response.ok) {
       iziToast.error({
         title: "Error",
-        message:
-          result.message || "An error occurred while adding the product.",
+        message: result.message || "An error occurred while adding the product.",
         position: "topRight",
       });
     } else {
@@ -251,4 +292,72 @@ async function submitForm(event) {
       position: "topRight",
     });
   }
+}
+
+
+//New combo displaying code
+
+document.getElementById("addComboBtn").addEventListener("click", addNewCombo);
+
+function addNewCombo() {
+  const comboContainer = document.getElementById("product-combos");
+
+  // Create a new combo row
+  const newRow = document.createElement("div");
+  newRow.classList.add("row", "combo-row", "mb-3");
+
+  newRow.innerHTML = `
+    <div class="row">
+      <div class="col-lg-4">
+        <div class="mb-4">
+          <label class="form-label">Regular price</label>
+          <input placeholder="$" name="regularPrice" type="text" class="form-control border" />
+          <div class="error-message"></div>
+        </div>
+      </div>
+      <div class="col-lg-4">
+        <div class="mb-4">
+          <label class="form-label">Sale price</label>
+          <input placeholder="$" name="salesPrice" type="text" class="form-control border" />
+          <div class="error-message"></div>
+        </div>
+      </div>
+      <div class="col-lg-4">
+        <div class="mb-4">
+          <label class="form-label">Quantity</label>
+          <input placeholder="" name="quantity" type="text" class="form-control border" />
+          <div class="error-message"></div>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-lg-4">
+        <div class="mb-4">
+          <label class="form-label">Color</label>
+          <input name="color" type="text" class="form-control border" />
+          <div class="error-message"></div>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-lg-4">
+        <div class="mb-4">
+          <label class="form-label">Size</label>
+          <input name="size" type="text" class="form-control border" />
+          <div class="error-message"></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-3 d-flex align-items-center">
+      <button type="button" class="btn btn-danger delete-combo-btn">Delete</button>
+    </div>
+  `;
+
+  // Append the new combo row to the combo container
+  comboContainer.appendChild(newRow);
+
+  // Add event listener for the delete button
+  newRow.querySelector(".delete-combo-btn").addEventListener("click", function () {
+    newRow.remove();
+  });
 }

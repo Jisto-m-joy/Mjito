@@ -28,8 +28,7 @@
       <div class="col-lg-6">
         <div class="card mb-4">
           <div class="card-body">
-            <form id="addProductForm" method="POST" enctype="multipart/form-data" onsubmit="validateAndSubmit(event)">
-              <div class="mb-4">
+            <form id="addProductForm" method="POST" action="/admin/addProducts" enctype="multipart/form-data" onsubmit="validateAndSubmit(event)">              <div class="mb-4">
                 <label for="productName" class="form-label">Product Name</label>
                 <input type="text" placeholder="Type here" name="name" class="form-control border" id="product_name" />
                 <div id="productName-error" class="error-message"></div>
@@ -57,6 +56,27 @@
                   rows="4"></textarea>
                 <div id="description-error" class="error-message"></div>
               </div>
+              <div class="card mb-4">
+                <div class="card-body">
+                  <div class="row gx-2">
+                    <div class="col-sm-6 mb-3">
+                      <label class="form-label">Category</label>
+                      <select class="form-select border" style="width: 150px" name="category">
+                        <% for (let i=0; i < categories.length; i++) { %>
+                          <option value="<%= categories[i].name %>">
+                            <%= categories[i].name %>
+                          </option>
+                          <% } %>
+                      </select>
+                      <div id="category-error" class="error-message"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="container">
+                <div id="product-combos">
+                    <div class="row combo-row mb-3" name="combos">
+              <!-- Combo fields for color, size, quantity, salesPrice and regularPrice -->
               <div class="row">
                 <div class="col-lg-4">
                   <div class="mb-4">
@@ -98,23 +118,14 @@
                   </div>
                 </div>
               </div>
-              <div class="card mb-4">
-                <div class="card-body">
-                  <div class="row gx-2">
-                    <div class="col-sm-6 mb-3">
-                      <label class="form-label">Category</label>
-                      <select class="form-select border" style="width: 150px" name="category">
-                        <% for (let i=0; i < categories.length; i++) { %>
-                          <option value="<%= categories[i].name %>">
-                            <%= categories[i].name %>
-                          </option>
-                          <% } %>
-                      </select>
-                      <div id="category-error" class="error-message"></div>
-                    </div>
-                  </div>
-                </div>
+              <div class="col-lg-3 d-flex align-items-center">
+                <button type="button" class="btn btn-danger delete-combo-btn">Delete</button>
               </div>
+            </div>
+          </div>
+          <button type="button" id="addComboBtn" class="btn btn-primary">Add Another Combo</button>
+        </div>
+              
               <div class="card mb-2">
                 <div class="card-header">
                   <h4>Choose images</h4>

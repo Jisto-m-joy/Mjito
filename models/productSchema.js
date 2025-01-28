@@ -11,14 +11,6 @@ const productSchema = new Schema(
       type: String,
       required: true,
     },
-    regularPrice: {
-      type: Number,
-      required: true,
-    },
-    salesPrice: {
-      type: Number,
-      required: true,
-    },
     offer: {
       type: Number,
       required: true,
@@ -33,18 +25,36 @@ const productSchema = new Schema(
       ref: "Category",
       required: true,
     },
-    color: {
-      type: String,
-      required: true,
-    },
-    quantity: {
-      type: Number,
-      required: true,
-    },
-    size: {
-      type: [String],
-      required: true,
-    },
+    combos: [
+      {
+        color: {
+          type: String,
+          required: true,
+        },
+        quantity: {
+          type: Number,
+          required: true,
+        },
+        size: {
+          type: [String],
+          required: true,
+        },
+        regularPrice: {
+          type: Number,
+          required: true,
+        },
+        salesPrice: {
+          type: Number,
+          required: true,
+        },
+        status: {
+          type: String,
+          enum: ["Available", "Out of Stock", "Discontinued"],
+          required: true,
+          default: "Available",
+        },
+      },
+    ],
     images: {
       type: [String],
       required: true,
@@ -52,13 +62,7 @@ const productSchema = new Schema(
     isBlocked: {
       type: Boolean,
       default: false,
-    },
-    status: {
-      type: String,
-      enum: ["Available", "Out of Stock", "Discontinued"],
-      required: true,
-      default: "Available",
-    },
+    }
   },
   { timestamps: true }
 );
