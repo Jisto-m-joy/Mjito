@@ -78,9 +78,9 @@ const getAllProducts = async (req, res, next) => {
     const productData = await Product.find({
       $or: [
         { name: { $regex: new RegExp(".*" + search + ".*", "i") } },
-        { brand: { $regex: new RegExp(".*" + search + ".*", "i") } },
       ],
     })
+      .populate("brand") // Ensure brand is populated
       .limit(limit * 1)
       .skip((page - 1) * limit)
       .populate("category") // Ensure category is populated
@@ -89,7 +89,6 @@ const getAllProducts = async (req, res, next) => {
     const count = await Product.find({
       $or: [
         { name: { $regex: new RegExp(".*" + search + ".*", "i") } },
-        { brand: { $regex: new RegExp(".*" + search + ".*", "i") } },
       ],
     }).countDocuments();
 
@@ -111,8 +110,6 @@ const getAllProducts = async (req, res, next) => {
     next(error)
   }
 };
-
-
 
 const addOffer = async (req, res, next) => {
   try {
@@ -176,12 +173,12 @@ const unblockProduct = async (req, res, next) => {
 const getEditProduct = async (req, res, next) => {
   try {
     const id = req.query.id; // Get the product ID from the query parameters
-    const product = await Product.findOne({ _id: id }).populate("category").populate("brand"); 
-    const cat = await Category.find({isListed: true });
-    const brands = await Brand.find({ isBlocked: false});
+    const product = await Product.findOne({ _id: id }).populate("category"); 
+    const cat = await Category.find({ isListed: true });
+    const brands = await Brand.find({ isBlocked: false });
 
-    // Log the product data to verify the images array
-    console.log(product);
+       // Log the brands data to verify
+    console.log("Brands:", brands);
 
     res.render("edit-product", { product, brands, cat }); // Ensure product with images is passed to the view
   } catch (error) {
@@ -194,11 +191,15 @@ const editProduct = async (req, res, next) => {
     const id = req.params.id;
     const data = req.body;
 
+    console.log('Request body:', data); // Debug log
+
+    // Validate category
     const category = await Category.findById(data.category);
     if (!category) {
       return res.status(400).json({ error: 'Category not found' });
     }
 
+    // Check for duplicate product name
     const existingProduct = await Product.findOne({
       name: data.productName,
       _id: { $ne: id },
@@ -206,58 +207,89 @@ const editProduct = async (req, res, next) => {
 
     if (existingProduct) {
       return res.status(400).json({
-        error: 'Product with this name already exists. Please try another name.',
+        error: 'Product with this name already exists.',
       });
     }
 
-    // Update fields
+    // Parse combos
+    let combosArray = [];
+    if (data.combos) {
+      try {
+        combosArray = JSON.parse(data.combos);
+      } catch (error) {
+        console.error("Combos parsing error:", error);
+        return res.status(400).json({ error: "Invalid combos format" });
+      }
+    }
+
+    // Fetch the brand's name using the brand ID
+    const brand = await Brand.findById(data.brand);
+    if (!brand) {
+      return res.status(400).json({ error: 'Brand not found' });
+    }
+
+    // Prepare update fields
     const updateFields = {
       name: data.productName,
       description: data.description,
-      brand: data.brand,
+      brand: brand.brandName, // Store brand name instead of ID
       category: data.category,
-      regularPrice: data.regularPrice,
-      salesPrice: data.salePrice,
-      size: data.size,
-      color: data.color,
-      quantity: data.quantity,
+      combos: combosArray,
     };
 
-    const product = await Product.findById(id);
-
-    // Cloudinary image uploading
-    const images = [];
-    if (req.files && req.files.images) {
-      for (let i = 0; i < req.files.images.length; i++) {
-        const result = await cloudinary.uploader.upload(req.files.images[i].path, {
-          quality: "100",
-        });
-        images.push(result.secure_url);
+    // Handle images
+    if (req.files) {
+      const currentProduct = await Product.findById(id);
+      if (!currentProduct) {
+        return res.status(404).json({ error: 'Product not found' });
       }
-    }
 
-    // Handle image replacements
-    for (let i = 1; i <= 4; i++) {
-      if (req.files[`replace_image${i}`]) {
-        const result = await cloudinary.uploader.upload(req.files[`replace_image${i}`][0].path, {
-          quality: "100",
-        });
-        images[i - 1] = result.secure_url;
+      const updatedImages = [...currentProduct.images];
+
+      for (let i = 1; i <= 4; i++) {
+        if (req.files[`replace_image${i}`] && req.files[`replace_image${i}`][0]) {
+          try {
+            const result = await cloudinary.uploader.upload(
+              req.files[`replace_image${i}`][0].path,
+              { quality: "100" }
+            );
+            updatedImages[i - 1] = result.secure_url;
+          } catch (uploadError) {
+            console.error('Image upload error:', uploadError);
+            return res.status(500).json({ error: 'Error uploading image' });
+          }
+        }
       }
+
+      updateFields.images = updatedImages;
     }
 
-    // If new images are uploaded, update the images field
-    if (images.length > 0) {
-      updateFields.images = images;
+    // Update product
+    const updatedProduct = await Product.findByIdAndUpdate(
+      id,
+      updateFields,
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedProduct) {
+      return res.status(404).json({ error: 'Product not found' });
     }
 
-    await Product.findByIdAndUpdate(id, updateFields, { new: true });
+    return res.status(200).json({
+      success: true,
+      message: 'Product updated successfully',
+      product: updatedProduct
+    });
 
-    res.redirect('/admin/products');
   } catch (error) {
-    next(error);
+    console.error('Edit product error:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'An error occurred while updating the product'
+    });
   }
 };
+
 
 module.exports = {
   getProductAddPage,

@@ -35,16 +35,36 @@ const loadHomepage = async (req, res, next) => {
   try {
     const user = req.session.user;
     const categories = await Category.find({ isListed: true });
-    let productData = await Product.find({
+    const categoryIds = categories.map((category) => category._id);
+
+    const productQuery = {
       isBlocked: false,
-      category: { $in: categories.map((category) => category._id) },
-      quantity: { $gt: 0 },
+      category: { $in: categoryIds }
+    };
+
+    const allProducts = await Product.find(productQuery)
+      .populate('category')
+      .lean(); // Use .lean() for better performance and easier debugging
+
+    console.log('Detailed Product Query:', productQuery);
+    console.log('All Products Found:', allProducts.length);
+    
+    // Detailed logging of product details
+    allProducts.forEach(product => {
+      console.log('Product Details:', {
+        id: product._id,
+        name: product.name,
+        category: product.category ? product.category.name : 'No Category',
+        isBlocked: product.isBlocked,
+        combos: product.combos,
+        images: product.images
+      });
     });
 
-    productData.sort((a, b) => new Date(b.createdOn) - new Date(a.createdOn));
-    productData = productData.slice(0, 10);
-
-    console.log(productData); // Log product data to verify image URLs
+    // Sort and limit products
+    let productData = allProducts
+      .sort((a, b) => new Date(b.createdOn || b.createdAt) - new Date(a.createdOn || a.createdAt))
+      .slice(0, 10);
 
     if (user) {
       const userData = await User.findOne({ _id: user._id });
@@ -53,6 +73,7 @@ const loadHomepage = async (req, res, next) => {
       return res.render("home", { products: productData });
     }
   } catch (error) {
+    console.error('Detailed Error in loadHomepage:', error);
     next(error);
   }
 };

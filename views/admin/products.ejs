@@ -41,68 +41,65 @@
               <th scope="col"><b>Product name</b></th>
               <th scope="col"><b>Brand</b></th>
               <th scope="col"><b>Category</b></th>
-              <th scope="col"><b>Sale Price</b></th>
               <th scope="col"><b>Offer Percentage</b></th>
-              <th scope="col"><b>Quantity</b></th>
+              <th scope="col"><b>Combos</b></th> <!-- New Column -->
               <th scope="col"><b>Action</b></th>
               <th scope="col"><b>Edit</b></th>
             </tr>
           </thead>
           <tbody>
             <% for (let i = data.length - 1; i >= 0; i--) { %>
-            <tr>
-              <td><%= data[i].name %></td>
-              <td><%= data[i].brand %></td>
-              <td>
-                <%= data[i].category ? data[i].category.name : 'No Category' %>
-              </td>
-              <td><%= data[i].salesPrice %></td>
-              <td>
-                <% if (data[i].offer) { %> <%= ((data[i].regularPrice -
-                data[i].salesPrice) / data[i].regularPrice * 100).toFixed(2) %>%
-                <% } else { %> 0% <% } %>
-              </td>
-              <td><%= data[i].quantity %></td>
-              <td>
-                <% if (data[i].offer === 0) { %>
-                <button
-                  class="btn btn-info btn-sm text-white"
-                  onclick="addOffer('<%= data[i]._id %>')"
-                >
-                  Add Offer
-                </button>
-                <% } else { %>
-                <button
-                  class="btn btn-warning btn-sm"
-                  onclick="removeOffer('<%= data[i]._id %>')"
-                >
-                  Remove Offer
-                </button>
-                <% } %>
-              </td>
-              <td>
-                <% if (data[i].isBlocked === false) { %>
-                <button
-                  class="btn btn-danger btn-sm"
-                  onclick="confirmBlock('<%=data[i]._id%>')"
-                >
-                  Block
-                </button>
-                <% } else { %>
-                <button
-                  class="btn btn-success btn-sm"
-                  onclick="confirmUnblock('<%=data[i]._id%>')"
-                >
-                  Unblock
-                </button>
-                <% } %>
-                <a
-                  href="/admin/editProduct?id=<%=data[i]._id%>"
-                  style="text-decoration: none"
-                  class="btn btn-info text-white"
-                  >Edit</a>
-              </td>
-            </tr>
+              <tr>
+                <td><%= data[i].name %></td>
+                <td><%= data[i].brand %></td>
+                <td>
+                  <%= data[i].category ? data[i].category.name : 'No Category' %>
+                </td>
+                <td>
+                  <% if (data[i].offer) { %> <%= ((data[i].combos[0].regularPrice - data[i].combos[0].salesPrice) / data[i].combos[0].regularPrice * 100).toFixed(2) %>%
+                  <% } else { %> 0% <% } %>
+                </td>
+                <td><%= data[i].combos.length %></td> <!-- Display number of combos -->
+                <td>
+                  <% if (data[i].offer === 0) { %>
+                  <button
+                    class="btn btn-info btn-sm text-white"
+                    onclick="addOffer('<%= data[i]._id %>')"
+                  >
+                    Add Offer
+                  </button>
+                  <% } else { %>
+                  <button
+                    class="btn btn-warning btn-sm"
+                    onclick="removeOffer('<%= data[i]._id %>')"
+                  >
+                    Remove Offer
+                  </button>
+                  <% } %>
+                </td>
+                <td>
+                  <% if (data[i].isBlocked === false) { %>
+                  <button
+                    class="btn btn-danger btn-sm"
+                    onclick="confirmBlock('<%=data[i]._id%>')"
+                  >
+                    Block
+                  </button>
+                  <% } else { %>
+                  <button
+                    class="btn btn-success btn-sm"
+                    onclick="confirmUnblock('<%=data[i]._id%>')"
+                  >
+                    Unblock
+                  </button>
+                  <% } %>
+                  <a
+                    href="/admin/editProduct?id=<%=data[i]._id%>"
+                    style="text-decoration: none"
+                    class="btn btn-info text-white"
+                    >Edit</a>
+                </td>
+              </tr>
             <% } %>
           </tbody>
         </table>
