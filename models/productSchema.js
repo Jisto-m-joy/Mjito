@@ -36,7 +36,7 @@ const productSchema = new Schema(
           required: true,
         },
         size: {
-          type: [String],
+          type: Number,
           required: true,
         },
         regularPrice: {

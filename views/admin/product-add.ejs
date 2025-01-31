@@ -3,6 +3,7 @@
   <head>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs/dist/cropper.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/izitoast/dist/css/iziToast.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.css" />
   </head>
   <style>
     .error-message {
@@ -28,7 +29,8 @@
       <div class="col-lg-6">
         <div class="card mb-4">
           <div class="card-body">
-            <form id="addProductForm" method="POST" action="/admin/addProducts" enctype="multipart/form-data" onsubmit="validateAndSubmit(event)">              <div class="mb-4">
+            <form id="addProductForm" method="POST" action="/admin/addProducts" enctype="multipart/form-data" onsubmit="validateAndSubmit(event)">              
+              <div class="mb-4">
                 <label for="productName" class="form-label">Product Name</label>
                 <input type="text" placeholder="Type here" name="name" class="form-control border" id="product_name" />
                 <div id="productName-error" class="error-message"></div>
@@ -75,7 +77,7 @@
               </div>
               <div class="container">
                 <div id="product-combos">
-                    <div class="row combo-row mb-3" name="combos">
+                  <div class="row combo-row mb-3" name="combos">
               <!-- Combo fields for color, size, quantity, salesPrice and regularPrice -->
               <div class="row">
                 <div class="col-lg-4">
@@ -221,5 +223,6 @@
   </section>
   <script src="https://cdn.jsdelivr.net/npm/cropperjs/dist/cropper.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/izitoast/dist/js/iziToast.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.js"></script>
   <script src="/assets/js/admin/product-add.js"></script>
   <%- include("../../views/admin/partials/footer") %>

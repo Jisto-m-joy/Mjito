@@ -16,11 +16,13 @@ const getProductAddPage = async (req, res, next) => {
   }
 };
 
+
 const addProducts = async (req, res, next) => {
   try {
     const { name, description, brand, category, combos } = req.body;
 
-    // Cloudinary image uploading
+    console.log("Request Body:", req.body); // Log entire request body for debugging
+
     const imageUrl = [];
     if (req.files && req.files.length > 0) {
       const uploadPromises = req.files.map(file =>
@@ -30,19 +32,25 @@ const addProducts = async (req, res, next) => {
       uploadResults.forEach(result => imageUrl.push(result.secure_url));
     }
 
-    // Parse combos if provided
     let combosArray = [];
     if (combos) {
-      combosArray = JSON.parse(combos);
+      try {
+        combosArray = JSON.parse(combos);
+      } catch (error) {
+        console.error("Invalid combos format:", error);
+        return res.status(400).json({ error: "Invalid combos format" });
+      }
     }
 
     if (!name || !description || !brand || !category || imageUrl.length === 0) {
-      return res.status(400).json({ message: "All fields are required" });
+      console.log("Validation Error: Missing required fields");
+      return res.status(400).json({ error: "All fields are required" });
     }
 
     const categoryDoc = await Category.findOne({ name: category });
     if (!categoryDoc) {
-      return res.status(400).json({ message: "Invalid category" });
+      console.log("Validation Error: Invalid category");
+      return res.status(400).json({ error: "Invalid category" });
     }
 
     const newProduct = new Product({
@@ -57,11 +65,9 @@ const addProducts = async (req, res, next) => {
     await newProduct.save();
     res.status(201).json({ message: "Product added successfully" });
   } catch (error) {
-    console.error("Error adding product:", error); // Log the error
     next(error);
   }
 };
-
 
 const getAllProducts = async (req, res, next) => {
   try {

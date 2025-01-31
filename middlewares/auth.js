@@ -20,19 +20,24 @@ const userAuth = (req, res, next) => {
 };
 
 const adminAuth = (req, res, next) => {
-  User.findOne({ isAdmin: true })
-    .then((data) => {
-      if (data) {
-        next();
-      } else {
-        res.redirect("/admin/login");
-      }
-    })
-    .catch((error) => {
-      console.log("Error in admin auth middleware");
-      res.status(500).send("Internal Server Error");
-    });
+  if (req.session.admin) {
+    User.findOne({ isAdmin: true })
+      .then((data) => {
+        if (data) {
+          next();
+        } else {
+          res.redirect("/admin/login");
+        }
+      })
+      .catch((error) => {
+        res.status(500).send("Internal Server Error");
+      });
+  } else {
+    res.redirect("/admin/login");
+  }
 };
+
+
 
 const checkBlockStatus = async (req, res, next) => {
   if (req.session && req.session.user) {

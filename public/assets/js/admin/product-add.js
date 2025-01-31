@@ -1,44 +1,78 @@
 function validateAndSubmit(event) {
   event.preventDefault();
-  if (validateForm()) {
-    submitForm(event);
 
-    // Collect combo data from the form
+  if (validateForm()) {
+    // Create array of combos from form data
     let combos = [];
     const comboRows = document.querySelectorAll(".combo-row");
-
+    
     comboRows.forEach((row) => {
-      const salesPrice = row.querySelector('input[name="salesPrice"]').value;
-      const size = row.querySelector('input[name="size"]').value;
-      const quantity = row.querySelector('input[name="quantity"]').value;
-      const regularPrice = row.querySelector('input[name="regularPrice"]').value;
-      const color = row.querySelector('input[name="color"]').value;
-
-      combos.push({
-        size: size.split(','),
-        salesPrice: parseFloat(salesPrice),
-        quantity: parseInt(quantity, 10),
-        regularPrice: parseFloat(regularPrice),
-        color: color,
-      });
+      const combo = {
+        color: row.querySelector('input[name="color"]').value,
+        size: row.querySelector('input[name="size"]').value,
+        quantity: parseInt(row.querySelector('input[name="quantity"]').value),
+        salesPrice: parseFloat(row.querySelector('input[name="salesPrice"]').value),
+        regularPrice: parseFloat(row.querySelector('input[name="regularPrice"]').value)
+      };
+      combos.push(combo);
     });
 
-    const combosField = document.createElement("input");
-    combosField.type = "hidden";
-    combosField.name = "combos";
-    combosField.value = JSON.stringify(combos); // Convert the combos array to a json string
-    document.forms[0].appendChild(combosField);
+    // Create FormData object
+    const form = document.getElementById('addProductForm');
+    const formData = new FormData(form);
 
-    document.forms[0].submit();
-  } else {
-    iziToast.error({
-      title: "Error",
-      message: "Please correct the errors in the form.",
-      position: "topRight",
+    // Remove any existing combos field to avoid duplication
+    formData.delete('combos');
+    
+    // Add the combos array as a JSON string
+    formData.append('combos', JSON.stringify(combos));
+
+    // Log form data for debugging
+    for (let pair of formData.entries()) {
+      console.log(pair[0] + ': ' + pair[1]);
+    }
+
+    // Send the request
+    fetch("/admin/addProducts", {
+      method: "POST",
+      body: formData
+    })
+    .then(async (response) => {
+      const contentType = response.headers.get("content-type");
+      if (!response.ok) {
+        // Try to parse error message if it's JSON
+        if (contentType && contentType.includes("application/json")) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+        } else {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+      }
+      return response.json();
+    })
+    .then((data) => {
+      Swal.fire({
+        icon: "success",
+        title: "Success",
+        text: data.message || "Product added successfully",
+        timer: 1500,
+        showConfirmButton: false
+      }).then(() => {
+        window.location.href = "/admin/products";
+      });
+    })
+    .catch((error) => {
+      console.error("Fetch Error:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: error.message || "An error occurred while adding the product.",
+        timer: 2000,
+        showConfirmButton: false
+      });
     });
   }
 }
-
 
 
 
@@ -147,100 +181,91 @@ function handleFileSelect(event) {
   }
 }
 
+
+// Update validateForm to handle numeric validation
 function validateForm() {
   clearErrorMessages();
+  let isValid = true;
+  
+  // Basic field validation
   const name = document.getElementsByName("name")[0].value;
   const description = document.getElementById("descriptionid").value;
   const brand = document.getElementsByName("brand")[0].value;
   const category = document.getElementsByName("category")[0].value;
   const images = document.getElementById("input1");
-  let isValid = true;
 
-  const comboSet = new Set();
-
-  if (name.trim() === "") {
+  if (!name?.trim()) {
     displayErrorMessage("productName-error", "Please enter a product name.");
     isValid = false;
-  } else if (!/^[a-zA-Z0-9\s\-\_]+$/.test(name.trim())) {
-    displayErrorMessage(
-      "productName-error",
-      "Product name should contain only alphabetic characters."
-    );
+  }
+
+  if (!description?.trim()) {
+    displayErrorMessage("description-error", "Please enter the product description.");
     isValid = false;
   }
 
-  if (description.trim() === "") {
-    displayErrorMessage(
-      "description-error",
-      "Please enter the product description."
-    );
-    isValid = false;
-  } 
-
-    // Validate Combos
-    const combos = document.querySelectorAll(".combo-row");
-    combos.forEach((combo, index) => {
-      const salesPrice = combo.querySelector('input[name="salesPrice"]').value.trim();
-      const size = combo.querySelector('input[name="size"]').value.trim();
-      const quantity = combo.querySelector('input[name="quantity"]').value.trim();
-      const regularPrice = combo
-        .querySelector('input[name="regularPrice"]')
-        .value.trim();
-      const color = combo.querySelector('input[name="color"]').value.trim();
-  
-      // Check if any field is empty
-      if (size === "") {
-        displayErrorMessage(`comboRAM-error-${index}`, "This is Empty");
-        isValid = false;
-      }
-  
-      if (quantity === "") {
-        displayErrorMessage(`comboQuantity-error-${index}`, "This is Empty");
-        isValid = false;
-      }
-  
-      if (regularPrice === "") {
-        displayErrorMessage(`comboReg-error-${index}`, "This is Empty");
-        isValid = false;
-      }
-  
-      if (salesPrice === "") {
-        displayErrorMessage(`comboSale-error-${index}`, "This is Empty");
-        isValid = false;
-      }
-  
-      if (color === "") {
-        displayErrorMessage(`comboColor-error-${index}`, "This is Empty");
-        isValid = false;
-      }
-  
-      // checking if regular price is greater than sale price
-      if (parseFloat(regularPrice) <= parseFloat(salesPrice)) {
-        displayErrorMessage(
-          `comboReg-error-${index}`,
-          "Regular price must be greater than sale price."
-        );
-        isValid = false;
-      }
-  
-      // Checing for duplicate combos
-      const comboKey = `${size}-${quantity}-${regularPrice}-${salesPrice}-${color}`;
-      if (comboSet.has(comboKey)) {
-        displayErrorMessage(`combo-error-${index}`, "Duplicate combo detected.");
-        isValid = false;
-      } else {
-        comboSet.add(comboKey); // Add comboKey to the set if unique
-      }
-    });
-  
-
-  if (images.files.length === 0) {
-    displayErrorMessage("images-error", "Please select an image.");
+  if (!images?.files?.length) {
+    displayErrorMessage("images-error", "Please select at least one image.");
     isValid = false;
   }
+
+  // Validate all combos
+  const combos = document.querySelectorAll(".combo-row");
+  const comboSet = new Set();
+
+  combos.forEach((combo, index) => {
+    const salesPrice = parseFloat(combo.querySelector('input[name="salesPrice"]').value);
+    const regularPrice = parseFloat(combo.querySelector('input[name="regularPrice"]').value);
+    const quantity = parseInt(combo.querySelector('input[name="quantity"]').value);
+    const size = combo.querySelector('input[name="size"]').value.trim();
+    const color = combo.querySelector('input[name="color"]').value.trim();
+
+    // Check for empty fields
+    if (!size) {
+      displayErrorMessage(`size-error`, "Size is required.");
+      isValid = false;
+    }
+
+    if (!color) {
+      displayErrorMessage(`color-error`, "Color is required.");
+      isValid = false;
+    }
+
+    // Validate numeric fields
+    if (isNaN(quantity) || quantity <= 0) {
+      displayErrorMessage(`quantity-error`, "Quantity must be a positive number.");
+      isValid = false;
+    }
+
+    if (isNaN(salesPrice) || salesPrice <= 0) {
+      displayErrorMessage(`salePrice-error`, "Sale price must be a positive number.");
+      isValid = false;
+    }
+
+    if (isNaN(regularPrice) || regularPrice <= 0) {
+      displayErrorMessage(`regularPrice-error`, "Regular price must be a positive number.");
+      isValid = false;
+    }
+
+    // Validate price relationship
+    if (regularPrice <= salesPrice) {
+      displayErrorMessage(`regularPrice-error`, "Regular price must be greater than sale price.");
+      isValid = false;
+    }
+
+    // Check for duplicate combinations
+    const comboKey = `${size}-${color}`;
+    if (comboSet.has(comboKey)) {
+      displayErrorMessage(`combo-error`, "Duplicate size and color combination found.");
+      isValid = false;
+    } else {
+      comboSet.add(comboKey);
+    }
+  });
 
   return isValid;
 }
+
 
 function displayErrorMessage(elementId, message) {
   var errorElement = document.getElementById(elementId);
@@ -254,46 +279,6 @@ function clearErrorMessages() {
     element.innerText = "";
   });
 }
-
-async function submitForm(event) {
-  event.preventDefault();
-  console.log("submitForm called"); // Debugging log
-  const form = document.getElementById("addProductForm");
-  const formData = new FormData(form);
-
-  try {
-    const response = await fetch("/admin/addProducts", {
-      method: "POST",
-      body: formData,
-    });
-
-    const result = await response.json();
-    console.log(result); // Debugging log
-
-    if (!response.ok) {
-      iziToast.error({
-        title: "Error",
-        message: result.message || "An error occurred while adding the product.",
-        position: "topRight",
-      });
-    } else {
-      iziToast.success({
-        title: "Success",
-        message: "Product added successfully",
-        position: "topRight",
-      });
-      form.reset();
-    }
-  } catch (error) {
-    console.error("Error:", error); // Debugging log
-    iziToast.error({
-      title: "Error",
-      message: "An unexpected error occurred",
-      position: "topRight",
-    });
-  }
-}
-
 
 //New combo displaying code
 
@@ -357,7 +342,25 @@ function addNewCombo() {
   comboContainer.appendChild(newRow);
 
   // Add event listener for the delete button
-  newRow.querySelector(".delete-combo-btn").addEventListener("click", function () {
-    newRow.remove();
-  });
+  newRow
+    .querySelector(".delete-combo-btn")
+    .addEventListener("click", handleDeleteRow);
 }
+
+
+// Function to Handle Row Deletion
+function handleDeleteRow() {
+  const comboRows = document.querySelectorAll(".combo-row");
+
+  // Prevent deletion if it's the only remaining row
+  if (comboRows.length > 1) {
+    this.closest(".combo-row").remove(); // Remove the current row
+  } else {
+    alert("At least one combo is required."); // Alert the user
+  }
+}
+
+// Add event listeners for existing delete buttons (if any)
+document.querySelectorAll(".delete-combo-btn").forEach((btn) => {
+  btn.addEventListener("click", handleDeleteRow);
+});
