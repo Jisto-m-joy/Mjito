@@ -45,9 +45,6 @@ const loadHomepage = async (req, res, next) => {
     const allProducts = await Product.find(productQuery)
       .populate('category')
       .lean(); // Use .lean() for better performance and easier debugging
-
-    console.log('Detailed Product Query:', productQuery);
-    console.log('All Products Found:', allProducts.length);
     
     // Detailed logging of product details
     allProducts.forEach(product => {
@@ -266,26 +263,18 @@ const loadShopingPage = async (req, res, next) => {
     const products = await Product.find({
       isBlocked: false,
       category: { $in: categoryIds },
-      quantity: { $gt: 0 },
     }).sort({ createdOn: -1 }).limit(limit).skip(skip);
 
     const totalProducts = await Product.countDocuments({
       isBlocked: false,
       category: { $in: categoryIds },
-      quantity: { $gt: 0 },
     });
 
     const totalPages = Math.ceil(totalProducts / limit);
 
-    const brands = await Brand.find({ isListed: true });
-    const categoriesWithIds = categories.map(category => ({_id: category._id, name: category.name}));
-
     res.render("shop", {
       user: userData,
       products: products,
-      categories: categoriesWithIds,
-      brand: brands,
-      totalProducts: totalProducts,
       totalPages: totalPages,
       currentPage: page,
     });

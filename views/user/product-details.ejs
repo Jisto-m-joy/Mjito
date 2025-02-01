@@ -11,9 +11,9 @@
     <section class="breadcrumb">
       <ul class="breadcrumb__list flex container">
         <li><a href="/home" class="breadcrumb__link">Home</a></li>
-        <li><span class="breadcrumb__link"></span>></li>
-        <li><span class="breadcrumb__link"><%= product.category.name %></span></li>
-        <li><span class="breadcrumb__link"></span>></li>
+        <li><span class="breadcrumb__link">></span></li>
+        <li><a href="/shop" class="breadcrumb__link">Shop</a></li>
+        <li><span class="breadcrumb__link">></span></li>
         <li><span class="breadcrumb__link"><%= product.name %></span></li>
       </ul>
     </section>
@@ -31,6 +31,12 @@
           />
           <div class="details__small-images grid">
             <img
+              src="<%= product.images[0] %>"
+              alt="product image"
+              class="details__small-img"
+              onclick="changeImage(this)"
+            />
+            <img
               src="<%= product.images[1] %>"
               alt="product image"
               class="details__small-img"
@@ -42,20 +48,14 @@
               class="details__small-img"
               onclick="changeImage(this)"
             />
-            <img
-              src="<%= product.images[3] %>"
-              alt="product image"
-              class="details__small-img"
-              onclick="changeImage(this)"
-            />
           </div>
         </div>
         <div class="details__group">
           <h3 class="details__title"><%= product.name %></h3>
           <p class="details__brand">Brand: <span><%= product.brand %></span></p>
           <div class="details__price flex">
-            <span class="new__price">₹<%= product.salesPrice %></span>
-            <span class="old__price">₹<%= product.regularPrice %></span>
+            <span class="new__price">₹<%= salesPrice %></span>
+            <span class="old__price">₹<%= regularPrice %></span>
             <span class="save__price"><%= product.offer %>%</span>
           </div>
           <p class="short__description">
@@ -72,7 +72,7 @@
               <i class="fi-rs-credit-card"></i> Cash on Delivery available
             </li>
           </ul>
-          <div class="details__color flex">
+          <!-- <div class="details__color flex">
             <span class="details__color-title">Color</span>
             <ul class="color__list">
               <li>
@@ -111,12 +111,12 @@
                 ></a>
               </li>
             </ul>
-          </div>
+          </div> -->
           <div class="details__size flex">
             <span class="details__size-title">Size</span>
             <ul class="size__list">
               <li>
-                <a href="#" class="size__link size-active"><%= product.size %></a>
+                <a href="#" class="size__link size-active"><%= size %></a>
               </li>
               <!-- <li>
                 <a href="#" class="size__link">L</a>
@@ -142,7 +142,7 @@
               <span>Tags:</span><%= product.brand %>, <%= product.category.name %> , <%= product.name %>
             </li>
             <li class="meta__list flex">
-              <span>Availability:</span><%= product.quantity %> Items in Stock
+              <span>Availability:</span><%= quantity %> Items in Stock
             </li>
           </ul>
         </div>
@@ -366,8 +366,8 @@
               <i class="fi fi-rs-star"></i>
             </div>
             <div class="product__price flex">
-              <span class="new__price">₹<%= relatedProduct.salesPrice %></span>
-              <span class="old__price">₹<%= relatedProduct.regularPrice %></span>
+              <span class="new__price">₹<%= relatedProduct.combos[0].salesPrice %></span>
+              <span class="old__price">₹<%= relatedProduct.combos[0].regularPrice %></span>
             </div>
             <a
               href="#"
@@ -411,5 +411,5 @@
 
   <%-include("../../views/user/partials/footer")%>
 
-  <!--=============== PRODUCT DETAILS JS ===============-->
+   <!--=============== PRODUCT DETAILS JS ===============-->
   <script src="/assets/js/user/product-details.js"></script>

@@ -18,3 +18,6 @@ $(document).ready(function(){
       $("#zoom_01").data('zoom-image', newImage).elevateZoom();
     };
   });
+
+
+  
