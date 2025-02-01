@@ -25,6 +25,11 @@ const productSchema = new Schema(
       ref: "Category",
       required: true,
     },
+    review: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Review",
+      required: false,
+    },
     combos: [
       {
         color: {

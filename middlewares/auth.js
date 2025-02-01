@@ -7,6 +7,7 @@ const userAuth = (req, res, next) => {
         if (data && !data.isBlocked) {
           next();
         } else {
+          console.error("User is not authenticated");
           res.redirect("/login");
         }
       })

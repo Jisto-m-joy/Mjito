@@ -41,6 +41,8 @@ router.get('/shop', userController.loadShopingPage);
 
 // Product Management
 router.get("/productDetails", productController.productDetails);
+router.post("/submitReview", userAuth, productController.submitReview); // Add this route for review submission
+
 
 // Profile Management
 router.get('/forgot-password', profileController.getForgotPassPage);

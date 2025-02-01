@@ -1,8 +1,16 @@
 <%-include("../../views/user/partials/header")%>
 <head>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/elevatezoom/3.0.8/css/elevatezoom.css" />
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/elevatezoom/3.0.8/jquery.elevatezoom.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/izitoast/dist/css/iziToast.min.css">
+<style>
+  .rate__product .fi {
+    color: #ccc; /* Default color */
+    cursor: pointer;
+  }
+  .rate__product .fi.gold {
+    color: gold; /* Selected color */
+  }
+</style>
 </head>
 
 <!--=============== MAIN ===============-->
@@ -82,34 +90,6 @@
                   style="background-color: hsl(37, 100%, 65%)"
                 ></a>
               </li>
-              <li>
-                <a
-                  href="#"
-                  class="color__link"
-                  style="background-color: hsl(353, 100%, 65%)"
-                ></a>
-              </li>
-              <li>
-                <a
-                  href="#"
-                  class="color__link"
-                  style="background-color: hsl(49, 100%, 60%)"
-                ></a>
-              </li>
-              <li>
-                <a
-                  href="#"
-                  class="color__link"
-                  style="background-color: hsl(304, 100%, 78%)"
-                ></a>
-              </li>
-              <li>
-                <a
-                  href="#"
-                  class="color__link"
-                  style="background-color: hsl(126, 61%, 52%)"
-                ></a>
-              </li>
             </ul>
           </div> -->
           <div class="details__size flex">
@@ -118,15 +98,6 @@
               <li>
                 <a href="#" class="size__link size-active"><%= size %></a>
               </li>
-              <!-- <li>
-                <a href="#" class="size__link">L</a>
-              </li>
-              <li>
-                <a href="#" class="size__link">XL</a>
-              </li>
-              <li>
-                <a href="#" class="size__link">XXL</a>
-              </li> -->
             </ul>
           </div>
           <div class="details__action">
@@ -137,7 +108,6 @@
             </a>
           </div>
           <ul class="details__meta">
-            <!-- <li class="meta__list flex"><span>SKU:</span>FWM15VKT</li> -->
             <li class="meta__list flex">
               <span>Tags:</span><%= product.brand %>, <%= product.category.name %> , <%= product.name %>
             </li>
@@ -155,7 +125,7 @@
         <span class="detail__tab active-tab" data-target="#info">
           Additional Info
         </span>
-        <span class="detail__tab" data-target="#reviews">Reviews(3)</span>
+        <span class="detail__tab" data-target="#reviews">Reviews</span>
       </div>
       <!-- <div class="details__tabs-content">
         <div class="details__tab-content active-tab" content id="info">
@@ -220,96 +190,54 @@
         </div> -->
         <div class="details__tab-content" content id="reviews">
           <div class="reviews__container grid">
-            <div class="review__single">
-              <div>
-                <img
-                  src="./assets/img/avatar-1.jpg"
-                  alt=""
-                  class="review__img"
-                />
-                <h4 class="review__title">Jacky Chan</h4>
-              </div>
-              <div class="review__data">
-                <div class="review__rating">
-                  <i class="fi fi-rs-star"></i>
-                  <i class="fi fi-rs-star"></i>
-                  <i class="fi fi-rs-star"></i>
-                  <i class="fi fi-rs-star"></i>
-                  <i class="fi fi-rs-star"></i>
+            <% if (reviews && reviews.length > 0) { %>
+              <% reviews.forEach(function(review) { %>
+                <div class="review__single">
+                  <div>
+                    <img
+                      src="./assets/img/avatar-1.jpg"
+                      alt=""
+                      class="review__img"
+                    />
+                    <h4 class="review__title"><%= review.userId.name %></h4>
+                  </div>
+                  <div class="review__data">
+                    <div class="review__rating">
+                      <% for (let i = 0; i < review.rating; i++) { %>
+                        <i class="fi fi-rs-star"></i>
+                      <% } %>
+                    </div>
+                    <p class="review__description">
+                      <%= review.description %>
+                    </p>
+                    <span class="review__date"><%= review.createdAt.toDateString() %></span>
+                  </div>
                 </div>
-                <p class="review__description">
-                  Thank you, very fast shipping from Poland only 3days.
-                </p>
-                <span class="review__date">December 4, 2022 at 3:12 pm</span>
-              </div>
-            </div>
-            <div class="review__single">
-              <div>
-                <img
-                  src="./assets/img/avatar-2.jpg"
-                  alt=""
-                  class="review__img"
-                />
-                <h4 class="review__title">Meriem Js</h4>
-              </div>
-              <div class="review__data">
-                <div class="review__rating">
-                  <i class="fi fi-rs-star"></i>
-                  <i class="fi fi-rs-star"></i>
-                  <i class="fi fi-rs-star"></i>
-                  <i class="fi fi-rs-star"></i>
-                  <i class="fi fi-rs-star"></i>
-                </div>
-                <p class="review__description">
-                  My son really loved it, he is very happy with the product.
-                </p>
-                <span class="review__date">August 23, 2022 at 19:45 pm</span>
-              </div>
-            </div>
-            <div class="review__single">
-              <div>
-                <img
-                  src="./assets/img/avatar-3.jpg"
-                  alt=""
-                  class="review__img"
-                />
-                <h4 class="review__title">Moh Benz</h4>
-              </div>
-              <div class="review__data">
-                <div class="review__rating">
-                  <i class="fi fi-rs-star"></i>
-                  <i class="fi fi-rs-star"></i>
-                  <i class="fi fi-rs-star"></i>
-                  <i class="fi fi-rs-star"></i>
-                  <i class="fi fi-rs-star"></i>
-                </div>
-                <p class="review__description">
-                  Great Product, it's packing was very good and the product have good quality.
-                </p>
-                <span class="review__date">March 2, 2021 at 10:01 am</span>
-              </div>
-            </div>
+              <% }); %>
+            <% } else { %>
+              <p>No reviews yet. Be the first to review this product!</p>
+            <% } %>
           </div>
           <div class="review__form">
             <h4 class="review__form-title">Add a review</h4>
             <div class="rate__product">
-              <i class="fi fi-rs-star"></i>
-              <i class="fi fi-rs-star"></i>
-              <i class="fi fi-rs-star"></i>
-              <i class="fi fi-rs-star"></i>
-              <i class="fi fi-rs-star"></i>
+              <i class="fi fi-rs-star" data-rating="1"></i>
+              <i class="fi fi-rs-star" data-rating="2"></i>
+              <i class="fi fi-rs-star" data-rating="3"></i>
+              <i class="fi fi-rs-star" data-rating="4"></i>
+              <i class="fi fi-rs-star" data-rating="5"></i>
             </div>
-            <form action="" class="form grid">
+            <form action="/submitReview" method="POST" class="form grid" id="reviewForm">
+              <input type="hidden" name="productId" value="<%= product._id %>">
+              <input type="hidden" name="rating" id="ratingInput">
               <textarea
                 class="form__input textarea"
                 placeholder="Write Comment"
+                name="description"
+                required
               ></textarea>
-              <div class="form__group grid">
-                <input type="text" placeholder="Name" class="form__input">
-                <input type="email" placeholder="Email" class="form__input">
-              </div>
               <div class="form__btn">
-                <button class="btn">Submit Review</button>
+                <button type="submit" class="btn">Submit Review</button>
               </div>
             </form>
           </div>
@@ -412,4 +340,75 @@
   <%-include("../../views/user/partials/footer")%>
 
    <!--=============== PRODUCT DETAILS JS ===============-->
+   <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const stars = document.querySelectorAll('.rate__product .fi');
+      const ratingInput = document.getElementById('ratingInput');
+  
+      stars.forEach(star => {
+        star.addEventListener('click', function() {
+          const rating = this.getAttribute('data-rating');
+          ratingInput.value = rating;
+          stars.forEach((s, index) => {
+            if (index < rating) {
+              s.classList.add('gold');
+            } else {
+              s.classList.remove('gold');
+            }
+          });
+        });
+      });
+  
+      document.getElementById('reviewForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+  
+        console.log('Form Data:', Object.fromEntries(formData.entries()));
+  
+        fetch('/submitReview', {
+          method: 'POST',
+          body: formData,
+          headers: {
+            'Accept': 'application/json'
+          }
+        })
+        .then(response => {
+          if (!response.ok) {
+            console.error('Server responded with a non-200 status code:', response.status, response.statusText);
+            throw new Error('Network response was not ok');
+          }
+          return response.json();
+        })
+        .then(data => {
+          if (data.success) {
+            iziToast.success({
+              title: 'Success',
+              message: data.message,
+              position: 'topRight'
+            });
+            setTimeout(() => {
+              window.location.reload();
+            }, 1500);
+          } else {
+            iziToast.error({
+              title: 'Error',
+              message: data.message || 'Failed to submit review',
+              position: 'topRight'
+            });
+          }
+        })
+        .catch(error => {
+          console.error('Fetch error:', error);
+          iziToast.error({
+            title: 'Error',
+            message: error.message || 'Failed to submit review',
+            position: 'topRight'
+          });
+        });
+      });
+    });
+  </script>
   <script src="/assets/js/user/product-details.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/elevatezoom/3.0.8/jquery.elevatezoom.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/izitoast/dist/js/iziToast.min.js"></script>
