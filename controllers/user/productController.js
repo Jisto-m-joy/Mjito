@@ -61,7 +61,7 @@ const submitReview = async (req, res, next) => {
     const newReview = new Review({
       userId: userId,
       productId: productId,
-      rating: rating,
+      rating: parseInt(rating), // Ensure rating is an integer
       description: description,
     });
 

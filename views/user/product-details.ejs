@@ -195,7 +195,7 @@
                 <div class="review__single">
                   <div>
                     <img
-                      src="./assets/img/avatar-1.jpg"
+                      src="/assets/img/User.webp"
                       alt=""
                       class="review__img"
                     />
@@ -344,7 +344,7 @@
     document.addEventListener('DOMContentLoaded', function() {
       const stars = document.querySelectorAll('.rate__product .fi');
       const ratingInput = document.getElementById('ratingInput');
-  
+    
       stars.forEach(star => {
         star.addEventListener('click', function() {
           const rating = this.getAttribute('data-rating');
@@ -358,17 +358,18 @@
           });
         });
       });
-  
+    
       document.getElementById('reviewForm').addEventListener('submit', function(e) {
         e.preventDefault();
         const formData = new FormData(this);
-  
+    
         console.log('Form Data:', Object.fromEntries(formData.entries()));
-  
+    
         fetch('/submitReview', {
           method: 'POST',
-          body: formData,
+          body: JSON.stringify(Object.fromEntries(formData.entries())), // Convert formData to JSON string
           headers: {
+            'Content-Type': 'application/json', // Set the content type to JSON
             'Accept': 'application/json'
           }
         })
@@ -407,7 +408,7 @@
         });
       });
     });
-  </script>
+    </script>
   <script src="/assets/js/user/product-details.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/elevatezoom/3.0.8/jquery.elevatezoom.min.js"></script>
