@@ -56,7 +56,7 @@ function replaceImage(event, imageName, index) {
   reader.readAsDataURL(file);
 }
 
-// validateAndSubmit function
+
 
 function validateAndSubmit(event) {
   event.preventDefault();
@@ -115,13 +115,18 @@ function validateAndSubmit(event) {
     body: formData,
   })
     .then(async (response) => {
-      const data = await response.json();
+      const contentType = response.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
+        const data = await response.json();
 
-      if (!response.ok) {
-        throw new Error(data.error || "Server error occurred");
+        if (!response.ok) {
+          throw new Error(data.error || "Server error occurred");
+        }
+
+        return data;
+      } else {
+        throw new Error("Response is not JSON");
       }
-
-      return data;
     })
     .then((data) => {
       if (data.success) {
@@ -149,7 +154,6 @@ function validateAndSubmit(event) {
     });
 }
 
-// validateForm function
 // validateForm function
 function validateForm() {
   clearErrorMessages();

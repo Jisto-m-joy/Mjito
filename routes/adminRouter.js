@@ -69,10 +69,10 @@ router.get("/blockProduct", adminAuth, productController.blockProduct);
 router.get("/unblockProduct", adminAuth, productController.unblockProduct);
 router.get("/editProduct", adminAuth, productController.getEditProduct);
 router.post('/editProduct/:id', adminAuth, uploads.fields([
-  { name: 'images', maxCount: 4 },
-  { name: 'replace_image1' },
-  { name: 'replace_image2' },
-  { name: 'replace_image3' },
-  { name: 'replace_image4' }
+  { name: 'replace_image1', maxCount: 1 },
+  { name: 'replace_image2', maxCount: 1 },
+  { name: 'replace_image3', maxCount: 1 },
+  { name: 'replace_image4', maxCount: 1 }
 ]), productController.editProduct);
+
 module.exports = router;

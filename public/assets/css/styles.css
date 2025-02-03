@@ -1093,6 +1093,7 @@ table {
 .breadcrumb {
   background-color: var(--container-color);
   padding-block: 1.5rem;
+  width: 100%;
 }
 
 .breadcrumb__list {
@@ -1151,6 +1152,77 @@ table {
 .pagination__link.icon {
   border-top-right-radius: 50%;
   border-bottom-right-radius: 50%;
+}
+
+.filter-bar {
+  width: 250px;
+  padding: 1rem;
+  background-color: var(--container-color);
+  border: 1px solid var(--border-color-alt);
+  border-radius: 0.25rem;
+  -webkit-border-radius: 0.25rem;
+  -moz-border-radius: 0.25rem;
+  -ms-border-radius: 0.25rem;
+  -o-border-radius: 0.25rem;
+}
+
+.filter-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.filter-group label {
+  font-size: var(--small-font-size);
+  font-weight: var(--weight-600);
+  margin-bottom: 0.5rem;
+}
+
+.filter-group input,
+.filter-group select {
+  padding: 0.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: 0.25rem;
+  -webkit-border-radius: 0.25rem;
+  -moz-border-radius: 0.25rem;
+  -ms-border-radius: 0.25rem;
+  -o-border-radius: 0.25rem;
+  font-size: var(--normal-font-size);
+}
+
+.filter-btn {
+  padding: 0.75rem;
+  background-color: var(--first-color);
+  color: var(--body-color);
+  border: none;
+  border-radius: 0.25rem;
+  -webkit-border-radius: 0.25rem;
+  -moz-border-radius: 0.25rem;
+  -ms-border-radius: 0.25rem;
+  -o-border-radius: 0.25rem;
+  font-size: var(--normal-font-size);
+  font-weight: var(--weight-700);
+  cursor: pointer;
+  transition: background-color 0.3s var(--transition);
+}
+
+.filter-btn:hover {
+  background-color: var(--first-color-alt);
+}
+
+.clear-btn {
+  background-color: var(--second-color);
+  color: var(--title-color);
+  margin-top: 0.5rem;
+}
+
+.clear-btn:hover {
+  background-color: var(--first-color-alt);
 }
 
 /*=============== DETAILS ===============*/

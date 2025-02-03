@@ -52,4 +52,10 @@ router.get('/reset-password', profileController.getResetPassPage);
 router.post('/resend-forgot-otp', profileController.resendOtp);
 router.post('/reset-password', profileController.postNewPassword);
 
+
+// Cart Management 
+router.get('/cart', userAuth, userController.loadCartPage);
+
+router.get('/checkout', userAuth, userController.loadCheckoutPage);
+
 module.exports = router;

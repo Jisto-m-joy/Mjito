@@ -5,7 +5,7 @@ const Brand = require("../../models/brandSchema");
 const env = require("dotenv").config();
 const nodemailer = require("nodemailer");
 const bcrypt = require("bcrypt");
-const { name } = require("ejs");
+const { name, render } = require("ejs");
 
 const loadSignup = async (req, res, next) => {
   try {
@@ -61,7 +61,7 @@ const loadHomepage = async (req, res, next) => {
     // Sort and limit products
     let productData = allProducts
       .sort((a, b) => new Date(b.createdOn || b.createdAt) - new Date(a.createdOn || a.createdAt))
-      .slice(0, 10);
+      .slice(0, 4);
 
     if (user) {
       const userData = await User.findOne({ _id: user._id });
@@ -256,32 +256,113 @@ const loadShopingPage = async (req, res, next) => {
     const user = req.session.user;
     const userData = await User.findOne({ _id: user });
     const categories = await Category.find({ isListed: true });
+    const brands = await Brand.find({ isListed: true });
     const categoryIds = categories.map((category) => category._id.toString());
     const page = parseInt(req.query.page) || 1;
     const limit = 9;
     const skip = (page - 1) * limit;
-    const products = await Product.find({
+
+    const sizes = [5, 6, 7, 8, 9, 10, 11, 12, 13];
+    const colors = ["Red", "Blue", "Green", "Yellow", "Black", "White"];
+
+    const { category, brand, price, size, color, sort, search } = req.query;
+
+    let productQuery = {
       isBlocked: false,
       category: { $in: categoryIds },
-    }).sort({ createdOn: -1 }).limit(limit).skip(skip);
+    };
 
-    const totalProducts = await Product.countDocuments({
-      isBlocked: false,
-      category: { $in: categoryIds },
-    });
+    if (category) {
+      productQuery.category = category;
+    }
+    if (brand) {
+      productQuery.brand = brand;
+    }
+    if (price) {
+      const [minPrice, maxPrice] = price.split('-').map(Number);
+      productQuery['combos.salesPrice'] = { $gte: minPrice, $lte: maxPrice };
+    }
+    if (size) {
+      productQuery['combos.size'] = size;
+    }
+    if (color) {
+      productQuery['combos.color'] = color;
+    }
+    if (search) {
+      productQuery.name = { $regex: search, $options: 'i' };
+    }
 
+    let sortOption = { createdOn: -1 };
+    if (sort) {
+      if (sort === 'price-asc') {
+        sortOption = { 'combos.salesPrice': 1 };
+      } else if (sort === 'price-desc') {
+        sortOption = { 'combos.salesPrice': -1 };
+      } else if (sort === 'name-asc') {
+        sortOption = { name: 1 };
+      } else if (sort === 'name-desc') {
+        sortOption = { name: -1 };
+      }
+    }
+
+    const products = await Product.find(productQuery)
+      .sort(sortOption)
+      .limit(limit)
+      .skip(skip);
+
+    const totalProducts = await Product.countDocuments(productQuery);
     const totalPages = Math.ceil(totalProducts / limit);
 
     res.render("shop", {
       user: userData,
+      categories: categories,
+      brands: brands,
       products: products,
       totalPages: totalPages,
       currentPage: page,
+      sizes: sizes,
+      colors: colors,
     });
   } catch (error) {
     next(error);
   }
 };
+
+
+const loadCartPage = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.session.user._id).populate({
+      path: 'cart.product',
+      populate: { path: 'category' }
+    });
+
+    const cartItems = user.cart.map(item => ({
+      product: item.product,
+      quantity: item.quantity,
+      subtotal: item.product.combos[0].salesPrice * item.quantity
+    }));
+
+    const subtotal = cartItems.reduce((total, item) => total + item.subtotal, 0);
+
+    res.render('cart', { 
+      user: user, 
+      cartItems: cartItems,
+      subtotal: subtotal.toFixed(2)
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+
+const loadCheckoutPage = async (req, res, next) => {
+  try {
+    res.render('checkout');
+  } catch (error) {
+    next(error);
+  }
+}
+
 
 module.exports = {
   loadHomepage,
@@ -294,4 +375,6 @@ module.exports = {
   login,
   logout,
   loadShopingPage,
+  loadCartPage,
+  loadCheckoutPage
 };

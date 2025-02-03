@@ -186,6 +186,8 @@ const getEditProduct = async (req, res, next) => {
   }
 };
 
+// In productController.js
+
 const editProduct = async (req, res, next) => {
   try {
     const id = req.params.id;

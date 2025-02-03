@@ -2,127 +2,219 @@
 
 <!--=============== MAIN ===============-->
 <main class="main">
-    <!--=============== BREADCRUMB ===============-->
-    <section class="breadcrumb">
-      <ul class="breadcrumb__list flex container">
-        <li><a href="/home" class="breadcrumb__link">Home</a></li>
-        <li><span class="breadcrumb__link"></span>></li>
-        <li><span class="breadcrumb__link">Shop</span></li>
-      </ul>
-    </section>
-
-    <!--=============== PRODUCTS ===============-->
-    <section class="products container section--lg">
-      <p class="total__products">We found <span><%= products.length %></span> items for you!</p>
-      <div class="products__container grid">
-
-        <% for(let i = 0; i < products.length ; i++){ %>
-
-        <div class="product__item">
-          <div class="product__banner">
-            <a href="/productDetails?id=<%= products[i]._id %>" class="product__images">
-              <img
-                src="<%= products[i].images[0] %>"
-                alt="<%= products[i].name %>"
-                class="product__img default"
-              />
-              <img
-                src="<%= products[i].images[1] %>"
-                alt="<%= products[i].name %>"
-                class="product__img hover"
-              />
-            </a>
-            <div class="product__actions">
-              <a href="/productDetails?id=<%= products[i]._id %>" class="action__btn" aria-label="Quick View">
-                <i class="fi fi-rs-eye"></i>
-              </a>
-              <a
-                href="/addToWishlist?id=<%= products[i]._id %>"
-                class="action__btn"
-                aria-label="Add to Wishlist"
-              >
-                <i class="fi fi-rs-heart"></i>
-              </a>
-              <a href="#" class="action__btn" aria-label="Compare">
-                <i class="fi fi-rs-shuffle"></i>
-              </a>
-            </div>
-            <div class="product__badge light-green">Hot</div>
-          </div>
-          <div class="product__content">
-            <span class="product__category"><%= products[i].brand %></span>
-            <a href="details.html">
-              <h3 class="product__title"><%= products[i].name %></h3>
-            </a>
-            <div class="product__rating">
-              <i class="fi fi-rs-star"></i>
-              <i class="fi fi-rs-star"></i>
-              <i class="fi fi-rs-star"></i>
-              <i class="fi fi-rs-star"></i>
-              <i class="fi fi-rs-star"></i>
-            </div>
-            <div class="product__price flex">
-              <span class="new__price">₹<%= products[i].combos[0].salesPrice %></span>
-              <span class="old__price">₹<%= products[i].combos[0].regularPrice %></span>
-            </div>
-            <a
-              href="/addToCart?id=<%= products[i]._id %>"
-              class="action__btn cart__btn"
-              aria-label="Add To Cart"
-            >
-              <i class="fi fi-rs-shopping-bag-add"></i>
-            </a>
-          </div>
+  <div class="container flex">
+    <!--=============== FILTER BAR ===============-->
+    <aside class="filter-bar new-style">
+      <form action="/shop" method="GET" class="filter-form">
+        <!-- Search Option -->
+        <div class="filter-group">
+          <label for="search">Search</label>
+          <input type="text" id="search" name="search" placeholder="Search products" value="<%= typeof search !== 'undefined' ? search : '' %>">
         </div>
-        <% } %>
-      </div>
         
-      <ul class="pagination">
-        <% if (currentPage > 1) { %>
-          <a href="?<%= new URLSearchParams({ page: currentPage - 1 }) %>">&laquo; Previous</a>
-        <% } %>
-        <% for (let i = 1; i <= totalPages; i++) { %>
-          <a 
-            href="?<%= new URLSearchParams({ page: i }) %>" 
-            class="<%= i === currentPage ? 'pagination__link active' : 'pagination__link ' %>">
-            <%= i %>
-          </a>
-        <% } %>
-        <% if (currentPage < totalPages) { %>
-          <a href="?<%= new URLSearchParams({ page: currentPage + 1 }) %>">Next &raquo;</a>
-        <% } %>
+        <!-- Category Selection -->
+        <div class="filter-group">
+          <label for="category">Category</label>
+          <select id="category" name="category">
+            <option value="">All Categories</option>
+            <% categories.forEach(category => { %>
+              <option value="<%= category._id %>"><%= category.name %></option>
+            <% }) %>
+          </select>
+        </div>
         
-        <li>
-          <a href="#" class="pagination__link icon">
-            <i class="fi-rs-angle-double-small-right"></i>
-          </a>
-        </li>
-      </ul>
-    </section>
+        <!-- Brand Selection -->
+        <div class="filter-group">
+          <label for="brand">Brand</label>
+          <select id="brand" name="brand">
+            <option value="">All Brands</option>
+            <% products.forEach(product => { %>
+              <option value="<%= product.brand %>"><%= product.brand %></option>
+            <% }) %>
+          </select>
+        </div>
+        
+        <!-- Price Range Selection -->
+        <div class="filter-group">
+          <label for="price">Price Range</label>
+          <select id="price" name="price">
+            <option value="">All Prices</option>
+            <option value="0-1000">₹0 - ₹1000</option>
+            <option value="1000-5000">₹1000 - ₹5000</option>
+            <option value="5000-10000">₹5000 - ₹10000</option>
+            <option value="10000-20000">₹10000 - ₹20000</option>
+            <option value="20000-30000">₹20000 - ₹30000</option>
+            <option value="30000+">₹30000+</option>
+          </select>
+        </div>
+        
+        <!-- Size Selection -->
+        <div class="filter-group">
+          <label for="size">Size</label>
+          <select id="size" name="size">
+            <option value="">All Sizes</option>
+            <% sizes.forEach(size => { %>
+              <option value="<%= size %>"><%= size %></option>
+            <% }) %>
+          </select>
+        </div>
+        
+        <!-- Color Selection -->
+        <div class="filter-group">
+          <label for="color">Color</label>
+          <select id="color" name="color">
+            <option value="">All Colors</option>
+            <% colors.forEach(color => { %>
+              <option value="<%= color %>"><%= color %></option>
+            <% }) %>
+          </select>
+        </div>
+        
+        <!-- Sorting Option -->
+        <div class="filter-group">
+          <label for="sort">Sort By</label>
+          <select id="sort" name="sort">
+            <option value="price-asc">Price: Low to High</option>
+            <option value="price-desc">Price: High to Low</option>
+            <option value="name-asc">Alphabetical: A-Z</option>
+            <option value="name-desc">Alphabetical: Z-A</option>
+            <option value="new-arrivals">New Arrivals</option>
+            <option value="old-arrivals">Old Arrivals</option>
+          </select>
+        </div>
+        
+        <button type="submit" class="filter-btn">Apply Filters</button>
+        <button type="reset" class="filter-btn clear-btn" id="clear-filters">Clear Filters</button>      </form>
+    </aside>
+    
+    <!--=============== SHOP CONTENT ===============-->
+    <div class="shop-content">
+      <!--=============== BREADCRUMB ===============-->
+      <section class="breadcrumb">
+        <ul class="breadcrumb__list flex container">
+          <li><a href="/home" class="breadcrumb__link">Home</a></li>
+          <li><span class="breadcrumb__link"></span>></li>
+          <li><span class="breadcrumb__link">Shop</span></li>
+        </ul>
+      </section>
 
-    <!--=============== NEWSLETTER ===============-->
-    <section class="newsletter section">
-      <div class="newsletter__container container grid">
-        <h3 class="newsletter__title flex">
-          <img
-            src="./assets/img/icon-email.svg"
-            alt=""
-            class="newsletter__icon"
-          />
-          Sign in to Newsletter
-        </h3>
-        <p class="newsletter__description">
-          ...and receive $25 coupon for first shopping.
-        </p>
-        <form action="" class="newsletter__form">
-          <input
-            type="text"
-            placeholder="Enter Your Email"
-            class="newsletter__input"
-          />
-          <button type="submit" class="newsletter__btn">Subscribe</button>
-        </form>
-      </div>
-    </section>
-  </main>
+      <!--=============== PRODUCTS ===============-->
+      <section class="products container section--lg">
+        <p class="total__products">We found <span><%= products.length %></span> items for you!</p>
+        <div class="products__container grid">
+
+          <% for(let i = 0; i < products.length ; i++){ %>
+
+          <div class="product__item">
+            <div class="product__banner">
+              <a href="/productDetails?id=<%= products[i]._id %>" class="product__images">
+                <img
+                  src="<%= products[i].images[0] %>"
+                  alt="<%= products[i].name %>"
+                  class="product__img default"
+                />
+                <img
+                  src="<%= products[i].images[1] %>"
+                  alt="<%= products[i].name %>"
+                  class="product__img hover"
+                />
+              </a>
+              <div class="product__actions">
+                <a href="/productDetails?id=<%= products[i]._id %>" class="action__btn" aria-label="Quick View">
+                  <i class="fi fi-rs-eye"></i>
+                </a>
+                <a
+                  href="/addToWishlist?id=<%= products[i]._id %>"
+                  class="action__btn"
+                  aria-label="Add to Wishlist"
+                >
+                  <i class="fi fi-rs-heart"></i>
+                </a>
+                <a href="#" class="action__btn" aria-label="Compare">
+                  <i class="fi fi-rs-shuffle"></i>
+                </a>
+              </div>
+              <div class="product__badge light-green">Hot</div>
+            </div>
+            <div class="product__content">
+              <span class="product__category"><%= products[i].brand %></span>
+              <a href="details.html">
+                <h3 class="product__title"><%= products[i].name %></h3>
+              </a>
+              <div class="product__rating">
+                <i class="fi fi-rs-star"></i>
+                <i class="fi fi-rs-star"></i>
+                <i class="fi fi-rs-star"></i>
+                <i class="fi fi-rs-star"></i>
+                <i class="fi fi-rs-star"></i>
+              </div>
+              <div class="product__price flex">
+                <span class="new__price">₹<%= products[i].combos[0].salesPrice %></span>
+                <span class="old__price">₹<%= products[i].combos[0].regularPrice %></span>
+              </div>
+              <a
+                href="/addToCart?id=<%= products[i]._id %>"
+                class="action__btn cart__btn"
+                aria-label="Add To Cart"
+              >
+                <i class="fi fi-rs-shopping-bag-add"></i>
+              </a>
+            </div>
+          </div>
+          <% } %>
+        </div>
+          
+        <ul class="pagination">
+          <% if (currentPage > 1) { %>
+            <a href="?<%= new URLSearchParams({ page: currentPage - 1 }) %>">&laquo; Previous</a>
+          <% } %>
+          <% for (let i = 1; i <= totalPages; i++) { %>
+            <a 
+              href="?<%= new URLSearchParams({ page: i }) %>" 
+              class="<%= i === currentPage ? 'pagination__link active' : 'pagination__link ' %>">
+              <%= i %>
+            </a>
+          <% } %>
+          <% if (currentPage < totalPages) { %>
+            <a href="?<%= new URLSearchParams({ page: currentPage + 1 }) %>">Next &raquo;</a>
+          <% } %>
+          
+          <li>
+            <a href="#" class="pagination__link icon">
+              <i class="fi-rs-angle-double-small-right"></i>
+            </a>
+          </li>
+        </ul>
+      </section>
+
+      <!--=============== NEWSLETTER ===============-->
+      <section class="newsletter section">
+        <div class="newsletter__container container grid">
+          <h3 class="newsletter__title flex">
+            <img
+              src="./assets/img/icon-email.svg"
+              alt=""
+              class="newsletter__icon"
+            />
+            Sign in to Newsletter
+          </h3>
+          <p class="newsletter__description">
+            ...and receive $25 coupon for first shopping.
+          </p>
+          <form action="" class="newsletter__form">
+            <input
+              type="text"
+              placeholder="Enter Your Email"
+              class="newsletter__input"
+            />
+            <button type="submit" class="newsletter__btn">Subscribe</button>
+          </form>
+        </div>
+      </section>
+    </div>
+  </div>
+</main>
+
 <%- include("../../views/user/partials/footer") %>
+
+<script src="/assets/js/user/shop.js"></script>
