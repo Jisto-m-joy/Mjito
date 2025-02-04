@@ -109,12 +109,12 @@
             </ul>
           </div>
           <div class="details__action">
-            <input type="number" class="quantity" value="3" />
-            <a href="#" class="btn btn--sm">Add To Cart</a>
+            <input type="number" class="quantity" value="1" />
+            <a href="#" class="btn btn--sm" id="addToCartBtn">Add To Cart</a>
             <a href="#" class="details__action-btn">
-              <i class="fi fi-rs-heart"></i>
+                <i class="fi fi-rs-heart"></i>
             </a>
-          </div>
+        </div>
           <ul class="details__meta">
             <li class="meta__list flex">
               <span>Tags:</span><%= product.brand %>, <%= product.category.name %> , <%= product.name %>
@@ -422,5 +422,51 @@
         });
       });
     });
+
+
+    document.addEventListener('DOMContentLoaded', function() {
+    const addToCartBtn = document.querySelector('#addToCartBtn');
+    const quantityInput = document.querySelector('.quantity');
+    const productId = '<%= product._id %>';
+    const selectedCombo = {}; // Update this with the appropriate combo details if needed
+
+    addToCartBtn.addEventListener('click', function(event) {
+      event.preventDefault();
+      
+      const quantity = parseInt(quantityInput.value);
+      
+      fetch('/add-to-cart', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ productId, quantity, selectedCombo })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          iziToast.success({
+            title: 'Success',
+            message: 'Product added to cart successfully!',
+            position: 'topRight'
+          });
+        } else {
+          iziToast.error({
+            title: 'Error',
+            message: data.message || 'Failed to add product to cart',
+            position: 'topRight'
+          });
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        iziToast.error({
+          title: 'Error',
+          message: 'An error occurred while adding the product to the cart',
+          position: 'topRight'
+        });
+      });
+    });
+  });
   </script>
 

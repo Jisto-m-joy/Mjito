@@ -1,4 +1,8 @@
 <%- include("../../views/user/partials/header") %>
+<head>  
+  <!-- iziToast CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/izitoast/dist/css/iziToast.min.css">
+</head>
 
 <!--=============== MAIN ===============-->
 <main class="main">
@@ -153,9 +157,9 @@
                 <span class="old__price">₹<%= products[i].combos[0].regularPrice %></span>
               </div>
               <a
-                href="/addToCart?id=<%= products[i]._id %>"
-                class="action__btn cart__btn"
-                aria-label="Add To Cart"
+                  href="#"
+                  class="action__btn cart__btn"
+                  aria-label="Add To Cart"
               >
                 <i class="fi fi-rs-shopping-bag-add"></i>
               </a>
@@ -218,3 +222,92 @@
 <%- include("../../views/user/partials/footer") %>
 
 <script src="/assets/js/user/shop.js"></script>
+<!-- iziToast JS -->
+<script src="https://cdn.jsdelivr.net/npm/izitoast/dist/js/iziToast.min.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+ const cartButtons = document.querySelectorAll('.cart__btn');
+
+ cartButtons.forEach(button => {
+   button.addEventListener('click', function(event) {
+     event.preventDefault();
+     const productItem = this.closest('.product__item');
+     
+     // Find the product details link
+     const productLink = productItem.querySelector('a[href^="/productDetails"]');
+     
+     if (!productLink) {
+       console.error('Product link not found');
+       iziToast.error({
+         title: 'Error',
+         message: 'Could not find product details',
+         position: 'topRight'
+       });
+       return;
+     }
+
+     // Extract product ID from the link
+     const productId = new URL(productLink.href, window.location.origin).searchParams.get('id');
+     
+     if (!productId) {
+       console.error('Product ID not found');
+       iziToast.error({
+         title: 'Error',
+         message: 'Could not extract product ID',
+         position: 'topRight'
+       });
+       return;
+     }
+
+     fetch('/add-to-cart', {
+       method: 'POST',
+       credentials: 'same-origin',
+       headers: {
+         'Content-Type': 'application/json',
+         'Accept': 'application/json'
+       },
+       body: JSON.stringify({ 
+         productId, 
+         quantity: 1
+       })
+     })
+     .then(response => {
+       console.log('Response status:', response.status);
+       
+       if (!response.ok) {
+         return response.json().then(errorData => {
+           console.error('Error response:', errorData);
+           throw new Error(errorData.message || 'Network response was not ok');
+         });
+       }
+       
+       return response.json();
+     })
+     .then(data => {
+       if (data.success) {
+         iziToast.success({
+           title: 'Success',
+           message: 'Product added to cart successfully!',
+           position: 'topRight'
+         });
+       } else {
+         iziToast.error({
+           title: 'Error',
+           message: data.message || 'Failed to add product to cart',
+           position: 'topRight'
+         });
+       }
+     })
+     .catch(error => {
+       console.error('Full error:', error);
+       iziToast.error({
+         title: 'Error',
+         message: error.message || 'An error occurred while adding the product to the cart',
+         position: 'topRight'
+       });
+     });
+   });
+ });
+});
+</script>

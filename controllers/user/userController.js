@@ -2,6 +2,7 @@ const User = require("../../models/userSchema");
 const Category = require("../../models/categorySchema");
 const Product = require("../../models/productSchema");
 const Brand = require("../../models/brandSchema");
+const Cart = require("../../models/cartSchema");
 const env = require("dotenv").config();
 const nodemailer = require("nodemailer");
 const bcrypt = require("bcrypt");
@@ -329,30 +330,6 @@ const loadShopingPage = async (req, res, next) => {
 };
 
 
-const loadCartPage = async (req, res, next) => {
-  try {
-    const user = await User.findById(req.session.user._id).populate({
-      path: 'cart.product',
-      populate: { path: 'category' }
-    });
-
-    const cartItems = user.cart.map(item => ({
-      product: item.product,
-      quantity: item.quantity,
-      subtotal: item.product.combos[0].salesPrice * item.quantity
-    }));
-
-    const subtotal = cartItems.reduce((total, item) => total + item.subtotal, 0);
-
-    res.render('cart', { 
-      user: user, 
-      cartItems: cartItems,
-      subtotal: subtotal.toFixed(2)
-    });
-  } catch (error) {
-    next(error);
-  }
-};
 
 
 const loadCheckoutPage = async (req, res, next) => {
@@ -375,6 +352,5 @@ module.exports = {
   login,
   logout,
   loadShopingPage,
-  loadCartPage,
   loadCheckoutPage
 };

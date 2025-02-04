@@ -3,6 +3,7 @@ const router = express.Router();
 const userController = require("../controllers/user/userController");
 const profileController = require("../controllers/user/profileController");
 const productController = require("../controllers/user/productController");
+const cartController = require("../controllers/user/cartController");
 const passport = require("passport");
 const validateSession = require("../middlewares/session-validation");
 const { userAuth, adminAuth, checkBlockStatus } = require("../middlewares/auth");
@@ -54,7 +55,13 @@ router.post('/reset-password', profileController.postNewPassword);
 
 
 // Cart Management 
-router.get('/cart', userAuth, userController.loadCartPage);
+router.get('/cart', userAuth, cartController.loadCartPage);
+router.post('/add-to-cart', userAuth, cartController.addToCart);
+router.put('/update-cart-quantity', userAuth, cartController.updateCartQuantity);
+router.delete('/remove-from-cart/:productId', userAuth, cartController.removeFromCart);
+
+
+
 
 router.get('/checkout', userAuth, userController.loadCheckoutPage);
 
