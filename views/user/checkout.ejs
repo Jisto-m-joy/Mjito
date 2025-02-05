@@ -8,9 +8,9 @@
       <ul class="breadcrumb__list flex container">
         <li><a href="/home" class="breadcrumb__link">Home</a></li>
         <li><span class="breadcrumb__link">></span></li>
-        <li><a href="/shop"n class="breadcrumb__link">Shop</span></li>
+        <li><a href="/shop" class="breadcrumb__link">Shop</a></li>
         <li><span class="breadcrumb__link">></span></li>
-        <li><a href="/home" class="breadcrumb__link">Checkout</span></li>
+        <li><a href="/home" class="breadcrumb__link">Checkout</a></li>
       </ul>
     </section>
 
@@ -18,16 +18,28 @@
     <section class="checkout section--lg">
       <div class="checkout__container container grid">
         <div class="checkout__group">
-          <h3 class="section__title">Billing Details</h3>
-          <form class="form grid">
-            <input type="text" placeholder="Name" class="form__input" />
-            <input type="text" placeholder="Address" class="form__input" />
-            <input type="text" placeholder="City" class="form__input" />
-            <input type="text" placeholder="Country" class="form__input" />
-            <input type="text" placeholder="Postcode" class="form__input" />
-            <input type="text" placeholder="Phone" class="form__input" />
-            <input type="email" placeholder="Email" class="form__input" />
-          </form>
+          <h3 class="section__title">Select Delivery Address</h3>
+          <div class="address__list grid">
+            <% addresses.forEach((address, index) => { %>
+                <div class="address__item">
+                    <input type="radio" name="address" id="address<%= index + 1 %>" 
+                           class="address__radio" <%= index === 0 ? 'checked' : '' %>>
+                    <label for="address<%= index + 1 %>" class="address__label">
+                        <div class="address__details">
+                            <h4 class="address__name"><%= address.addressType %></h4>
+                            <p class="address__text"><%= address.fullName %></p>
+                            <p class="address__text"><%= address.address %></p>
+                            <p class="address__text"><%= address.city %>, <%= address.state %> <%= address.pincode %></p>
+                            <p class="address__text">Phone: <%= address.phone %></p>
+                        </div>
+                    </label>
+                </div>
+            <% }); %>
+        
+            <button class="btn add__address-btn">
+                <i class="fas fa-plus"></i> Add New Address
+            </button>
+        </div>
         </div>
         <div class="checkout__group">
           <h3 class="section__title">Cart Totals</h3>
@@ -40,100 +52,82 @@
             </thead>
 
             <tbody>
+              <% cartItems.forEach(item => { %>
+                  <tr>
+                      <td>
+                          <img src="<%= item.productId.images[0] %>" alt="" class="order__img"/>
+                      </td>
+                      <td>
+                          <h3 class="table__title"><%= item.productId.name %></h3>
+                          <p class="table__quantity">x <%= item.quantity %></p>
+                      </td>
+                      <td><span class="table__price">₹<%= item.totalPrice.toFixed(2) %></span></td>
+                  </tr>
+              <% }); %>
+          
               <tr>
-                <td>
-                  <img
-                    src="./assets/img/product-1-2.jpg"
-                    alt=""
-                    class="order__img"
-                  />
-                </td>
-                <td>
-                  <h3 class="table__title">Yidarton Women Summer Blue</h3>
-                  <p class="table__quantity">x 2</p>
-                </td>
-                <td><span class="table__price">$180.00</span></td>
+                  <td><span class="order__subtitle">Subtotal</span></td>
+                  <td colspan="2"><span class="table__price">₹<%= subtotal %></span></td>
               </tr>
               <tr>
-                <td>
-                  <img
-                    src="./assets/img/product-2-1.jpg"
-                    alt=""
-                    class="order__img"
-                  />
-                </td>
-                <td>
-                  <h3 class="table__title">LDB Moon Summer</h3>
-                  <p class="table__quantity">x 1</p>
-                </td>
-                <td><span class="table__price">$65.00</span></td>
+                  <td><span class="order__subtitle">Shipping</span></td>
+                  <td colspan="2">
+                      <span class="table__price">Free Shipping</span>
+                  </td>
               </tr>
               <tr>
-                <td>
-                  <img
-                    src="./assets/img/product-7-1.jpg"
-                    alt=""
-                    class="order__img"
-                  />
-                </td>
-                <td>
-                  <h3 class="table__title">Women Short Sleeve Loose</h3>
-                  <p class="table__quantity">x 2</p>
-                </td>
-                <td><span class="table__price">$35.00</span></td>
+                  <td><span class="order__subtitle">Total</span></td>
+                  <td colspan="2">
+                      <span class="order__grand-total">₹<%= subtotal %></span>
+                  </td>
               </tr>
-              <tr>
-                <td><span class="order__subtitle">Subtotal</span></td>
-                <td colspan="2"><span class="table__price">$280.00</span></td>
-              </tr>
-              <tr>
-                <td><span class="order__subtitle">Shipping</span></td>
-                <td colspan="2">
-                  <span class="table__price">Free Shipping</span>
-                </td>
-              </tr>
-              <tr>
-                <td><span class="order__subtitle">Total</span></td>
-                <td colspan="2">
-                  <span class="order__grand-total">$280.00</span>
-                </td>
-              </tr>
-            </tbody>
+          </tbody>
           </table>
-          <div class="payment__methods">
-            <h3 class="checkout__title payment__title">Payment</h3>
-            <div class="payment__option flex">
-              <input
-                type="radio"
-                name="radio"
-                id="l1"
-                checked
-                class="payment__input"
-              />
-              <label for="l1" class="payment__label"
-                >Direct Bank Transfer</label
-              >
-            </div>
-            <div class="payment__option flex">
-              <input
-                type="radio"
-                name="radio"
-                id="l2"
-                class="payment__input"
-              />
-              <label for="l2" class="payment__label">Check Payment</label>
-            </div>
-            <div class="payment__option flex">
-              <input
-                type="radio"
-                name="radio"
-                id="l3"
-                class="payment__input"
-              />
-              <label for="l3" class="payment__label">Paypal</label>
-            </div>
-          </div>
-          <button class="btn btn--md">Place Order</button>
+          <form action="/place-order" method="POST">
+              <div class="payment__methods">
+                <h3 class="checkout__title payment__title">Payment</h3>
+                <div class="payment__option flex">
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    id="l1"
+                    value="cod"
+                    checked
+                    class="payment__input"
+                  />
+                  <label for="l1" class="payment__label"
+                    >Cash on delivery</label
+                  >
+                </div>
+                <div class="payment__option flex">
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    id="l1"
+                    value="cod"
+                    checked
+                    class="payment__input"
+                  />
+                  <label for="l1" class="payment__label"
+                    >Wallet</label
+                  >
+                </div>
+                <div class="payment__option flex">
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    id="l2"
+                    value="online"
+                    class="payment__input"
+                  />
+                  <label for="l2" class="payment__label"
+                    >Online Payment</label
+                  >
+                </div>
+              </div>
+              
+              <button type="submit" class="btn place-order__btn">Place Order</button>
+          </form>
         </div>
       </div>
     </section>
@@ -150,7 +144,7 @@
           Sign in to Newsletter
         </h3>
         <p class="newsletter__description">
-          ...and receive $25 coupon for first shopping.
+          ...and receive ₹25 coupon for first shopping.
         </p>
         <form action="" class="newsletter__form">
           <input

@@ -45,19 +45,8 @@ const loadHomepage = async (req, res, next) => {
 
     const allProducts = await Product.find(productQuery)
       .populate('category')
-      .lean(); // Use .lean() for better performance and easier debugging
-    
-    // Detailed logging of product details
-    allProducts.forEach(product => {
-      console.log('Product Details:', {
-        id: product._id,
-        name: product.name,
-        category: product.category ? product.category.name : 'No Category',
-        isBlocked: product.isBlocked,
-        combos: product.combos,
-        images: product.images
-      });
-    });
+      .lean(); // For better performance and easier debugging
+
 
     // Sort and limit products
     let productData = allProducts

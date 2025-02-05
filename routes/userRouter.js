@@ -67,6 +67,8 @@ router.delete('/remove-from-cart/:productId', userAuth, cartController.removeFro
 
 
 // Checkout Management 
-router.get('/checkout', userAuth, checkoutController.loadCheckoutPage);
+router.get('/checkout', userAuth, checkBlockStatus, checkoutController.loadCheckoutPage);
+router.post('/place-order', userAuth, checkoutController.placeOrder);
+router.get('/order-placed', userAuth, checkoutController.loadOrderPlacedPage);
 
 module.exports = router;
