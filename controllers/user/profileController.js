@@ -182,12 +182,11 @@ const postNewPassword = async (req, res, next) => {
   };
 
 
-
   const loadUserProfile = async (req, res, next) => {
     try {
       const userId = req.session.user._id;
       const user = await User.findById(userId);
-      const addresses = await Address.findOne({ userId: userId });
+      const addressDoc = await Address.findOne({ userId: userId });
       
       if (!user) {
         return res.redirect('/login');
@@ -195,52 +194,103 @@ const postNewPassword = async (req, res, next) => {
       
       res.render('user-profile', { 
         user: user,
-        addresses: addresses ? addresses.address : []
+        addresses: addressDoc?.address || []
       });
     } catch (error) {
       next(error);
     }
   };
-  
-  // Add these new controller methods
+
   const updateUserProfile = async (req, res, next) => {
     try {
       const userId = req.session.user._id;
-      const { name, mobile_number } = req.body;
+      const updates = req.body;
       
-      await User.findByIdAndUpdate(userId, {
-        name,
-        mobile_number
-      });
+      const user = await User.findByIdAndUpdate(
+        userId,
+        { $set: updates },
+        { new: true }
+      );
       
-      res.json({ success: true });
+      if (!user) {
+        return res.status(404).json({ success: false, message: "User not found" });
+      }
+      
+      res.json({ success: true, user });
     } catch (error) {
       next(error);
     }
   };
   
-  const addAddress = async (req, res, next) => {
-    try {
-      const userId = req.session.user._id;
-      const newAddress = req.body;
-      
-      const userAddress = await Address.findOne({ userId });
-      
-      if (userAddress) {
-        userAddress.address.push(newAddress);
-        await userAddress.save();
-      } else {
-        await Address.create({
-          userId,
-          address: [newAddress]
-        });
-      }
-      
-      res.json({ success: true });
-    } catch (error) {
-      next(error);
+ const addAddress = async (req, res, next) => {
+  try {
+    const userId = req.session.user._id;
+    const newAddress = {
+      fullName: req.body.fullName,
+      phone: Number(req.body.phone),
+      altPhone: Number(req.body.altPhone || req.body.phone),
+      address: req.body.address,
+      landmark: req.body.landmark || "",
+      city: req.body.city,
+      state: req.body.state,
+      pincode: req.body.pincode,
+      addressType: req.body.addressType
+    };
+
+    // Validate required fields
+    const requiredFields = ['fullName', 'phone', 'address', 'city', 'state', 'pincode', 'addressType'];
+    const missingFields = requiredFields.filter(field => !newAddress[field]);
+    
+    if (missingFields.length > 0) {
+      return res.status(400).json({ 
+        success: false, 
+        message: `Missing required fields: ${missingFields.join(', ')}` 
+      });
     }
-  };
+
+    const userAddress = await Address.findOne({ userId });
+    
+    if (userAddress) {
+      userAddress.address.push(newAddress);
+      await userAddress.save();
+    } else {
+      await Address.create({
+        userId,
+        address: [newAddress]
+      });
+    }
+    
+    res.json({ success: true, address: newAddress });
+  } catch (error) {
+    console.error('Address creation error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: error.message || 'Error adding address'
+    });
+  }
+};
+
+const resetPassword = async (req, res, next) => {
+  try {
+    const userId = req.session.user?._id;
+    if (!userId) {
+      return res.status(400).json({ success: false, message: "Session expired. Please restart the process." });
+    }
+    
+    const { newPass1, newPass2 } = req.body;
+    if (newPass1 !== newPass2) {
+      return res.status(400).json({ success: false, message: "Passwords do not match" });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPass1, 10);
+    await User.findByIdAndUpdate(userId, { password: hashedPassword });
+
+    res.json({ success: true, message: "Password updated successfully" });
+  } catch (error) {
+    next(error);
+  }
+};
+
 
 module.exports = {
   getForgotPassPage,
@@ -253,4 +303,5 @@ module.exports = {
   loadUserProfile,
   addAddress,
   updateUserProfile,
+  resetPassword
 };

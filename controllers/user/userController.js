@@ -332,15 +332,6 @@ const loadShopingPage = async (req, res, next) => {
 
 
 
-const loadCheckoutPage = async (req, res, next) => {
-  try {
-    res.render('checkout');
-  } catch (error) {
-    next(error);
-  }
-}
-
-
 module.exports = {
   loadHomepage,
   pageNotFound,
@@ -352,5 +343,4 @@ module.exports = {
   login,
   logout,
   loadShopingPage,
-  loadCheckoutPage
 };
