@@ -15,6 +15,18 @@ const addressSchema = new Schema(
           enum: ["home", "work"],
           required: true,
         },
+        fullName: {
+          type: String,
+          required: true,
+        },
+        phone: {
+          type: Number, 
+          required: true,
+        },
+        altPhone: {
+          type: Number,
+          required: true,
+        },
         address: {
           type: String,
           required: true,
@@ -37,13 +49,6 @@ const addressSchema = new Schema(
         },
       },
     ],
-  },
-  {
-    timestamps: {
-      createdAt: "created_at",
-      updatedAt: "updated_at",
-    },
-  }
-);
+  },{timestamps:true});
 
 module.exports = mongoose.model("Address", addressSchema);

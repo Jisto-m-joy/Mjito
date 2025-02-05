@@ -6,9 +6,18 @@
 
 <!--=============== MAIN ===============-->
 <main class="main">
+  <!--=============== BREADCRUMB ===============-->
+  <section class="breadcrumb">
+    <ul class="breadcrumb__list flex container">
+      <li><a href="/home" class="breadcrumb__link">Home</a></li>
+      <li><span class="breadcrumb__link">></span></li>
+      <li><span class="breadcrumb__link">Shop</span></li>
+    </ul>
+  </section>
+
   <div class="container flex">
     <!--=============== FILTER BAR ===============-->
-    <aside class="filter-bar new-style">
+    <aside class="filter-bar">
       <form action="/shop" method="GET" class="filter-form">
         <!-- Search Option -->
         <div class="filter-group">
@@ -88,20 +97,12 @@
         </div>
         
         <button type="submit" class="filter-btn">Apply Filters</button>
-        <button type="reset" class="filter-btn clear-btn" id="clear-filters">Clear Filters</button>      </form>
+        <button type="reset" class="filter-btn clear-btn" id="clear-filters">Clear Filters</button>
+      </form>
     </aside>
     
     <!--=============== SHOP CONTENT ===============-->
     <div class="shop-content">
-      <!--=============== BREADCRUMB ===============-->
-      <section class="breadcrumb">
-        <ul class="breadcrumb__list flex container">
-          <li><a href="/home" class="breadcrumb__link">Home</a></li>
-          <li><span class="breadcrumb__link"></span>></li>
-          <li><span class="breadcrumb__link">Shop</span></li>
-        </ul>
-      </section>
-
       <!--=============== PRODUCTS ===============-->
       <section class="products container section--lg">
         <p class="total__products">We found <span><%= products.length %></span> items for you!</p>
@@ -189,31 +190,6 @@
             </a>
           </li>
         </ul>
-      </section>
-
-      <!--=============== NEWSLETTER ===============-->
-      <section class="newsletter section">
-        <div class="newsletter__container container grid">
-          <h3 class="newsletter__title flex">
-            <img
-              src="./assets/img/icon-email.svg"
-              alt=""
-              class="newsletter__icon"
-            />
-            Sign in to Newsletter
-          </h3>
-          <p class="newsletter__description">
-            ...and receive $25 coupon for first shopping.
-          </p>
-          <form action="" class="newsletter__form">
-            <input
-              type="text"
-              placeholder="Enter Your Email"
-              class="newsletter__input"
-            />
-            <button type="submit" class="newsletter__btn">Subscribe</button>
-          </form>
-        </div>
       </section>
     </div>
   </div>

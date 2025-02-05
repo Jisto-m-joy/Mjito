@@ -28,7 +28,7 @@ router.get('/auth/google/callback',
   passport.authenticate('google', { failureRedirect: '/login' }),
   (req, res) => {
     // Successful authentication, redirect home.
-    req.session.user = req.user; // Set the user in the session
+    req.session.user = req.user; 
     res.redirect('/');
   });
 
@@ -42,10 +42,13 @@ router.get('/shop', userController.loadShopingPage);
 
 // Product Management
 router.get("/productDetails", productController.productDetails);
-router.post("/submitReview", userAuth, productController.submitReview); // Add this route for review submission
+router.post("/submitReview", userAuth, productController.submitReview); 
 
 
 // Profile Management
+router.get('/user-profile', userAuth, profileController.loadUserProfile);
+router.post('/update-profile', userAuth, profileController.updateUserProfile);
+router.post('/add-address', userAuth, profileController.addAddress);
 router.get('/forgot-password', profileController.getForgotPassPage);
 router.post('/forgot-email-valid', profileController.forgotEmailValid);
 router.post('/verify-passForgot-otp', profileController.verifyForgotPassOtp);

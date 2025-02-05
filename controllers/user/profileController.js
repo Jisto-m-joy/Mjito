@@ -1,4 +1,5 @@
 const User = require("../../models/userSchema");
+const Address = require("../../models/addressSchema");
 const nodemailer = require("nodemailer");
 const bcrypt = require("bcrypt");
 const env = require("dotenv").config();
@@ -180,6 +181,67 @@ const postNewPassword = async (req, res, next) => {
     }
   };
 
+
+
+  const loadUserProfile = async (req, res, next) => {
+    try {
+      const userId = req.session.user._id;
+      const user = await User.findById(userId);
+      const addresses = await Address.findOne({ userId: userId });
+      
+      if (!user) {
+        return res.redirect('/login');
+      }
+      
+      res.render('user-profile', { 
+        user: user,
+        addresses: addresses ? addresses.address : []
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+  
+  // Add these new controller methods
+  const updateUserProfile = async (req, res, next) => {
+    try {
+      const userId = req.session.user._id;
+      const { name, mobile_number } = req.body;
+      
+      await User.findByIdAndUpdate(userId, {
+        name,
+        mobile_number
+      });
+      
+      res.json({ success: true });
+    } catch (error) {
+      next(error);
+    }
+  };
+  
+  const addAddress = async (req, res, next) => {
+    try {
+      const userId = req.session.user._id;
+      const newAddress = req.body;
+      
+      const userAddress = await Address.findOne({ userId });
+      
+      if (userAddress) {
+        userAddress.address.push(newAddress);
+        await userAddress.save();
+      } else {
+        await Address.create({
+          userId,
+          address: [newAddress]
+        });
+      }
+      
+      res.json({ success: true });
+    } catch (error) {
+      next(error);
+    }
+  };
+
 module.exports = {
   getForgotPassPage,
   forgotEmailValid,
@@ -188,4 +250,7 @@ module.exports = {
   verifyForgotPassOtp,
   resendOtp,
   postNewPassword,
+  loadUserProfile,
+  addAddress,
+  updateUserProfile,
 };
