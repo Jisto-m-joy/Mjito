@@ -222,53 +222,53 @@ const postNewPassword = async (req, res, next) => {
     }
   };
   
- const addAddress = async (req, res, next) => {
-  try {
-    const userId = req.session.user._id;
-    const newAddress = {
-      fullName: req.body.fullName,
-      phone: Number(req.body.phone),
-      altPhone: Number(req.body.altPhone || req.body.phone),
-      address: req.body.address,
-      landmark: req.body.landmark || "",
-      city: req.body.city,
-      state: req.body.state,
-      pincode: req.body.pincode,
-      addressType: req.body.addressType
-    };
-
-    // Validate required fields
-    const requiredFields = ['fullName', 'phone', 'address', 'city', 'state', 'pincode', 'addressType'];
-    const missingFields = requiredFields.filter(field => !newAddress[field]);
-    
-    if (missingFields.length > 0) {
-      return res.status(400).json({ 
+  const addAddress = async (req, res, next) => {
+    try {
+      const userId = req.session.user._id;
+      const newAddress = {
+        fullName: req.body.fullName,
+        phone: Number(req.body.phone),
+        altPhone: Number(req.body.altPhone || req.body.phone),
+        address: req.body.address,
+        landmark: req.body.landmark || "",
+        city: req.body.city,
+        state: req.body.state,
+        pincode: req.body.pincode,
+        addressType: req.body.addressType
+      };
+  
+      // Validate required fields
+      const requiredFields = ['fullName', 'phone', 'address', 'city', 'state', 'pincode', 'addressType'];
+      const missingFields = requiredFields.filter(field => !newAddress[field]);
+      
+      if (missingFields.length > 0) {
+        return res.status(400).json({ 
+          success: false, 
+          message: `Missing required fields: ${missingFields.join(', ')}` 
+        });
+      }
+  
+      const userAddress = await Address.findOne({ userId });
+      
+      if (userAddress) {
+        userAddress.address.push(newAddress);
+        await userAddress.save();
+      } else {
+        await Address.create({
+          userId,
+          address: [newAddress]
+        });
+      }
+      
+      res.json({ success: true, address: newAddress });
+    } catch (error) {
+      console.error('Address creation error:', error);
+      res.status(500).json({ 
         success: false, 
-        message: `Missing required fields: ${missingFields.join(', ')}` 
+        message: error.message || 'Error adding address'
       });
     }
-
-    const userAddress = await Address.findOne({ userId });
-    
-    if (userAddress) {
-      userAddress.address.push(newAddress);
-      await userAddress.save();
-    } else {
-      await Address.create({
-        userId,
-        address: [newAddress]
-      });
-    }
-    
-    res.json({ success: true, address: newAddress });
-  } catch (error) {
-    console.error('Address creation error:', error);
-    res.status(500).json({ 
-      success: false, 
-      message: error.message || 'Error adding address'
-    });
-  }
-};
+  };
 
 const resetPassword = async (req, res, next) => {
   try {
@@ -291,7 +291,24 @@ const resetPassword = async (req, res, next) => {
   }
 };
 
+const loadUserAddress = async (req, res, next) => {
+  try {
+    const userId = req.session.user._id;
+    const user = await User.findById(userId);
+    const addresses = await Address.findOne({ userId: userId });
 
+    if (!user) {
+      return res.redirect('/login');
+    }
+
+    res.render('user-address', {
+      user: user,
+      addresses: addresses?.address || []
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 
 
 module.exports = {
@@ -306,4 +323,5 @@ module.exports = {
   addAddress,
   updateUserProfile,
   resetPassword,
+  loadUserAddress
 };

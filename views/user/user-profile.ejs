@@ -59,55 +59,6 @@
       cursor: pointer;
     }
 
-    .address-section {
-      padding: 20px;
-      border-top: 1px solid var(--border-color);
-    }
-
-    .add-address-btn {
-      background-color: var(--first-color);
-      color: white;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 4px;
-      margin-bottom: 20px;
-      cursor: pointer;
-    }
-
-    .address-card {
-      border: 1px solid var(--border-color);
-      padding: 15px;
-      margin-bottom: 15px;
-      border-radius: 4px;
-    }
-
-    .address-card p {
-      margin: 5px 0;
-    }
-
-    .address-actions {
-      margin-top: 10px;
-      display: flex;
-      gap: 10px;
-    }
-
-    .edit-btn,
-    .delete-btn {
-      padding: 5px 10px;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-
-    .edit-btn {
-      background-color: var(--first-color);
-      color: white;
-    }
-
-    .delete-btn {
-      background-color: #dc3545;
-      color: white;
-    }
     /* Modal styles */
     .modal {
       display: none;
@@ -158,31 +109,6 @@
       color: var(--text-color);
     }
 
-    /* Address form styles */
-    #addAddressForm .detail-row {
-      margin-bottom: 15px;
-    }
-
-    #addAddressForm select {
-      flex: 1;
-      padding: 8px;
-      border: 1px solid var(--border-color);
-      border-radius: 4px;
-      background-color: white;
-      color: var(--text-color);
-      width: 100%;
-    }
-
-    #addAddressForm select:focus {
-      outline: none;
-      border-color: var(--first-color);
-    }
-
-    #addAddressForm .change-btn {
-      margin-top: 10px;
-      width: 100%;
-    }
-
     .a {
       text-decoration: none;
     }
@@ -194,10 +120,12 @@
       <div class="accounts__container container grid">
         <!-- Left Side Navigation -->
         <div class="account__tabs">
-          <p class="account__tab">
-            <i class="fi fi-rs-home"></i> <a href="/user-profile">My Info</a>
+          <p class="account__tab active">
+            <i class="fi fi-rs-user"></i> <a href="/user-profile">My Info</a>
           </p>
-          <p class="account__tab"><i class="fi fi-rs-heart"></i> Wishlist</p>
+          <p class="account__tab">
+            <i class="fi fi-rs-map-marker"></i> <a href="/user-address">Address</a>
+          </p>
           <p class="account__tab">
             <i class="fi fi-rs-shopping-bag"></i>
             <a href="/my-orders">My Orders</a>
@@ -207,192 +135,91 @@
           </p>
         </div>
 
-        <!--  Modal for editing Name -->
-        <div id="editNameModal" class="modal">
-          <div class="modal-content">
-            <span class="close-modal">&times;</span>
-            <h3>Edit Name</h3>
-            <form id="editNameForm" class="user-details">
-              <div class="detail-row">
-                <label>Name:</label>
-                <div class="detail-content">
-                  <input type="text" id="editNameField" name="name" />
-                </div>
-              </div>
-              <button type="submit" class="change-btn">Save Changes</button>
-            </form>
-          </div>
-        </div>
-
-        <!--  Modal for editing Password -->
-        <div id="editPasswordModal" class="modal">
-          <div class="modal-content">
-            <span class="close-modal">&times;</span>
-            <h3>Edit Password</h3>
-            <form id="editPasswordForm" class="user-details">
-              <div class="detail-row">
-                <label>New Password:</label>
-                <div class="detail-content">
-                  <input
-                    type="password"
-                    id="editPasswordField"
-                    name="newPass1"
-                    required
-                  />
-                </div>
-              </div>
-              <div class="detail-row">
-                <label>Confirm Password:</label>
-                <div class="detail-content">
-                  <input
-                    type="password"
-                    id="confirmEditPasswordField"
-                    name="newPass2"
-                    required
-                  />
-                </div>
-              </div>
-              <button type="submit" class="change-btn">Save Changes</button>
-            </form>
-          </div>
-        </div>
-
-        <!--  Address Modal -->
-        <div id="addAddressModal" class="modal">
-          <div class="modal-content">
-            <span class="close-modal">&times;</span>
-            <h3>Add New Address</h3>
-            <form id="addAddressForm" class="user-details">
-              <div class="detail-row">
-                <label>Full Name:</label>
-                <div class="detail-content">
-                  <input type="text" id="fullName" name="fullName" required />
-                </div>
-              </div>
-              <div class="detail-row">
-                <label>Phone:</label>
-                <div class="detail-content">
-                  <input type="tel" id="phone" name="phone" required />
-                </div>
-              </div>
-              <div class="detail-row">
-                <label>Alt Phone:</label>
-                <div class="detail-content">
-                  <input type="tel" id="altPhone" name="altPhone" />
-                </div>
-              </div>
-              <div class="detail-row">
-                <label>Landmark:</label>
-                <div class="detail-content">
-                  <input type="text" id="landmark" name="landmark" required />
-                </div>
-              </div>
-              <div class="detail-row">
-                <label>Address:</label>
-                <div class="detail-content">
-                  <input type="text" id="address" name="address" required />
-                </div>
-              </div>
-              <div class="detail-row">
-                <label>City:</label>
-                <div class="detail-content">
-                  <input type="text" id="city" name="city" required />
-                </div>
-              </div>
-              <div class="detail-row">
-                <label>State:</label>
-                <div class="detail-content">
-                  <input type="text" id="state" name="state" required />
-                </div>
-              </div>
-              <div class="detail-row">
-                <label>Pincode:</label>
-                <div class="detail-content">
-                  <input type="text" id="pincode" name="pincode" required />
-                </div>
-              </div>
-              <div class="detail-row">
-                <label>Type:</label>
-                <div class="detail-content">
-                  <select id="addressType" name="addressType" required>
-                    <option value="">Select Type</option>
-                    <option value="home">Home</option>
-                    <option value="work">Work</option>
-                  </select>
-                </div>
-              </div>
-              <button type="submit" class="change-btn">Save Address</button>
-            </form>
-          </div>
-        </div>
-
-        <!-- Right Side Content -->
+        <!-- User Profile Section -->
         <div class="tab__content active-tab">
           <div class="tab__pane">
             <h3 class="tab__header">Contact Details</h3>
             <div class="tab__body">
               <!-- User Details Section -->
-              <div class="detail-row">
-                <label>Name:</label>
-                <div class="detail-content">
-                  <input type="text" value="<%= user.name %>" readonly />
-                  <button class="change-btn change-name-btn" data-field="name">
-                    Change
-                  </button>
-                </div>
-              </div>
-
-              <div class="detail-row">
-                <label>Email:</label>
-                <div class="detail-content">
-                  <input type="email" value="<%= user.email %>" readonly />
-                </div>
-              </div>
-
-              <div class="detail-row">
-                <label>Password:</label>
-                <div class="detail-content">
-                  <input type="password" value="<%= user.email %>" readonly />
-                  <button class="change-btn change-password-btn">Change</button>
-                </div>
-              </div>
-
-              <!-- Address Section -->
-              <div class="address-section">
-                <h3>Addresses</h3>
-                <button class="add-address-btn">Add New</button>
-
-                <div class="addresses-container">
-                  <% if (addresses && addresses.length > 0) { %> <%
-                  addresses.forEach(address => { %>
-                  <div class="address-card">
-                    <p class="name"><%= address.fullName %></p>
-                    <p class="phone"><%= address.phone %></p>
-                    <p class="address">
-                      <%= address.address %>, <%= address.city %>, <%=
-                      address.state %> - <%= address.pincode %>
-                    </p>
-                    <div class="address-actions">
-                      <button
-                        class="edit-btn"
-                        data-address-id="<%= address._id %>"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        class="delete-btn"
-                        data-address-id="<%= address._id %>"
-                      >
-                        Delete
-                      </button>
-                    </div>
+              <div class="user-details">
+                <div class="detail-row">
+                  <label>Name:</label>
+                  <div class="detail-content">
+                    <span id="displayName"><%= user.name %></span>
+                    <button class="change-btn" onclick="openEditNameModal()">Change</button>
                   </div>
-                  <% }) %> <% } else { %>
-                  <p>No addresses found</p>
-                  <% } %>
+                </div>
+
+                <div class="detail-row">
+                  <label>Email:</label>
+                  <div class="detail-content">
+                    <span><%= user.email %></span>
+                  </div>
+                </div>
+
+                <div class="detail-row">
+                  <label>Password:</label>
+                  <div class="detail-content">
+                    <span>********</span>
+                    <button class="change-btn" onclick="openChangePasswordModal()">Change</button>
+                  </div>
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+
+        <!-- Edit Name Modal -->
+        <div id="editNameModal" class="modal">
+          <div class="modal-content">
+            <span class="close-modal" onclick="closeEditNameModal()">&times;</span>
+            <h3>Edit Name</h3>
+            <form id="editNameForm" class="user-details">
+              <div class="detail-row">
+                <label for="editNameField">Name:</label>
+                <div class="detail-content">
+                  <input type="text" id="editNameField" name="name" required />
+                </div>
+              </div>
+              <button type="submit" class="change-btn">Save Changes</button>
+            </form>
+          </div>
+        </div>
+
+
+        <!-- Change Password Modal -->
+        <div id="changePasswordModal" class="modal">
+          <div class="modal-content">
+            <span class="close-modal" onclick="closeChangePasswordModal()">&times;</span>
+            <h3>Change Password</h3>
+            <form id="changePasswordForm" class="user-details">
+
+              <div class="detail-row">
+                <label for="newPassword">New:</label>
+                <div class="detail-content">
+                  <div class="password-field">
+                    <input type="password" id="newPassword" name="newPassword" required />
+                    <button type="button" class="toggle-password" onclick="togglePassword('newPassword')">
+                      <i class="fi fi-rs-eye"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="detail-row">
+                <label for="confirmPassword">Confirm:</label>
+                <div class="detail-content">
+                  <div class="password-field">
+                    <input type="password" id="confirmPassword" name="confirmPassword" required />
+                    <button type="button" class="toggle-password" onclick="togglePassword('confirmPassword')">
+                      <i class="fi fi-rs-eye"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <button type="submit" class="change-btn">Change Password</button>
+            </form>
           </div>
         </div>
       </div>
@@ -407,215 +234,200 @@
   const editNameForm = document.getElementById("editNameForm");
   const editNameField = document.getElementById("editNameField");
 
-  document.querySelectorAll(".change-name-btn").forEach((btn) => {
-    btn.addEventListener("click", function () {
-      editNameModal.style.display = "block";
-    });
-  });
+  function openEditNameModal() {
+    editNameModal.style.display = "block";
+    editNameField.value = document.getElementById("displayName").textContent;
+  }
 
-  // Modal functionality for password
-  const editPasswordModal = document.getElementById("editPasswordModal");
-  const editPasswordForm = document.getElementById("editPasswordForm");
-  const editPasswordField = document.getElementById("editPasswordField");
-  const confirmEditPasswordField = document.getElementById(
-    "confirmEditPasswordField"
-  );
+  function closeEditNameModal() {
+    editNameModal.style.display = "none";
+  }
 
-  document.querySelectorAll(".change-password-btn").forEach((btn) => {
-    btn.addEventListener("click", function () {
-      editPasswordModal.style.display = "block";
-    });
-  });
-
-  // Close modal functionality
-  document.querySelectorAll(".close-modal").forEach((btn) => {
-    btn.addEventListener("click", function () {
-      editPasswordModal.style.display = "none";
-    });
-  });
-
-  window.addEventListener("click", (e) => {
-    if (e.target === editPasswordModal) {
-      editPasswordModal.style.display = "none";
-    }
-  });
-
-  // Form submission handlers
-  editNameForm.addEventListener("submit", async function (e) {
+  editNameForm.addEventListener("submit", async (e) => {
     e.preventDefault();
-    const name = editNameField.value;
+    const newName = editNameField.value;
 
     try {
-      const response = await fetch("/update-profile", {
+      const response = await fetch("/update-name", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ name }),
+        body: JSON.stringify({ name: newName }),
       });
 
-      const result = await response.json();
+      const data = await response.json();
 
-      if (result.success) {
-        document.querySelector('input[value="<%= user.name %>"]').value = name;
-        editNameModal.style.display = "none";
+      if (data.success) {
+        document.getElementById("displayName").textContent = newName;
+        closeEditNameModal();
+        Swal.fire({
+          icon: "success",
+          title: "Success",
+          text: "Name updated successfully!",
+        });
       } else {
-        alert(result.message || "Update failed");
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: data.message || "Failed to update name",
+        });
       }
     } catch (error) {
-      console.error("Error updating profile:", error);
-      alert("An error occurred while updating");
-    }
-  });
-
-  // Form submission handler for password change
-  editPasswordForm.addEventListener("submit", async function (e) {
-    e.preventDefault();
-    const newPass1 = editPasswordField.value;
-    const newPass2 = confirmEditPasswordField.value;
-
-    if (newPass1 !== newPass2) {
+      console.error("Error:", error);
       Swal.fire({
         icon: "error",
         title: "Error",
-        text: "Passwords do not match",
+        text: "Something went wrong!",
+      });
+    }
+  });
+
+  // Modal functionality for mobile
+  const editMobileModal = document.getElementById("editMobileModal");
+  const editMobileForm = document.getElementById("editMobileForm");
+  const editMobileField = document.getElementById("editMobileField");
+
+  function openEditMobileModal() {
+    editMobileModal.style.display = "block";
+    editMobileField.value = document.getElementById("displayMobile").textContent;
+  }
+
+  function closeEditMobileModal() {
+    editMobileModal.style.display = "none";
+  }
+
+  editMobileForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const newMobile = editMobileField.value;
+
+    try {
+      const response = await fetch("/update-mobile", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ mobile: newMobile }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        document.getElementById("displayMobile").textContent = newMobile;
+        closeEditMobileModal();
+        Swal.fire({
+          icon: "success",
+          title: "Success",
+          text: "Mobile number updated successfully!",
+        });
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: data.message || "Failed to update mobile number",
+        });
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Something went wrong!",
+      });
+    }
+  });
+
+  // Modal functionality for password
+  const changePasswordModal = document.getElementById("changePasswordModal");
+  const changePasswordForm = document.getElementById("changePasswordForm");
+
+  function openChangePasswordModal() {
+    changePasswordModal.style.display = "block";
+  }
+
+  function closeChangePasswordModal() {
+    changePasswordModal.style.display = "none";
+    changePasswordForm.reset();
+  }
+
+  function togglePassword(inputId) {
+    const input = document.getElementById(inputId);
+    const icon = input.nextElementSibling.querySelector("i");
+    
+    if (input.type === "password") {
+      input.type = "text";
+      icon.classList.remove("fi-rs-eye");
+      icon.classList.add("fi-rs-eye-crossed");
+    } else {
+      input.type = "password";
+      icon.classList.remove("fi-rs-eye-crossed");
+      icon.classList.add("fi-rs-eye");
+    }
+  }
+
+  changePasswordForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const currentPassword = document.getElementById("currentPassword").value;
+    const newPassword = document.getElementById("newPassword").value;
+    const confirmPassword = document.getElementById("confirmPassword").value;
+
+    if (newPassword !== confirmPassword) {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "New password and confirm password do not match!",
       });
       return;
     }
 
     try {
-      const response = await fetch("/reset-password", {
+      const response = await fetch("/change-password", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ newPass1, newPass2 }),
+        body: JSON.stringify({
+          currentPassword,
+          newPassword,
+        }),
       });
 
-      const result = await response.json();
+      const data = await response.json();
 
-      if (result.success) {
-        editPasswordModal.style.display = "none";
+      if (data.success) {
+        closeChangePasswordModal();
         Swal.fire({
           icon: "success",
           title: "Success",
-          text: "Password updated successfully",
+          text: "Password changed successfully!",
         });
       } else {
         Swal.fire({
           icon: "error",
-          title: "Update Failed",
-          text: result.message || "Update failed",
+          title: "Error",
+          text: data.message || "Failed to change password",
         });
       }
     } catch (error) {
-      console.error("Error updating profile:", error);
+      console.error("Error:", error);
       Swal.fire({
         icon: "error",
         title: "Error",
-        text: "An error occurred while updating",
+        text: "Something went wrong!",
       });
     }
   });
 
-  // Add Address Modal Functionality
-  const addAddressModal = document.getElementById("addAddressModal");
-  const addAddressBtn = document.querySelector(".add-address-btn");
-  const addAddressCloseBtn = addAddressModal.querySelector(".close-modal");
-  const addAddressForm = document.getElementById("addAddressForm");
-
-  // Show modal when add address button is clicked
-  addAddressBtn.addEventListener("click", () => {
-    addAddressModal.style.display = "block";
-  });
-
-  // Close modal when close button is clicked
-  addAddressCloseBtn.addEventListener("click", () => {
-    addAddressModal.style.display = "none";
-    addAddressForm.reset();
-  });
-
-  // Close modal when clicking outside
-  window.addEventListener("click", (e) => {
-    if (e.target === addAddressModal) {
-      addAddressModal.style.display = "none";
-      addAddressForm.reset();
+  // Close modals when clicking outside
+  window.onclick = function(event) {
+    if (event.target === editNameModal) {
+      closeEditNameModal();
     }
-  });
-
-  addAddressForm.addEventListener("submit", async (e) => {
-    e.preventDefault();
-
-    // Get form data and create address object
-    const formData = new FormData(addAddressForm);
-    const addressData = {
-      fullName: formData.get("fullName"),
-      phone: formData.get("phone"),
-      altPhone: formData.get("altPhone") || formData.get("phone"),
-      address: formData.get("address"),
-      landmark: formData.get("landmark"),
-      city: formData.get("city"),
-      state: formData.get("state"),
-      pincode: formData.get("pincode"),
-      addressType: formData.get("addressType"),
-    };
-
-    try {
-      const response = await fetch("/add-address", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(addressData),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to add address");
-      }
-
-      const result = await response.json();
-
-      if (result.success) {
-        // Close the modal
-        addAddressModal.style.display = "none";
-        addAddressForm.reset();
-
-        // Show success message
-        await Swal.fire({
-          icon: "success",
-          title: "Success!",
-          text: "New address added successfully",
-          confirmButtonColor: "#3085d6",
-        });
-
-        // Reload the page after showing the message
-        window.location.reload();
-      }
-    } catch (error) {
-      console.error("Error saving address:", error);
-      Swal.fire({
-        icon: "error",
-        title: "Oops...",
-        text: error.message || "An error occurred while saving the address",
-      });
+    if (event.target === editMobileModal) {
+      closeEditMobileModal();
     }
-  });
-
-  function createAddressCard(address) {
-    const div = document.createElement("div");
-    div.className = "address-card";
-    div.innerHTML = `
-    <p class="name">${address.fullName}</p>
-    <p class="phone">${address.phone}</p>
-    <p class="address">
-      ${address.landmark}, ${address.city}, ${address.state} - ${address.pincode}
-    </p>
-    <div class="address-actions">
-      <button class="edit-btn" data-address-id="${address._id}">Edit</button>
-      <button class="delete-btn" data-address-id="${address._id}">Delete</button>
-    </div>
-  `;
-    return div;
-  }
+    if (event.target === changePasswordModal) {
+      closeChangePasswordModal();
+    }
+  };
 </script>

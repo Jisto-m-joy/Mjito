@@ -59,6 +59,31 @@ function getOrderStatus(status) {
   return statusMap[status] || 0;
 }
 
+const cancelOrder = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const userId = req.session.user._id;
+
+    const order = await Order.findOneAndUpdate(
+      { orderId, userId, status: { $in: ['Pending', 'Pending COD', 'Processing'] } },
+      { status: 'Cancelled' },
+      { new: true }
+    );
+
+    if (!order) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Order cannot be cancelled at this stage' 
+      });
+    }
+
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
 module.exports = {
   loadMyOrders,
+  cancelOrder
 };

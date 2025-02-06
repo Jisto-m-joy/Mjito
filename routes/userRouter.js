@@ -51,9 +51,13 @@ router.post("/submitReview", userAuth, productController.submitReview);
 router.get('/user-profile', userAuth, profileController.loadUserProfile);
 router.post('/update-profile', userAuth, profileController.updateUserProfile);
 router.post('/add-address', userAuth, profileController.addAddress);
+router.get('/user-address', userAuth, profileController.loadUserAddress);
+
 
 // Order Management
 router.get('/my-orders', userAuth, orderController.loadMyOrders);
+router.post('/cancel-order/:orderId', userAuth, orderController.cancelOrder);
+
 
 // Forgot Password Management
 router.post('/reset-password',userAuth, profileController.resetPassword);

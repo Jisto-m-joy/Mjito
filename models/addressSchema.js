@@ -35,7 +35,7 @@ const addressSchema = new Schema(
           type: String,
           required: true,
         },
-        landMark: {
+        landmark: {
           type: String,
           default: "",
         },

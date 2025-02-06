@@ -169,7 +169,7 @@
             <p>Total Quantity: <%= order.quantity %></p>
             <p class="total-amount">Total Amount: ₹<%= order.totalAmount %></p>
           </div>
-          <button class="btn btn-danger">Cancel Order</button>
+          <button class="btn btn-danger cancel-order-btn" data-order-id="<%= order.orderId %>">Cancel Order</button>
         </div>
 
         <div class="order-details">
@@ -220,3 +220,38 @@
 </body>
 
 <%- include("../../views/user/partials/footer") %>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+document.querySelectorAll('.cancel-order-btn').forEach(button => {
+  button.addEventListener('click', async (e) => {
+    const orderId = e.target.getAttribute('data-order-id');
+    
+    const result = await Swal.fire({
+      title: 'Cancel Order',
+      text: 'Are you sure you want to cancel this order?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Yes, cancel order'
+    });
+
+    if (result.isConfirmed) {
+      try {
+        const response = await fetch(`/cancel-order/${orderId}`, { method: 'POST' });
+        const data = await response.json();
+        
+        if (data.success) {
+          Swal.fire('Cancelled!', 'Your order has been cancelled.', 'success');
+          e.target.textContent = 'Cancelled';
+          e.target.disabled = true;
+        } else {
+          Swal.fire('Error', data.message || 'Failed to cancel order', 'error');
+        }
+      } catch (error) {
+        Swal.fire('Error', 'Something went wrong', 'error');
+      }
+    }
+  });
+});
+</script>
