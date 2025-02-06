@@ -70,9 +70,9 @@
           <h3 class="details__title"><%= product.name %></h3>
           <p class="details__brand">Brand: <span><%= product.brand %></span></p>
           <div class="details__price flex">
-            <span class="new__price">₹<%= salesPrice %></span>
-            <span class="old__price">₹<%= regularPrice %></span>
-            <span class="save__price"><%= product.offer %>%</span>
+            <span class="new__price" id="salesPrice">₹<%= salesPrice %></span>
+            <span class="old__price" id="regularPrice">₹<%= regularPrice %></span>
+            <span class="save__price"><%= product.offer %></span>
           </div>
           <p class="short__description">
             <%= product.description %>
@@ -103,9 +103,11 @@
           <div class="details__size flex">
             <span class="details__size-title">Size</span>
             <ul class="size__list">
-              <li>
-                <a href="#" class="size__link size-active"><%= size %></a>
-              </li>
+              <% product.combos.forEach(function(combo) { %>
+                <li>
+                  <a href="#" class="size__link size-active" data-salesPrice="<%= combo.salesPrice %>" data-regularPrice="<%= combo.regularPrice %>" data-quantity="<%= combo.quantity %>"><%= combo.size %></a>
+                </li>
+              <% }); %>
             </ul>
           </div>
           <div class="details__action">
@@ -120,7 +122,7 @@
               <span>Tags:</span><%= product.brand %>, <%= product.category.name %> , <%= product.name %>
             </li>
             <li class="meta__list flex">
-              <span>Availability:</span><%= quantity %> Items in Stock
+              <span>Availability:</span><span id="availability"><%= quantity %></span> Items in Stock
             </li>
           </ul>
         </div>
@@ -465,6 +467,32 @@
           message: 'An error occurred while adding the product to the cart',
           position: 'topRight'
         });
+      });
+    });
+  });
+
+
+  document.addEventListener('DOMContentLoaded', function() {
+    const sizeLinks = document.querySelectorAll('.size__link');
+    const salesPriceElement = document.getElementById('salesPrice');
+    const regularPriceElement = document.getElementById('regularPrice');
+    const quantityInput = document.getElementById('quantityInput');
+    const availabilityElement = document.getElementById('availability');
+
+    sizeLinks.forEach(link => {
+      link.addEventListener('click', function(event) {
+        event.preventDefault();
+        const salesPrice = this.getAttribute('data-salesPrice');
+        const regularPrice = this.getAttribute('data-regularPrice');
+        const quantity = this.getAttribute('data-quantity');
+
+        salesPriceElement.textContent = `₹${salesPrice}`;
+        regularPriceElement.textContent = `₹${regularPrice}`;
+        quantityInput.value = quantity;
+        availabilityElement.textContent = `${quantity} Items in Stock`;
+
+        sizeLinks.forEach(l => l.classList.remove('size-active'));
+        this.classList.add('size-active');
       });
     });
   });

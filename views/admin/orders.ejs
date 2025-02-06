@@ -1,0 +1,303 @@
+<%- include('./partials/header.ejs') %>
+<head>
+<!-- SweetAlert2 CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+<!-- Bootstrap CSS -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<section class="content-main">
+    <div class="content-header">
+        <div>
+            <h2 class="content-title card-title">Order Management</h2>
+        </div>
+        <div>
+            <input type="text" placeholder="Search by Order ID" class="form-control bg-white" id="searchInput">
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Date</th>
+                            <th>Customer</th>
+                            <th>Products</th>
+                            <th>Total</th>
+                            <th>Payment</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% orders.forEach(order => { %>
+                        <tr>
+                            <td><%= order._id %></td>
+                            <td><%= new Date(order.date).toLocaleDateString() %></td>
+                            <td><%= order.customer %></td>
+                            <td>
+                                <% order.products.forEach(product => { %>
+                                <div class="product-item mb-2">
+                                    <img src="<%= product.image %>" alt="<%= product.name %>" width="40" class="img-xs">
+                                    <div class="product-info">
+                                        <span><%= product.name %></span><br>
+                                        <small>Size: <%= product.size %> | Qty: <%= product.quantity %></small>
+                                    </div>
+                                </div>
+                                <% }) %>
+                            </td>
+                            <td>₹<%= order.total %></td>
+                            <td>
+                                <span class="badge rounded-pill <%= order.payment === 'cod' ? 'bg-warning' : 'bg-success' %>">
+                                    <%= order.payment %>
+                                </span>
+                            </td>
+                            <td>
+                                <select class="form-select status-select" data-order-id="<%= order._id %>">
+                                    <option value="Pending" <%= order.status === 'Pending' ? 'selected' : '' %>>Pending</option>
+                                    <option value="Processing" <%= order.status === 'Processing' ? 'selected' : '' %>>Processing</option>
+                                    <option value="Shipped" <%= order.status === 'Shipped' ? 'selected' : '' %>>Shipped</option>
+                                    <option value="Out for Delivery" <%= order.status === 'Out for Delivery' ? 'selected' : '' %>>Out for Delivery</option>
+                                    <option value="Delivered" <%= order.status === 'Delivered' ? 'selected' : '' %>>Delivered</option>
+                                    <option value="Cancelled" <%= order.status === 'Cancelled' ? 'selected' : '' %>>Cancelled</option>
+                                </select>
+                            </td>
+                            <td>
+                                <button class="btn btn-sm btn-warning" onclick="viewDetails('<%= order._id %>')">View Details</button>
+                            </td>
+                        </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Modal for order details -->
+<div class="modal fade" id="orderDetailsModal" tabindex="-1" aria-labelledby="orderDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content" style="background-color: #2b2b2b; color: #fff;">
+            <div class="modal-header" style="border-bottom: 1px solid #3d3d3d;">
+                <h5 class="modal-title" id="orderDetailsModalLabel">Order Details</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <!-- Order Information -->
+                    <div class="col-md-6">
+                        <h6 class="text-warning mb-3">Order Information</h6>
+                        <p><strong>Order ID:</strong> <span id="modalOrderId"></span></p>
+                        <p><strong>Order Date:</strong> <span id="modalOrderDate"></span></p>
+                        <p><strong>Payment Method:</strong> <span id="modalPaymentMethod"></span></p>
+                        <p><strong>Total Amount:</strong> ₹<span id="modalTotalAmount"></span></p>
+                    </div>
+                    
+                    <!-- Customer Information -->
+                    <div class="col-md-6">
+                        <h6 class="text-warning mb-3">Customer Information</h6>
+                        <p><strong>Name:</strong> <span id="modalCustomerName"></span></p>
+                        <p><strong>Email:</strong> <span id="modalCustomerEmail"></span></p>
+                        <p><strong>Phone:</strong> <span id="modalCustomerPhone"></span></p>
+                    </div>
+                </div>
+
+                <!-- Shipping Address -->
+                <div class="shipping-address mt-4">
+                    <h6 class="text-warning mb-3">Shipping Address</h6>
+                    <div class="address-box p-3" style="background-color: #8e8484; border-radius: 8px;">
+                        <p><strong>Name:</strong> <span id="modalShippingName"></span></p>
+                        <p><strong>Street:</strong> <span id="modalStreet"></span></p>
+                        <p><strong>Landmark:</strong> <span id="modalLandmark"></span></p>
+                        <p><strong>City:</strong> <span id="modalCity"></span></p>
+                        <p><strong>State:</strong> <span id="modalState"></span></p>
+                        <p><strong>Pincode:</strong> <span id="modalPincode"></span></p>
+                        <p><strong>Mobile:</strong> <span id="modalMobile"></span></p>
+                        <p><strong>Alternative Phone:</strong> <span id="modalAltPhone"></span></p>
+                    </div>
+                </div>
+
+                <!-- Order Items -->
+                <div class="order-items mt-4">
+                    <h6 class="text-warning mb-3">Order Items</h6>
+                    <div class="table-responsive">
+                        <table class="table table-dark">
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Price</th>
+                                    <th>Quantity</th>
+                                    <th>Status</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody id="modalOrderItems">
+                                <!-- Order items will be inserted here dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="border-top: 1px solid #3d3d3d;">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .product-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .product-info {
+        font-size: 0.9em;
+    }
+    .status-select {
+        min-width: 150px;
+    }
+    .img-xs {
+        object-fit: cover;
+    }
+    .modal-content {
+        border: none;
+        box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    }
+    .address-box {
+        border: 1px solid #3d3d3d;
+    }
+    .table-dark {
+        background-color: #1f1f1f;
+        color: #fff;
+    }
+    .table-dark thead th {
+        border-color: #3d3d3d;
+    }
+    .table-dark td {
+        border-color: #3d3d3d;
+    }
+</style>
+
+<script>
+    // Status update handling
+    document.querySelectorAll('.status-select').forEach(select => {
+        select.addEventListener('change', async function() {
+            const orderId = this.dataset.orderId;
+            const newStatus = this.value;
+            
+            try {
+                const response = await fetch(`/admin/orders/update-status/${orderId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ status: newStatus })
+                });
+                
+                if (response.ok) {
+                    Swal.fire({
+                        title: 'Success!',
+                        text: 'Order status updated successfully',
+                        icon: 'success',
+                        confirmButtonText: 'OK'
+                    });
+                } else {
+                    throw new Error('Failed to update status');
+                }
+            } catch (error) {
+                Swal.fire({
+                    title: 'Error!',
+                    text: 'Failed to update order status',
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
+            }
+        });
+    });
+
+    // Search functionality
+    document.getElementById('searchInput').addEventListener('input', function(e) {
+        const searchText = e.target.value.toLowerCase();
+        const rows = document.querySelectorAll('tbody tr');
+        
+        rows.forEach(row => {
+            const orderId = row.querySelector('td:first-child').textContent.toLowerCase();
+            row.style.display = orderId.includes(searchText) ? '' : 'none';
+        });
+    });
+
+// View details function
+async function viewDetails(orderId) {
+    try {
+        const response = await fetch(`/admin/orders/details/${orderId}`);
+        const data = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(data.error || 'Failed to fetch order details');
+        }
+
+        // Populate modal with order details
+        document.getElementById('modalOrderId').textContent = data._id;
+        document.getElementById('modalOrderDate').textContent = new Date(data.date).toLocaleDateString();
+        document.getElementById('modalPaymentMethod').textContent = data.payment;
+        document.getElementById('modalTotalAmount').textContent = data.total;
+
+        // Customer information
+        document.getElementById('modalCustomerName').textContent = data.customer.name;
+        document.getElementById('modalCustomerEmail').textContent = data.customer.email;
+        document.getElementById('modalCustomerPhone').textContent = data.customer.phone;
+
+        // Shipping address
+        document.getElementById('modalShippingName').textContent = data.shippingAddress.fullName;
+        document.getElementById('modalStreet').textContent = data.shippingAddress.address;
+        document.getElementById('modalLandmark').textContent = data.shippingAddress.landMark;
+        document.getElementById('modalCity').textContent = data.shippingAddress.city;
+        document.getElementById('modalState').textContent = data.shippingAddress.state;
+        document.getElementById('modalPincode').textContent = data.shippingAddress.pincode;
+        document.getElementById('modalMobile').textContent = data.shippingAddress.phone;
+        document.getElementById('modalAltPhone').textContent = data.shippingAddress.altPhone;
+
+        // Order items
+        const orderItemsHtml = data.products.map(product => `
+            <tr>
+                <td>
+                    <div class="d-flex align-items-center">
+                        <img src="${product.image}" alt="${product.name}" width="40" class="me-2">
+                        <div>
+                            <div>${product.name}</div>
+                            <small>Size: ${product.size}</small>
+                        </div>
+                    </div>
+                </td>
+                <td>₹${product.price}</td>
+                <td>${product.quantity}</td>
+                <td><span class="badge bg-warning">${product.status}</span></td>
+                <td>₹${product.price * product.quantity}</td>
+            </tr>
+        `).join('');
+        document.getElementById('modalOrderItems').innerHTML = orderItemsHtml;
+
+        // Show the modal
+        const modal = new bootstrap.Modal(document.getElementById('orderDetailsModal'));
+        modal.show();
+    } catch (error) {
+        console.error('Error fetching order details:', error);
+        Swal.fire({
+            title: 'Error!',
+            text: error.message || 'Failed to load order details',
+            icon: 'error',
+            confirmButtonText: 'OK'
+        });
+    }
+}
+</script>
+
+<!-- SweetAlert2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<%- include('./partials/footer.ejs') %>

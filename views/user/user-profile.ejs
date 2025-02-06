@@ -183,7 +183,7 @@
       width: 100%;
     }
 
-    .a{
+    .a {
       text-decoration: none;
     }
   </style>
@@ -194,10 +194,17 @@
       <div class="accounts__container container grid">
         <!-- Left Side Navigation -->
         <div class="account__tabs">
-          <p class="account__tab"><i class="fi fi-rs-home"></i> <a href="/user-profile">My Info</a></p>
+          <p class="account__tab">
+            <i class="fi fi-rs-home"></i> <a href="/user-profile">My Info</a>
+          </p>
           <p class="account__tab"><i class="fi fi-rs-heart"></i> Wishlist</p>
-          <p class="account__tab"><i class="fi fi-rs-shopping-bag"></i> <a href="/my-orders">My Orders</a></p>
-          <p class="account__tab"><i class="fi fi-rs-sign-out"></i> <a href="/logout">Logout</a></p>
+          <p class="account__tab">
+            <i class="fi fi-rs-shopping-bag"></i>
+            <a href="/my-orders">My Orders</a>
+          </p>
+          <p class="account__tab">
+            <i class="fi fi-rs-sign-out"></i> <a href="/logout">Logout</a>
+          </p>
         </div>
 
         <!--  Modal for editing Name -->
@@ -209,7 +216,7 @@
               <div class="detail-row">
                 <label>Name:</label>
                 <div class="detail-content">
-                  <input type="text" id="editNameField" name="name"  />
+                  <input type="text" id="editNameField" name="name" />
                 </div>
               </div>
               <button type="submit" class="change-btn">Save Changes</button>
@@ -217,28 +224,38 @@
           </div>
         </div>
 
-<!--  Modal for editing Password -->
-<div id="editPasswordModal" class="modal">
-  <div class="modal-content">
-    <span class="close-modal">&times;</span>
-    <h3>Edit Password</h3>
-    <form id="editPasswordForm" class="user-details">
-      <div class="detail-row">
-        <label>New Password:</label>
-        <div class="detail-content">
-          <input type="password" id="editPasswordField" name="newPass1" required />
+        <!--  Modal for editing Password -->
+        <div id="editPasswordModal" class="modal">
+          <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h3>Edit Password</h3>
+            <form id="editPasswordForm" class="user-details">
+              <div class="detail-row">
+                <label>New Password:</label>
+                <div class="detail-content">
+                  <input
+                    type="password"
+                    id="editPasswordField"
+                    name="newPass1"
+                    required
+                  />
+                </div>
+              </div>
+              <div class="detail-row">
+                <label>Confirm Password:</label>
+                <div class="detail-content">
+                  <input
+                    type="password"
+                    id="confirmEditPasswordField"
+                    name="newPass2"
+                    required
+                  />
+                </div>
+              </div>
+              <button type="submit" class="change-btn">Save Changes</button>
+            </form>
+          </div>
         </div>
-      </div>
-      <div class="detail-row">
-        <label>Confirm Password:</label>
-        <div class="detail-content">
-          <input type="password" id="confirmEditPasswordField" name="newPass2" required />
-        </div>
-      </div>
-      <button type="submit" class="change-btn">Save Changes</button>
-    </form>
-  </div>
-</div>
 
         <!--  Address Modal -->
         <div id="addAddressModal" class="modal">
@@ -319,24 +336,26 @@
                 <label>Name:</label>
                 <div class="detail-content">
                   <input type="text" value="<%= user.name %>" readonly />
-                  <button class="change-btn change-name-btn" data-field="name">Change</button>
+                  <button class="change-btn change-name-btn" data-field="name">
+                    Change
+                  </button>
                 </div>
               </div>
 
-                <div class="detail-row">
-                  <label>Email:</label>
-                  <div class="detail-content">
-                    <input type="email" value="<%= user.email %>" readonly />
-                  </div>
+              <div class="detail-row">
+                <label>Email:</label>
+                <div class="detail-content">
+                  <input type="email" value="<%= user.email %>" readonly />
                 </div>
+              </div>
 
-                <div class="detail-row">
-                  <label>Password:</label>
-                  <div class="detail-content">
-                    <input type="password" value="<%= user.email %>" readonly />
-                    <button class="change-btn change-password-btn">Change</button>
-                  </div>
+              <div class="detail-row">
+                <label>Password:</label>
+                <div class="detail-content">
+                  <input type="password" value="<%= user.email %>" readonly />
+                  <button class="change-btn change-password-btn">Change</button>
                 </div>
+              </div>
 
               <!-- Address Section -->
               <div class="address-section">
@@ -394,34 +413,35 @@
     });
   });
 
-// Modal functionality for password
-const editPasswordModal = document.getElementById("editPasswordModal");
-const editPasswordForm = document.getElementById("editPasswordForm");
-const editPasswordField = document.getElementById("editPasswordField");
-const confirmEditPasswordField = document.getElementById("confirmEditPasswordField");
+  // Modal functionality for password
+  const editPasswordModal = document.getElementById("editPasswordModal");
+  const editPasswordForm = document.getElementById("editPasswordForm");
+  const editPasswordField = document.getElementById("editPasswordField");
+  const confirmEditPasswordField = document.getElementById(
+    "confirmEditPasswordField"
+  );
 
-document.querySelectorAll(".change-password-btn").forEach((btn) => {
-  btn.addEventListener("click", function () {
-    editPasswordModal.style.display = "block";
+  document.querySelectorAll(".change-password-btn").forEach((btn) => {
+    btn.addEventListener("click", function () {
+      editPasswordModal.style.display = "block";
+    });
   });
-});
 
-// Close modal functionality
-document.querySelectorAll(".close-modal").forEach((btn) => {
-  btn.addEventListener("click", function () {
-    editPasswordModal.style.display = "none";
+  // Close modal functionality
+  document.querySelectorAll(".close-modal").forEach((btn) => {
+    btn.addEventListener("click", function () {
+      editPasswordModal.style.display = "none";
+    });
   });
-});
 
-window.addEventListener("click", (e) => {
-  if (e.target === editPasswordModal) {
-    editPasswordModal.style.display = "none";
-  }
-});
+  window.addEventListener("click", (e) => {
+    if (e.target === editPasswordModal) {
+      editPasswordModal.style.display = "none";
+    }
+  });
 
-
- // Form submission handlers
- editNameForm.addEventListener("submit", async function (e) {
+  // Form submission handlers
+  editNameForm.addEventListener("submit", async function (e) {
     e.preventDefault();
     const name = editNameField.value;
 
@@ -448,17 +468,17 @@ window.addEventListener("click", (e) => {
     }
   });
 
- // Form submission handler for password change
- editPasswordForm.addEventListener("submit", async function (e) {
+  // Form submission handler for password change
+  editPasswordForm.addEventListener("submit", async function (e) {
     e.preventDefault();
     const newPass1 = editPasswordField.value;
     const newPass2 = confirmEditPasswordField.value;
 
     if (newPass1 !== newPass2) {
       Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: 'Passwords do not match',
+        icon: "error",
+        title: "Error",
+        text: "Passwords do not match",
       });
       return;
     }
@@ -477,28 +497,27 @@ window.addEventListener("click", (e) => {
       if (result.success) {
         editPasswordModal.style.display = "none";
         Swal.fire({
-          icon: 'success',
-          title: 'Success',
-          text: 'Password updated successfully',
+          icon: "success",
+          title: "Success",
+          text: "Password updated successfully",
         });
       } else {
         Swal.fire({
-          icon: 'error',
-          title: 'Update Failed',
+          icon: "error",
+          title: "Update Failed",
           text: result.message || "Update failed",
         });
       }
     } catch (error) {
       console.error("Error updating profile:", error);
       Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: 'An error occurred while updating',
+        icon: "error",
+        title: "Error",
+        text: "An error occurred while updating",
       });
     }
   });
 
-  
   // Add Address Modal Functionality
   const addAddressModal = document.getElementById("addAddressModal");
   const addAddressBtn = document.querySelector(".add-address-btn");
