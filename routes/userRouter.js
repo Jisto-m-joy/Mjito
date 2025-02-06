@@ -5,6 +5,7 @@ const profileController = require("../controllers/user/profileController");
 const productController = require("../controllers/user/productController");
 const cartController = require("../controllers/user/cartController");
 const checkoutController = require("../controllers/user/checkoutController");
+const orderController = require("../controllers/user/orderController");
 const passport = require("passport");
 const validateSession = require("../middlewares/session-validation");
 const { userAuth, adminAuth, checkBlockStatus } = require("../middlewares/auth");
@@ -50,6 +51,11 @@ router.post("/submitReview", userAuth, productController.submitReview);
 router.get('/user-profile', userAuth, profileController.loadUserProfile);
 router.post('/update-profile', userAuth, profileController.updateUserProfile);
 router.post('/add-address', userAuth, profileController.addAddress);
+
+// Order Management
+router.get('/my-orders', userAuth, orderController.loadMyOrders);
+
+// Forgot Password Management
 router.post('/reset-password',userAuth, profileController.resetPassword);
 router.get('/forgot-password', profileController.getForgotPassPage);
 router.post('/forgot-email-valid', profileController.forgotEmailValid);

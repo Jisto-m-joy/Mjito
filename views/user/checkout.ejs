@@ -22,8 +22,9 @@
           <div class="address__list grid">
             <% addresses.forEach((address, index) => { %>
                 <div class="address__item">
-                    <input type="radio" name="address" id="address<%= index + 1 %>" 
-                           class="address__radio" <%= index === 0 ? 'checked' : '' %>>
+                  <input type="radio" name="address" id="address<%= index + 1 %>" 
+                  value="<%= address._id %>" 
+                  class="address__radio" <%= index === 0 ? 'checked' : '' %>>
                     <label for="address<%= index + 1 %>" class="address__label">
                         <div class="address__details">
                             <h4 class="address__name"><%= address.addressType %></h4>
@@ -84,6 +85,7 @@
           </tbody>
           </table>
           <form action="/place-order" method="POST">
+            <input type="hidden" name="addressId" id="selectedAddressId" value="">
               <div class="payment__methods">
                 <h3 class="checkout__title payment__title">Payment</h3>
                 <div class="payment__option flex">
@@ -159,3 +161,19 @@
   </main>
 
   <%- include("../../views/user/partials/footer") %>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Set initial selected address
+        const firstAddressRadio = document.querySelector('input[name="address"]');
+        if (firstAddressRadio) {
+            document.getElementById('selectedAddressId').value = firstAddressRadio.value;
+        }
+    
+        // Update selected address when radio changes
+        document.querySelectorAll('input[name="address"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                document.getElementById('selectedAddressId').value = this.value;
+            });
+        });
+    });
+    </script>

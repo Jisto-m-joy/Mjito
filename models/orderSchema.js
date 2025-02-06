@@ -8,6 +8,11 @@ const orderSchema = new Schema({
     default: () => uuidv4(),
     unique: true,
   },
+  userId: {
+    type: Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
+  },
   orderedItems: [
     {
       product: {
@@ -31,11 +36,7 @@ const orderSchema = new Schema({
   },
   shippingCharge: {
     type: Number,
-    required: true,
-  },
-  taxCharge: {
-    type: Number,
-    required: true,
+    required: false,
   },
   discount: {
     type: Number,
@@ -50,6 +51,20 @@ const orderSchema = new Schema({
     ref: "Address",
     required: true,
   },
+  paymentMethod: {
+    type: String,
+    enum: ["debitCredit", "bank", "upi", "wallet", "cod", "razorpay"],
+    required: true,
+  },
+  paymentGateway: {
+    type: String,
+    enum: ["Razorpay", "Other"],
+    default: "Razorpay",
+  },
+  invoiceDate: {
+    type: Date,
+    default: Date.now,
+  },
   orderDate: {
     type: Date,
     required: true,
@@ -63,6 +78,7 @@ const orderSchema = new Schema({
     required: true,
     enum: [
       "Pending",
+      "Pending COD",
       "Processing",
       "Shipped",
       "Delivered",
@@ -70,14 +86,20 @@ const orderSchema = new Schema({
       "Return Request",
       "Returned",
     ],
+    default: "Pending",
   },
   createdOn: {
     type: Date,
     default: Date.now,
+    required: true,
   },
   couponApplied: {
     type: Boolean,
     default: false,
+  },
+  couponCode: {
+    type: String,
+    default: null,
   },
 });
 

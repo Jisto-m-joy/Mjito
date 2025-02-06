@@ -182,6 +182,10 @@
       margin-top: 10px;
       width: 100%;
     }
+
+    .a{
+      text-decoration: none;
+    }
   </style>
 </head>
 <body>
@@ -190,12 +194,10 @@
       <div class="accounts__container container grid">
         <!-- Left Side Navigation -->
         <div class="account__tabs">
-          <p class="account__tab"><i class="fi fi-rs-home"></i> My Info</p>
+          <p class="account__tab"><i class="fi fi-rs-home"></i> <a href="/user-profile">My Info</a></p>
           <p class="account__tab"><i class="fi fi-rs-heart"></i> Wishlist</p>
-          <p class="account__tab">
-            <i class="fi fi-rs-shopping-bag"></i> My Orders
-          </p>
-          <p class="account__tab"><i class="fi fi-rs-sign-out"></i> Sign Out</p>
+          <p class="account__tab"><i class="fi fi-rs-shopping-bag"></i> <a href="/my-orders">My Orders</a></p>
+          <p class="account__tab"><i class="fi fi-rs-sign-out"></i> <a href="/logout">Logout</a></p>
         </div>
 
         <!--  Modal for editing Name -->

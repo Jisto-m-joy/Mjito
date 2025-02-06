@@ -292,6 +292,8 @@ const resetPassword = async (req, res, next) => {
 };
 
 
+
+
 module.exports = {
   getForgotPassPage,
   forgotEmailValid,
@@ -303,5 +305,5 @@ module.exports = {
   loadUserProfile,
   addAddress,
   updateUserProfile,
-  resetPassword
+  resetPassword,
 };

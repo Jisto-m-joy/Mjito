@@ -1,0 +1,222 @@
+<%- include("../../views/user/partials/header") %>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!--=============== FLATICON ===============-->
+  <link rel="stylesheet" href="https://cdn-uicons.flaticon.com/2.0.0/uicons-regular-straight/css/uicons-regular-straight.css" />
+
+  <!--=============== CSS ===============-->
+  <link rel="stylesheet" href="/assets/css/styles.css" />
+
+  <title>My Orders</title>
+  <style>
+    .orders-container {
+      padding: 2rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .order-card {
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      background-color: var(--body-color);
+    }
+
+    .order-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .order-details {
+      display: flex;
+      gap: 2rem;
+      align-items: center;
+    }
+
+    .product-image {
+      width: 120px;
+      height: 120px;
+      object-fit: cover;
+      border-radius: 4px;
+    }
+
+    .product-info {
+      flex: 1;
+    }
+
+    .status-tracker {
+    display: flex;
+    justify-content: space-between;
+    margin: 1.5rem 0;
+    position: relative;
+    align-items: center; /* Add this line */
+  }
+
+  .status-step {
+    text-align: center;
+    flex: 1;
+    position: relative;
+    display: flex; /* Add this line */
+    flex-direction: column; /* Add this line */
+    align-items: center; /* Add this line */
+  }
+
+  .status-step.active {
+    color: var(--first-color);
+  }
+
+  .status-line {
+    position: absolute;
+    top: 50%; /* Change from 25px to 50% */
+    left: 0;
+    right: 0;
+    height: 2px;
+    background-color: var(--border-color);
+    z-index: 1;
+    transform: translateY(-50%); /* Add this line */
+  }
+
+  .status-line.active {
+    background-color: var(--first-color);
+  }
+
+  .status-dot {
+    width: 12px;
+    height: 12px;
+    background-color: var(--border-color);
+    border-radius: 50%;
+    margin-bottom: 8px; /* Remove margin from top and apply to bottom */
+    position: relative;
+    z-index: 2;
+  }
+
+  .status-dot.active {
+    background-color: var(--first-color);
+  }
+    .action-buttons {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .btn {
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+      border: none;
+      font-weight: var(--weight-600);
+    }
+
+    .btn-primary {
+      background-color: var(--first-color);
+      color: white;
+    }
+
+    .btn-danger {
+      background-color: #ff4444;
+      color: white;
+    }
+
+    .pagination {
+      display: flex;
+      justify-content: center;
+      gap: 0.5rem;
+      margin-top: 2rem;
+    }
+
+    .pagination-btn {
+      padding: 0.5rem 1rem;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      cursor: pointer;
+      background-color: var(--body-color);
+    }
+
+    .pagination-btn.active {
+      background-color: var(--first-color);
+      color: white;
+      border-color: var(--first-color);
+    }
+  </style>
+</head>
+
+<body>
+    <!--=============== BREADCRUMB ===============-->
+    <section class="breadcrumb">
+      <ul class="breadcrumb__list flex container">
+        <li><a href="/home" class="breadcrumb__link">Home</a></li>
+        <li><span class="breadcrumb__link">></span></li>
+        <li><a href="/user-profile" class="breadcrumb__link">Profile</a></li>
+        <li><span class="breadcrumb__link">></span></li>
+        <li><a href="/my-orders" class="breadcrumb__link">My Orders</a></li>
+      </ul>
+    </section>
+  <div class="orders-container">
+    <h2 class="section__title">My Orders</h2>
+    <% orders.forEach(order => { %>
+      <div class="order-card">
+        <div class="order-header">
+          <div>
+            <h3><%= order.product.name %></h3>
+            <p>Order #<%= order.orderId %></p>
+            <p>Placed on: <%= order.placedOn %></p>
+            <p>Total Quantity: <%= order.quantity %></p>
+            <p class="total-amount">Total Amount: ₹<%= order.totalAmount %></p>
+          </div>
+          <button class="btn btn-danger">Cancel Order</button>
+        </div>
+
+        <div class="order-details">
+          <img src="<%= order.product.image %>" alt="<%= order.product.name %>" class="product-image">
+          <div class="product-info">
+            <div class="status-tracker">
+              <div class="status-line"></div>
+              <div class="status-step <%= order.status >= 1 ? 'active' : '' %>">
+                <div class="status-dot <%= order.status >= 1 ? 'active' : '' %>"></div>
+                <span>Order Placed</span>
+              </div>
+              <div class="status-step <%= order.status >= 2 ? 'active' : '' %>">
+                <div class="status-dot <%= order.status >= 2 ? 'active' : '' %>"></div>
+                <span>Processing</span>
+              </div>
+              <div class="status-step <%= order.status >= 3 ? 'active' : '' %>">
+                <div class="status-dot <%= order.status >= 3 ? 'active' : '' %>"></div>
+                <span>Shipped</span>
+              </div>
+              <div class="status-step <%= order.status >= 4 ? 'active' : '' %>">
+                <div class="status-dot <%= order.status >= 4 ? 'active' : '' %>"></div>
+                <span>Delivered</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="action-buttons">
+          <button class="btn btn-primary">Buy Again</button>
+        </div>
+      </div>
+    <% }) %>
+
+    <div class="pagination">
+      <% if (currentPage > 1) { %>
+        <a href="/my-orders?page=<%= currentPage - 1 %>" class="pagination-btn">Previous</a>
+      <% } %>
+      
+      <% for(let i = 1; i <= totalPages; i++) { %>
+        <a href="/my-orders?page=<%= i %>" class="pagination-btn <%= currentPage === i ? 'active' : '' %>"><%= i %></a>
+      <% } %>
+      
+      <% if (currentPage < totalPages) { %>
+        <a href="/my-orders?page=<%= currentPage + 1 %>" class="pagination-btn">Next</a>
+      <% } %>
+    </div>
+  </div>
+</body>
+
+<%- include("../../views/user/partials/footer") %>
