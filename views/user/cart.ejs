@@ -49,13 +49,17 @@
                   <span class="table__price">₹<%= item.price.toFixed(2) %></span>
                 </td>
                 <td>
-                  <input 
-                    type="number" 
-                    value="<%= item.quantity %>" 
-                    class="quantity" 
-                    data-product-id="<%= item.productId._id %>"
-                    min="1"
-                  />
+                  <div class="quantity-calculator">
+                    <button class="quantity-btn minus-btn" data-product-id="<%= item.productId._id %>">-</button>
+                    <input 
+                      type="number" 
+                      value="<%= item.quantity %>" 
+                      class="quantity-input" 
+                      data-product-id="<%= item.productId._id %>"
+                      readonly
+                    />
+                    <button class="quantity-btn plus-btn" data-product-id="<%= item.productId._id %>">+</button>
+                  </div>
                 </td>
                 <td>
                   <span class="subtotal">₹<%= item.totalPrice.toFixed(2) %></span>
@@ -239,7 +243,7 @@
 });
 
 
-document.querySelectorAll('.quantity').forEach(input => {
+document.querySelectorAll('.quantity-input').forEach(input => {
   input.addEventListener('change', async function() {
     const quantity = parseInt(this.value);
     // Ensure quantity is at least 1
@@ -248,6 +252,40 @@ document.querySelectorAll('.quantity').forEach(input => {
       return;
     }
     await updateQuantity(this);
+  });
+});
+
+document.querySelectorAll('.plus-btn').forEach(button => {
+  button.addEventListener('click', function() {
+    const input = this.previousElementSibling;
+    const quantity = parseInt(input.value);
+    const plusBtn = this;
+    const minusBtn = this.previousElementSibling.previousElementSibling;
+
+    if (quantity < 10) {
+      input.value = quantity + 1;
+      if (quantity + 1 === 10) {
+        plusBtn.disabled = true;
+      }
+      minusBtn.disabled = false;
+      updateQuantity(input);
+    }
+  });
+});
+
+document.querySelectorAll('.minus-btn').forEach(button => {
+  button.addEventListener('click', function() {
+    const input = this.nextElementSibling;
+    const quantity = parseInt(input.value);
+    const plusBtn = this.nextElementSibling.nextElementSibling;
+
+    if (quantity > 1) {
+      input.value = quantity - 1;
+      if (quantity - 1 < 10) {
+        plusBtn.disabled = false;
+      }
+      updateQuantity(input);
+    }
   });
 });
 

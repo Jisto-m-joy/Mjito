@@ -177,12 +177,13 @@
                 <span class="old__price">₹<%= products[i].combos[0].regularPrice %></span>
               </div>
               <a
-                  href="#"
-                  class="action__btn cart__btn"
-                  aria-label="Add To Cart"
-              >
-                <i class="fi fi-rs-shopping-bag-add"></i>
-              </a>
+              href="#"
+              class="action__btn cart__btn"
+              aria-label="Add To Cart"
+              data-combo-size="<%= products[i].combos[0].size %>"
+            >
+              <i class="fi fi-rs-shopping-bag-add"></i>
+            </a>
             </div>
           </div>
           <% } %>
@@ -254,18 +255,23 @@ document.addEventListener('DOMContentLoaded', function() {
        return;
      }
 
-     fetch('/add-to-cart', {
-       method: 'POST',
-       credentials: 'same-origin',
-       headers: {
-         'Content-Type': 'application/json',
-         'Accept': 'application/json'
-       },
-       body: JSON.stringify({ 
-         productId, 
-         quantity: 1
-       })
-     })
+     const selectedCombo = {
+      size: this.getAttribute('data-combo-size')
+    };
+
+      fetch('/add-to-cart', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({ 
+          productId, 
+          quantity: 1,
+          selectedCombo 
+        })
+      })
      .then(response => {
        console.log('Response status:', response.status);
        
@@ -279,20 +285,29 @@ document.addEventListener('DOMContentLoaded', function() {
        return response.json();
      })
      .then(data => {
-       if (data.success) {
-         iziToast.success({
-           title: 'Success',
-           message: 'Product added to cart successfully!',
-           position: 'topRight'
-         });
-       } else {
-         iziToast.error({
-           title: 'Error',
-           message: data.message || 'Failed to add product to cart',
-           position: 'topRight'
-         });
-       }
-     })
+        if (data.success) {
+          iziToast.success({
+            title: 'Success',
+            message: 'Product added to cart successfully!',
+            position: 'topRight'
+          });
+        } else {
+          // Check for limit exceeded error
+          if (data.limitExceeded) {
+            iziToast.warning({
+              title: 'Cart Limit',
+              message: 'You can only add up to 10 unique items to the cart.',
+              position: 'topRight'
+            });
+          } else {
+            iziToast.error({
+              title: 'Error',
+              message: data.message || 'Failed to add product to cart',
+              position: 'topRight'
+            });
+          }
+        }
+      })
      .catch(error => {
        console.error('Full error:', error);
        iziToast.error({

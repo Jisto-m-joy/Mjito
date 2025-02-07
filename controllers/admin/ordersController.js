@@ -113,6 +113,11 @@ const updateOrderStatus = async (req, res) => {
             return res.status(404).json({ error: 'Order not found' });
         }
 
+        // Prevent status changes for cancelled orders
+        if (order.status === 'Cancelled') {
+            return res.status(400).json({ error: 'Cannot modify status of a cancelled order' });
+        }
+
         order.status = status;
         await order.save();
 

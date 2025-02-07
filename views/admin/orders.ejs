@@ -185,39 +185,49 @@
 <script>
     // Status update handling
     document.querySelectorAll('.status-select').forEach(select => {
-        select.addEventListener('change', async function() {
-            const orderId = this.dataset.orderId;
-            const newStatus = this.value;
+    select.addEventListener('change', async function() {
+        const orderId = this.dataset.orderId;
+        const newStatus = this.value;
+        
+        try {
+            const response = await fetch(`/admin/orders/update-status/${orderId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ status: newStatus })
+            });
             
-            try {
-                const response = await fetch(`/admin/orders/update-status/${orderId}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ status: newStatus })
+            if (response.ok) {
+                Swal.fire({
+                    title: 'Success!',
+                    text: 'Order status updated successfully',
+                    icon: 'success',
+                    confirmButtonText: 'OK'
                 });
-                
-                if (response.ok) {
-                    Swal.fire({
-                        title: 'Success!',
-                        text: 'Order status updated successfully',
-                        icon: 'success',
-                        confirmButtonText: 'OK'
-                    });
-                } else {
-                    throw new Error('Failed to update status');
-                }
-            } catch (error) {
+            } else {
+                // Parse the error message from the response
+                const errorData = await response.json();
                 Swal.fire({
                     title: 'Error!',
-                    text: 'Failed to update order status',
+                    text: errorData.error || 'Failed to update order status',
                     icon: 'error',
                     confirmButtonText: 'OK'
                 });
+                
+                // Revert the select to the previous status
+                this.value = this.querySelector('option[selected]').value;
             }
-        });
+        } catch (error) {
+            Swal.fire({
+                title: 'Error!',
+                text: 'Failed to update order status',
+                icon: 'error',
+                confirmButtonText: 'OK'
+            });
+        }
     });
+});
 
     // Search functionality
     document.getElementById('searchInput').addEventListener('input', function(e) {

@@ -19,7 +19,7 @@
             <p class="home__description">
               Save more with coupons & up tp 20% off
             </p>
-            <a href="shop.html" class="btn">Shop Now</a>
+            <a href="/shop" class="btn">Shop Now</a>
           </div>
           <img src="/assets/img/Boots/Adidas/AdidasBoots2.10.webp" class="home__img" alt="hats" />
         </div>
@@ -169,12 +169,13 @@
                     <span class="old__price">₹<%=products[i].combos[0].regularPrice%></span>
                   </div>
                   <a
-                    href="#"
-                    class="action__btn cart__btn"
-                    aria-label="Add To Cart"
-                  >
+                  href="#"
+                  class="action__btn cart__btn"
+                  aria-label="Add To Cart"
+                  data-combo-size="<%= products[i].combos[0].size %>"
+                >
                   <i class="fi fi-rs-shopping-bag-add"></i>
-                  </a>
+                </a>
                 </div>
               </div>
             <% } %>
@@ -236,8 +237,9 @@
                   href="#"
                   class="action__btn cart__btn"
                   aria-label="Add To Cart"
+                  data-combo-size="<%= products[i].combos[0].size %>"
                 >
-                <i class="fi fi-rs-shopping-bag-add"></i>
+                  <i class="fi fi-rs-shopping-bag-add"></i>
                 </a>
                 </div>
               </div>
@@ -302,8 +304,9 @@
                   href="#"
                   class="action__btn cart__btn"
                   aria-label="Add To Cart"
+                  data-combo-size="<%= products[i].combos[0].size %>"
                 >
-                <i class="fi fi-rs-shopping-bag-add"></i>
+                  <i class="fi fi-rs-shopping-bag-add"></i>
                 </a>
                 </div>
               </div>
@@ -1080,6 +1083,10 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         return;
       }
+      
+      const selectedCombo = {
+        size: this.getAttribute('data-combo-size')
+      };
 
       fetch('/add-to-cart', {
         method: 'POST',
@@ -1090,7 +1097,8 @@ document.addEventListener('DOMContentLoaded', function() {
         },
         body: JSON.stringify({ 
           productId, 
-          quantity: 1
+          quantity: 1,
+          selectedCombo 
         })
       })
       .then(response => {
@@ -1113,11 +1121,20 @@ document.addEventListener('DOMContentLoaded', function() {
             position: 'topRight'
           });
         } else {
-          iziToast.error({
-            title: 'Error',
-            message: data.message || 'Failed to add product to cart',
-            position: 'topRight'
-          });
+          // Check for limit exceeded error
+          if (data.limitExceeded) {
+            iziToast.warning({
+              title: 'Cart Limit',
+              message: 'You can only add up to 10 unique items to the cart.',
+              position: 'topRight'
+            });
+          } else {
+            iziToast.error({
+              title: 'Error',
+              message: data.message || 'Failed to add product to cart',
+              position: 'topRight'
+            });
+          }
         }
       })
       .catch(error => {

@@ -2,6 +2,8 @@ const User = require("../../models/userSchema");
 const Cart = require("../../models/cartSchema");
 const Address = require("../../models/addressSchema");
 const Order = require("../../models/orderSchema");  
+const Product = require("../../models/productSchema");
+
 
 const loadCheckoutPage = async (req, res, next) => {
   try {
@@ -44,12 +46,31 @@ const placeOrder = async (req, res) => {
     try {
         const userId = req.session.user._id;
         const { paymentMethod } = req.body;
-        const selectedAddressId = req.body.addressId; // You'll need to add this to your form
+        const selectedAddressId = req.body.addressId;
 
         // Get cart items
         const cart = await Cart.findOne({ userId }).populate('items.productId');
         if (!cart || cart.items.length === 0) {
             return res.status(400).json({ error: 'Cart is empty' });
+        }
+
+        // Check stock availability first
+        for (const item of cart.items) {
+            const product = await Product.findById(item.productId._id);
+            const comboIndex = product.combos.findIndex(combo => 
+                combo.color === item.color && combo.size === item.size
+            );
+            
+            if (comboIndex !== -1) {
+                // Check if there's sufficient stock BEFORE reducing quantity
+                if (product.combos[comboIndex].quantity < item.quantity) {
+                    // Handle out of stock scenario
+                    return res.status(400).json({ 
+                        error: `Insufficient stock for product ${product.productId.name}`,
+                        productName: product.productId.name
+                    });
+                }
+            }
         }
 
         // Calculate totals
@@ -76,6 +97,19 @@ const placeOrder = async (req, res) => {
             deliveryDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
             status: paymentMethod === 'cod' ? 'Pending COD' : 'Pending'
         });
+
+        // Reduce product quantities
+        for (const item of cart.items) {
+            const product = await Product.findById(item.productId._id);
+            const comboIndex = product.combos.findIndex(combo => 
+                combo.color === item.color && combo.size === item.size
+            );
+            
+            if (comboIndex !== -1) {
+                product.combos[comboIndex].quantity -= item.quantity;
+                await product.save();
+            }
+        }
 
         await order.save();
 

@@ -111,7 +111,11 @@
             </ul>
           </div>
           <div class="details__action">
-            <input type="number" class="quantity" value="1" />
+            <div class="quantity-calculator">
+              <button class="quantity-btn minus-btn">-</button>
+              <input type="number" min="1" value="1" class="quantity-input" readonly>
+              <button class="quantity-btn plus-btn">+</button>
+            </div>
             <a href="#" class="btn btn--sm" id="addToCartBtn">Add To Cart</a>
             <a href="#" class="details__action-btn">
                 <i class="fi fi-rs-heart"></i>
@@ -308,12 +312,14 @@
               <span class="old__price">₹<%= relatedProduct.combos[0].regularPrice %></span>
             </div>
             <a
-              href="#"
-              class="action__btn cart__btn"
-              aria-label="Add To Cart"
-            >
-              <i class="fi fi-rs-shopping-bag-add"></i>
-            </a>
+            href="#"
+            class="action__btn cart__btn related-product-cart-btn"
+            aria-label="Add To Cart"
+            data-product-id="<%= relatedProduct._id %>"
+            data-product-size="<%= relatedProduct.combos[0].size %>"
+          >
+            <i class="fi fi-rs-shopping-bag-add"></i>
+          </a>
           </div>
         </div>
         <% }); %>
@@ -428,49 +434,138 @@
 
     document.addEventListener('DOMContentLoaded', function() {
     const addToCartBtn = document.querySelector('#addToCartBtn');
-    const quantityInput = document.querySelector('.quantity');
+    const quantityInput = document.querySelector('.quantity-input');
     const productId = '<%= product._id %>';
-    const selectedCombo = {}; // Update this with the appropriate combo details if needed
-
+    
     addToCartBtn.addEventListener('click', function(event) {
-      event.preventDefault();
-      
-      const quantity = parseInt(quantityInput.value);
-      
-      fetch('/add-to-cart', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ productId, quantity, selectedCombo })
-      })
-      .then(response => response.json())
-      .then(data => {
-        if (data.success) {
-          iziToast.success({
-            title: 'Success',
-            message: 'Product added to cart successfully!',
-            position: 'topRight'
-          });
-        } else {
-          iziToast.error({
-            title: 'Error',
-            message: data.message || 'Failed to add product to cart',
-            position: 'topRight'
-          });
+        event.preventDefault();
+        
+        // Get the active size element
+        const activeSizeElement = document.querySelector('.size__link.size-active');
+        if (!activeSizeElement) {
+            iziToast.error({
+                title: 'Error',
+                message: 'Please select a size',
+                position: 'topRight'
+            });
+            return;
         }
-      })
-      .catch(error => {
-        console.error('Error:', error);
-        iziToast.error({
-          title: 'Error',
-          message: 'An error occurred while adding the product to the cart',
-          position: 'topRight'
-        });
-      });
-    });
-  });
 
+        const selectedCombo = {
+            size: activeSizeElement.textContent,
+            salesPrice: activeSizeElement.getAttribute('data-salesPrice'),
+            regularPrice: activeSizeElement.getAttribute('data-regularPrice')
+        };
+        
+        const quantity = parseInt(quantityInput.value);
+        if (quantity > 10) {
+            iziToast.error({
+                title: 'Error',
+                message: 'Maximum quantity limit is 10',
+                position: 'topRight'
+            });
+            return;
+        }        
+        
+        fetch('/add-to-cart', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ 
+              productId, 
+              quantity, 
+              selectedCombo 
+          })
+      })
+        .then(response => {
+            if (response.redirected) {
+                window.location.href = response.url;  // Handle redirect to login
+                return;
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data && data.success) {
+                iziToast.success({
+                    title: 'Success',
+                    message: data.message,
+                    position: 'topRight'
+                });
+            } else if (data) {
+                iziToast.error({
+                    title: 'Error',
+                    message: data.message || 'Failed to add product to cart',
+                    position: 'topRight'
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            iziToast.error({
+                title: 'Error',
+                message: 'Please login to add items to cart',
+                position: 'topRight'
+            });
+        });
+    });
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    const relatedProductCartButtons = document.querySelectorAll('.related-product-cart-btn');
+    
+    relatedProductCartButtons.forEach(button => {
+        button.addEventListener('click', function(event) {
+            event.preventDefault();
+            
+            const productId = this.getAttribute('data-product-id');
+            
+            fetch('/add-to-cart', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ 
+                    productId, 
+                    quantity: 1,
+                    selectedCombo: {
+                        size: this.getAttribute('data-product-size')
+                    }
+                })
+            })
+            .then(response => {
+                if (response.redirected) {
+                    window.location.href = response.url;
+                    return;
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data && data.success) {
+                    iziToast.success({
+                        title: 'Success',
+                        message: data.message,
+                        position: 'topRight'
+                    });
+                } else if (data) {
+                    iziToast.error({
+                        title: 'Error',
+                        message: data.message || 'Failed to add product to cart',
+                        position: 'topRight'
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                iziToast.error({
+                    title: 'Error',
+                    message: 'Please login to add items to cart',
+                    position: 'topRight'
+                });
+            });
+        });
+    });
+});
 
   document.addEventListener('DOMContentLoaded', function() {
     const sizeLinks = document.querySelectorAll('.size__link');
@@ -496,5 +591,29 @@
       });
     });
   });
-  </script>
 
+    document.addEventListener('DOMContentLoaded', function() {
+  const minusBtn = document.querySelector('.minus-btn');
+  const plusBtn = document.querySelector('.plus-btn');
+  const quantityInput = document.querySelector('.quantity-input');
+
+  minusBtn.addEventListener('click', function() {
+    const currentQuantity = parseInt(quantityInput.value);
+    if (currentQuantity > 1) {
+      quantityInput.value = currentQuantity - 1;
+      plusBtn.disabled = false; // Re-enable plus button
+    }
+  });
+
+  plusBtn.addEventListener('click', function() {
+    const currentQuantity = parseInt(quantityInput.value);
+    if (currentQuantity < 10) {
+      quantityInput.value = currentQuantity + 1;
+      if (currentQuantity + 1 === 10) {
+        plusBtn.disabled = true; // Disable plus button when quantity reaches 10
+      }
+    }
+  });
+});
+  </script>
+  
