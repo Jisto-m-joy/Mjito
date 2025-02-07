@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', function() {
         clearTimeout(debounceTimeout);
         debounceTimeout = setTimeout(() => {
             filterForm.submit();
-        }, 100);
+        }, 1000);
     });
 
     filterForm.addEventListener('submit', function(event) {

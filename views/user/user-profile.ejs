@@ -186,14 +186,12 @@
           </div>
         </div>
 
-
-        <!-- Change Password Modal -->
-        <div id="changePasswordModal" class="modal">
+         <!-- Change Password Modal -->
+         <div id="changePasswordModal" class="modal">
           <div class="modal-content">
             <span class="close-modal" onclick="closeChangePasswordModal()">&times;</span>
             <h3>Change Password</h3>
             <form id="changePasswordForm" class="user-details">
-
               <div class="detail-row">
                 <label for="newPassword">New:</label>
                 <div class="detail-content">
@@ -283,62 +281,9 @@
     }
   });
 
-  // Modal functionality for mobile
-  const editMobileModal = document.getElementById("editMobileModal");
-  const editMobileForm = document.getElementById("editMobileForm");
-  const editMobileField = document.getElementById("editMobileField");
 
-  function openEditMobileModal() {
-    editMobileModal.style.display = "block";
-    editMobileField.value = document.getElementById("displayMobile").textContent;
-  }
-
-  function closeEditMobileModal() {
-    editMobileModal.style.display = "none";
-  }
-
-  editMobileForm.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const newMobile = editMobileField.value;
-
-    try {
-      const response = await fetch("/update-mobile", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ mobile: newMobile }),
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        document.getElementById("displayMobile").textContent = newMobile;
-        closeEditMobileModal();
-        Swal.fire({
-          icon: "success",
-          title: "Success",
-          text: "Mobile number updated successfully!",
-        });
-      } else {
-        Swal.fire({
-          icon: "error",
-          title: "Error",
-          text: data.message || "Failed to update mobile number",
-        });
-      }
-    } catch (error) {
-      console.error("Error:", error);
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: "Something went wrong!",
-      });
-    }
-  });
-
-  // Modal functionality for password
-  const changePasswordModal = document.getElementById("changePasswordModal");
+   // Modal functionality for password
+   const changePasswordModal = document.getElementById("changePasswordModal");
   const changePasswordForm = document.getElementById("changePasswordForm");
 
   function openChangePasswordModal() {
@@ -367,7 +312,6 @@
 
   changePasswordForm.addEventListener("submit", async (e) => {
     e.preventDefault();
-    const currentPassword = document.getElementById("currentPassword").value;
     const newPassword = document.getElementById("newPassword").value;
     const confirmPassword = document.getElementById("confirmPassword").value;
 
@@ -387,7 +331,6 @@
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          currentPassword,
           newPassword,
         }),
       });
@@ -418,6 +361,7 @@
     }
   });
 
+  
   // Close modals when clicking outside
   window.onclick = function(event) {
     if (event.target === editNameModal) {

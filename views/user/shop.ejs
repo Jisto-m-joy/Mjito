@@ -22,7 +22,14 @@
         <!-- Search Option -->
         <div class="filter-group">
           <label for="search">Search</label>
-          <input type="text" id="search" name="search" placeholder="Search products" value="<%= typeof search !== 'undefined' ? search : '' %>">
+          <input 
+          type="text" 
+          id="search" 
+          name="search" 
+          placeholder="Search products" 
+          value="<%= typeof search !== 'undefined' ? search : '' %>"
+          autocomplete="off"
+        >
         </div>
         
         <!-- Category Selection -->
@@ -31,7 +38,10 @@
           <select id="category" name="category">
             <option value="">All Categories</option>
             <% categories.forEach(category => { %>
-              <option value="<%= category._id %>"><%= category.name %></option>
+              <option value="<%= category._id %>" 
+                <%= query.category === category._id.toString() ? 'selected' : '' %>>
+                <%= category.name %>
+              </option>
             <% }) %>
           </select>
         </div>
@@ -41,8 +51,11 @@
           <label for="brand">Brand</label>
           <select id="brand" name="brand">
             <option value="">All Brands</option>
-            <% products.forEach(product => { %>
-              <option value="<%= product.brand %>"><%= product.brand %></option>
+            <% brands.forEach(brand => { %>
+              <option value="<%= brand.brandName %>" 
+                <%= query.brand === brand.brandName ? 'selected' : '' %>>
+                <%= brand.brandName %>
+              </option>
             <% }) %>
           </select>
         </div>
@@ -52,12 +65,12 @@
           <label for="price">Price Range</label>
           <select id="price" name="price">
             <option value="">All Prices</option>
-            <option value="0-1000">₹0 - ₹1000</option>
-            <option value="1000-5000">₹1000 - ₹5000</option>
-            <option value="5000-10000">₹5000 - ₹10000</option>
-            <option value="10000-20000">₹10000 - ₹20000</option>
-            <option value="20000-30000">₹20000 - ₹30000</option>
-            <option value="30000+">₹30000+</option>
+            <option value="0-1000" <%= query.price === '0-1000' ? 'selected' : '' %>>₹0 - ₹1000</option>
+            <option value="1000-5000" <%= query.price === '1000-5000' ? 'selected' : '' %>>₹1000 - ₹5000</option>
+            <option value="5000-10000" <%= query.price === '5000-10000' ? 'selected' : '' %>>₹5000 - ₹10000</option>
+            <option value="10000-20000" <%= query.price === '10000-20000' ? 'selected' : '' %>>₹10000 - ₹20000</option>
+            <option value="20000-30000" <%= query.price === '20000-30000' ? 'selected' : '' %>>₹20000 - ₹30000</option>
+            <option value="30000+" <%= query.price === '30000+' ? 'selected' : '' %>>₹30000+</option>
           </select>
         </div>
         
@@ -67,7 +80,10 @@
           <select id="size" name="size">
             <option value="">All Sizes</option>
             <% sizes.forEach(size => { %>
-              <option value="<%= size %>"><%= size %></option>
+              <option value="<%= size %>" 
+                <%= query.size === size.toString() ? 'selected' : '' %>>
+                <%= size %>
+              </option>
             <% }) %>
           </select>
         </div>
@@ -78,7 +94,10 @@
           <select id="color" name="color">
             <option value="">All Colors</option>
             <% colors.forEach(color => { %>
-              <option value="<%= color %>"><%= color %></option>
+              <option value="<%= color %>" 
+                <%= query.color === color ? 'selected' : '' %>>
+                <%= color %>
+              </option>
             <% }) %>
           </select>
         </div>
@@ -87,12 +106,12 @@
         <div class="filter-group">
           <label for="sort">Sort By</label>
           <select id="sort" name="sort">
-            <option value="price-asc">Price: Low to High</option>
-            <option value="price-desc">Price: High to Low</option>
-            <option value="name-asc">Alphabetical: A-Z</option>
-            <option value="name-desc">Alphabetical: Z-A</option>
-            <option value="new-arrivals">New Arrivals</option>
-            <option value="old-arrivals">Old Arrivals</option>
+            <option value="price-asc" <%= query.sort === 'price-asc' ? 'selected' : '' %>>Price: Low to High</option>
+            <option value="price-desc" <%= query.sort === 'price-desc' ? 'selected' : '' %>>Price: High to Low</option>
+            <option value="name-asc" <%= query.sort === 'name-asc' ? 'selected' : '' %>>Alphabetical: A-Z</option>
+            <option value="name-desc" <%= query.sort === 'name-desc' ? 'selected' : '' %>>Alphabetical: Z-A</option>
+            <option value="new-arrivals" <%= query.sort === 'new-arrivals' ? 'selected' : '' %>>New Arrivals</option>
+            <option value="old-arrivals" <%= query.sort === 'old-arrivals' ? 'selected' : '' %>>Old Arrivals</option>
           </select>
         </div>
         
@@ -171,24 +190,23 @@
           
         <ul class="pagination">
           <% if (currentPage > 1) { %>
-            <a href="?<%= new URLSearchParams({ page: currentPage - 1 }) %>">&laquo; Previous</a>
+            <% const prevQuery = {...query, page: currentPage - 1} %>
+            <a href="?<%= new URLSearchParams(prevQuery).toString() %>">&laquo; Previous</a>
           <% } %>
+          
           <% for (let i = 1; i <= totalPages; i++) { %>
+            <% const pageQuery = {...query, page: i} %>
             <a 
-              href="?<%= new URLSearchParams({ page: i }) %>" 
-              class="<%= i === currentPage ? 'pagination__link active' : 'pagination__link ' %>">
+              href="?<%= new URLSearchParams(pageQuery).toString() %>" 
+              class="<%= i === currentPage ? 'pagination__link active' : 'pagination__link' %>">
               <%= i %>
             </a>
           <% } %>
-          <% if (currentPage < totalPages) { %>
-            <a href="?<%= new URLSearchParams({ page: currentPage + 1 }) %>">Next &raquo;</a>
-          <% } %>
           
-          <li>
-            <a href="#" class="pagination__link icon">
-              <i class="fi-rs-angle-double-small-right"></i>
-            </a>
-          </li>
+          <% if (currentPage < totalPages) { %>
+            <% const nextQuery = {...query, page: currentPage + 1} %>
+            <a href="?<%= new URLSearchParams(nextQuery).toString() %>">Next &raquo;</a>
+          <% } %>
         </ul>
       </section>
     </div>

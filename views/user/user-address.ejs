@@ -196,12 +196,14 @@
                               <button
                                 class="edit-btn"
                                 data-address-id="<%= address._id %>"
+                                onclick="editAddress('<%= address._id %>')"
                               >
                                 Edit
                               </button>
                               <button
                                 class="delete-btn"
                                 data-address-id="<%= address._id %>"
+                                onclick="deleteAddress('<%= address._id %>')"
                               >
                                 Delete
                               </button>
@@ -219,7 +221,7 @@
                 <!--  Address Modal -->
                 <div id="addAddressModal" class="modal">
                     <div class="modal-content">
-                      <span class="close-modal">&times;</span>
+                      <span class="close-modal" onclick="closeAddAddressModal()">&times;</span>
                       <h3>Add New Address</h3>
                       <form id="addAddressForm" class="user-details">
                         <div class="detail-row">
@@ -285,6 +287,76 @@
                     </div>
                   </div>
 
+                  <!--  Edit Address Modal -->
+                  <div id="editAddressModal" class="modal">
+                    <div class="modal-content">
+                      <span class="close-modal" onclick="closeEditAddressModal()">&times;</span>
+                      <h3>Edit Address</h3>
+                      <form id="editAddressForm" class="user-details">
+                        <input type="hidden" id="editAddressId" name="addressId">
+                        <div class="detail-row">
+                          <label>Full Name:</label>
+                          <div class="detail-content">
+                            <input type="text" id="editFullName" name="fullName" required />
+                          </div>
+                        </div>
+                        <div class="detail-row">
+                          <label>Phone:</label>
+                          <div class="detail-content">
+                            <input type="tel" id="editPhone" name="phone" required />
+                          </div>
+                        </div>
+                        <div class="detail-row">
+                          <label>Alt Phone:</label>
+                          <div class="detail-content">
+                            <input type="tel" id="editAltPhone" name="altPhone" />
+                          </div>
+                        </div>
+                        <div class="detail-row">
+                          <label>Landmark:</label>
+                          <div class="detail-content">
+                            <input type="text" id="editLandmark" name="landmark" required />
+                          </div>
+                        </div>
+                        <div class="detail-row">
+                          <label>Address:</label>
+                          <div class="detail-content">
+                            <input type="text" id="editAddress" name="address" required />
+                          </div>
+                        </div>
+                        <div class="detail-row">
+                          <label>City:</label>
+                          <div class="detail-content">
+                            <input type="text" id="editCity" name="city" required />
+                          </div>
+                        </div>
+                        <div class="detail-row">
+                          <label>State:</label>
+                          <div class="detail-content">
+                            <input type="text" id="editState" name="state" required />
+                          </div>
+                        </div>
+                        <div class="detail-row">
+                          <label>Pincode:</label>
+                          <div class="detail-content">
+                            <input type="text" id="editPincode" name="pincode" required />
+                          </div>
+                        </div>
+                        <div class="detail-row">
+                          <label>Type:</label>
+                          <div class="detail-content">
+                            <select id="editAddressType" name="addressType" required>
+                              <option value="">Select Type</option>
+                              <option value="home">Home</option>
+                              <option value="work">Work</option>
+                            </select>
+                          </div>
+                        </div>
+                        <button type="submit" class="change-btn">Update Address</button>
+                      </form>
+                    </div>
+                  </div>
+
        
       </div>
     </section>
@@ -293,7 +365,7 @@
 <%- include("../../views/user/partials/footer") %>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-  // Modal functionality
+  //Add Address Modal functionality
   function openAddAddressModal() {
     document.getElementById("addAddressModal").style.display = "block";
   }
@@ -302,11 +374,23 @@
     document.getElementById("addAddressModal").style.display = "none";
   }
 
+  function openEditAddressModal() {
+    document.getElementById("editAddressModal").style.display = "block";
+  }
+
+  function closeEditAddressModal() {
+    document.getElementById("editAddressModal").style.display = "none";
+  }
+
   // Close modal when clicking outside
   window.onclick = function(event) {
-    const modal = document.getElementById("addAddressModal");
-    if (event.target === modal) {
-      closeAddAddressModal();
+    const addModal = document.getElementById("addAddressModal");
+    const editModal = document.getElementById("editAddressModal");
+    
+    if (event.target === addModal) {
+        closeAddAddressModal();
+    } else if (event.target === editModal) {
+        closeEditAddressModal();
     }
   };
 
@@ -435,10 +519,99 @@
 
   // Edit address function
   async function editAddress(addressId) {
-    // Implementation for editing address
-    // You can create a similar modal for editing
-    // and populate it with the existing address data
+    try {
+        const response = await fetch(`/get-address/${addressId}`);
+        const data = await response.json();
+
+        if (data.success) {
+            const address = data.address;
+            
+            // Fill the edit form with address data
+            document.getElementById("editAddressId").value = address._id;
+            document.getElementById("editFullName").value = address.fullName;
+            document.getElementById("editPhone").value = address.phone;
+            document.getElementById("editAltPhone").value = address.altPhone || '';
+            document.getElementById("editLandmark").value = address.landmark;
+            document.getElementById("editAddress").value = address.address;
+            document.getElementById("editCity").value = address.city;
+            document.getElementById("editState").value = address.state;
+            document.getElementById("editPincode").value = address.pincode;
+            document.getElementById("editAddressType").value = address.addressType;
+
+            openEditAddressModal();
+        } else {
+            Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: data.message || "Failed to fetch address details",
+            });
+        }
+    } catch (error) {
+        console.error("Error:", error);
+        Swal.fire({
+            icon: "error",
+            title: "Error",
+            text: "Something went wrong!",
+        });
+    }
   }
+
+  // Edit Address Form Submission
+const editAddressForm = document.getElementById("editAddressForm");
+
+editAddressForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const formData = new FormData(editAddressForm);
+  const addressId = document.getElementById("editAddressId").value;
+  const addressData = {
+      fullName: formData.get("fullName"),
+      phone: formData.get("phone"),
+      altPhone: formData.get("altPhone"),
+      address: formData.get("address"),
+      landmark: formData.get("landmark"),
+      city: formData.get("city"),
+      state: formData.get("state"),
+      pincode: formData.get("pincode"),
+      addressType: formData.get("addressType"),
+  };
+
+  try {
+      const response = await fetch(`/update-address/${addressId}`, {
+          method: "PUT",
+          headers: {
+              "Content-Type": "application/json",
+          },
+          body: JSON.stringify(addressData),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+          Swal.fire({
+              icon: "success",
+              title: "Success",
+              text: "Address updated successfully!",
+          }).then(() => {
+              closeEditAddressModal();
+              loadAddresses(); // Refresh address list
+          });
+      } else {
+          Swal.fire({
+              icon: "error",
+              title: "Error",
+              text: data.message || "Failed to update address",
+          });
+      }
+  } catch (error) {
+      console.error("Error:", error);
+      Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: "Something went wrong!",
+      });
+  }
+});
 
   // Initial load of addresses
   loadAddresses();

@@ -246,7 +246,7 @@ const loadShopingPage = async (req, res, next) => {
     const user = req.session.user;
     const userData = await User.findOne({ _id: user });
     const categories = await Category.find({ isListed: true });
-    const brands = await Brand.find({ isListed: true });
+    const brands = await Brand.find({ isBlocked: false });
     const categoryIds = categories.map((category) => category._id.toString());
     const page = parseInt(req.query.page) || 1;
     const limit = 9;
@@ -279,19 +279,36 @@ const loadShopingPage = async (req, res, next) => {
       productQuery['combos.color'] = color;
     }
     if (search) {
-      productQuery.name = { $regex: search, $options: 'i' };
+      productQuery.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { brand: { $regex: search, $options: 'i' } },
+        { description: { $regex: search, $options: 'i' } }
+      ];
     }
 
-    let sortOption = { createdOn: -1 };
+    let sortOption = { createdAt: -1 }; // Default sort by newest first
     if (sort) {
-      if (sort === 'price-asc') {
-        sortOption = { 'combos.salesPrice': 1 };
-      } else if (sort === 'price-desc') {
-        sortOption = { 'combos.salesPrice': -1 };
-      } else if (sort === 'name-asc') {
-        sortOption = { name: 1 };
-      } else if (sort === 'name-desc') {
-        sortOption = { name: -1 };
+      switch(sort) {
+        case 'price-asc':
+          sortOption = { 'combos.0.salesPrice': 1 };
+          break;
+        case 'price-desc':
+          sortOption = { 'combos.0.salesPrice': -1 };
+          break;
+        case 'name-asc':
+          sortOption = { name: 1 };
+          break;
+        case 'name-desc':
+          sortOption = { name: -1 };
+          break;
+        case 'new-arrivals':
+          sortOption = { createdAt: -1 };
+          break;
+        case 'old-arrivals':
+          sortOption = { createdAt: 1 };
+          break;
+        default:
+          sortOption = { createdAt: -1 };
       }
     }
 
@@ -312,6 +329,8 @@ const loadShopingPage = async (req, res, next) => {
       currentPage: page,
       sizes: sizes,
       colors: colors,
+      search: search,
+      query: req.query
     });
   } catch (error) {
     next(error);

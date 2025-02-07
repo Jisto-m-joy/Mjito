@@ -52,6 +52,11 @@ router.get('/user-profile', userAuth, profileController.loadUserProfile);
 router.post('/update-profile', userAuth, profileController.updateUserProfile);
 router.post('/add-address', userAuth, profileController.addAddress);
 router.get('/user-address', userAuth, profileController.loadUserAddress);
+router.get('/get-address/:addressId', userAuth, profileController.getAddressById); 
+router.put('/update-address/:addressId', userAuth, profileController.updateAddress);
+router.delete('/delete-address/:addressId', userAuth, profileController.deleteAddress);
+router.post('/change-password', userAuth, profileController.resetPassword);
+router.post('/update-name', userAuth, profileController.updateUserName); 
 
 
 // Order Management
