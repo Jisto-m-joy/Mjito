@@ -1,4 +1,3 @@
-const Category = require("../../models/categorySchema");
 const Product = require("../../models/productSchema");
 const Order = require("../../models/orderSchema");
 const User = require("../../models/userSchema");
@@ -35,26 +34,14 @@ const getAllOrders = async (req, res) => {
 
 const getOrderDetails = async (req, res) => {
     try {
-        console.log('Fetching order details for orderId:', req.params.orderId);
-
         const order = await Order.findOne({ orderId: req.params.orderId })
             .populate('userId', 'name email mobile_number')
-            .populate('orderedItems.product')
-            .populate({
-                path: 'address',
-                model: 'Address',
-                populate: {
-                    path: 'address',
-                    model: 'Address'
-                }
-            });
+            .populate('orderedItems.product');
 
         if (!order) {
             console.log('Order not found');
             return res.status(404).json({ error: 'Order not found' });
         }
-
-        console.log('Found order:', JSON.stringify(order, null, 2));
 
         const formattedOrder = {
             _id: order.orderId,
@@ -66,24 +53,15 @@ const getOrderDetails = async (req, res) => {
                 email: order.userId.email,
                 phone: order.userId.mobile_number || 'N/A'
             },
-            shippingAddress: order.address && order.address.address[0] ? {
-                fullName: order.address.address[0].fullName || 'N/A',
-                address: order.address.address[0].address || 'N/A',
-                landMark: order.address.address[0].landMark || 'N/A',
-                city: order.address.address[0].city || 'N/A',
-                state: order.address.address[0].state || 'N/A',
-                pincode: order.address.address[0].pincode || 'N/A',
-                phone: order.address.address[0].phone || 'N/A',
-                altPhone: order.address.address[0].altPhone || 'N/A'
-            } : {
-                fullName: 'N/A',
-                address: 'N/A',
-                landMark: 'N/A',
-                city: 'N/A',
-                state: 'N/A',
-                pincode: 'N/A',
-                phone: 'N/A',
-                altPhone: 'N/A'
+            shippingAddress: {
+                fullName: order.shippingAddress.fullName,
+                address: order.shippingAddress.address,
+                landMark: order.shippingAddress.landmark || 'N/A',
+                city: order.shippingAddress.city,
+                state: order.shippingAddress.state,
+                pincode: order.shippingAddress.pincode,
+                phone: order.shippingAddress.phone,
+                altPhone: order.shippingAddress.altPhone || 'N/A'
             },
             products: order.orderedItems.map(item => ({
                 name: item.product.name,
@@ -95,7 +73,6 @@ const getOrderDetails = async (req, res) => {
             }))
         };
 
-        console.log('Formatted order:', JSON.stringify(formattedOrder, null, 2));
         res.json(formattedOrder);
     } catch (error) {
         console.error('Error in getOrderDetails:', error);

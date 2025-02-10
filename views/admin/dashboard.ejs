@@ -1,12 +1,229 @@
-<%-include("../../views/admin/partials/header")%>
+<%- include("../../views/admin/partials/header") %>
 
-    <section class="content-main">
-        <div class="content-header">
-            <div>
-                <h2 class="content-title card-title">Dashboard </h2>
-            </div>
-
+<section class="content-main">
+    <div class="content-header">
+        <div>
+            <h2 class="content-title card-title">Dashboard</h2>
         </div>
-    </section>
+    </div>
 
-    <%-include("../../views/admin/partials/footer")%>
+    <!-- Stats -->
+    <div class="row">
+        <div class="col-lg-3">
+            <div class="card card-body mb-4">
+                <article class="icontext">
+                    <span class="icon icon-sm rounded-circle bg-primary-light">
+                        <i class="fas fa-users text-primary"></i>
+                    </span>
+                    <div class="text">
+                        <h6 class="mb-1">Total Users</h6>
+                        <span><%= totalUsers %></span>
+                    </div>
+                </article>
+            </div>
+        </div>
+        <div class="col-lg-3">
+            <div class="card card-body mb-4">
+                <article class="icontext">
+                    <span class="icon icon-sm rounded-circle bg-success-light">
+                        <i class="fas fa-box text-success"></i>
+                    </span>
+                    <div class="text">
+                        <h6 class="mb-1">Total Products</h6>
+                        <span><%= totalProducts %></span>
+                    </div>
+                </article>
+            </div>
+        </div>
+        <div class="col-lg-3">
+            <div class="card card-body mb-4">
+                <article class="icontext">
+                    <span class="icon icon-sm rounded-circle bg-warning-light">
+                        <i class="fas fa-shopping-cart text-warning"></i>
+                    </span>
+                    <div class="text">
+                        <h6 class="mb-1">Total Orders</h6>
+                        <span><%= totalOrders %></span>
+                    </div>
+                </article>
+            </div>
+        </div>
+        <div class="col-lg-3">
+            <div class="card card-body mb-4">
+                <article class="icontext">
+                    <span class="icon icon-sm rounded-circle bg-info-light">
+                        <i class="fas fa-money-bill text-info"></i>
+                    </span>
+                    <div class="text">
+                        <h6 class="mb-1">Total Revenue</h6>
+                        <span>₹<%= totalRevenue %></span>
+                    </div>
+                </article>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sales Report -->
+    <div class="row">
+        <div class="col-xl-8 col-lg-12">
+            <div class="card mb-4">
+                <article class="card-body">
+                    <h5 class="card-title">Revenue & Orders Overview</h5>
+                    <button class="btn btn-primary btn-sm float-end" id="downloadReport">
+                        <i class="fas fa-download"></i> Download Report
+                    </button>
+                    <canvas id="salesChart" height="300"></canvas>
+                </article>
+            </div>
+        </div>
+        <div class="col-xl-4 col-lg-12">
+            <div class="card mb-4">
+                <article class="card-body">
+                    <h5 class="card-title">Top Products</h5>
+                    <canvas id="productChart" height="300"></canvas>
+                </article>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Orders -->
+    <div class="card mb-4">
+        <header class="card-header">
+            <h4 class="card-title">Recent Orders</h4>
+        </header>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Customer</th>
+                            <th>Product</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% recentOrders.forEach(order => { %>
+                        <tr>
+                            <td>#<%= order.orderId %></td>
+                            <td><%= order.customerName %></td>
+                            <td><%= order.productName %></td>
+                            <td>₹<%= order.amount %></td>
+                            <td><span class="badge bg-<%= order.status === 'Pending' ? 'warning' : 'success' %>">
+                                <%= order.status %>
+                            </span></td>
+                            <td><%= order.date %></td>
+                        </tr>
+                        <% }); %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Sales Report Modal -->
+<div class="modal fade" id="generateReportModal" tabindex="-1" aria-labelledby="generateReportModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="generateReportModalLabel">
+                    <i class="fas fa-file-alt me-2"></i>Generate Sales Report
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="reportForm">
+                    <div class="mb-3">
+                        <label for="reportType" class="form-label">Report Type</label>
+                        <select class="form-select" id="reportType" name="reportType" required>
+                            <option value="daily">Daily Report</option>
+                            <option value="weekly">Weekly Report</option>
+                            <option value="monthly">Monthly Report</option>
+                            <option value="yearly">Yearly Report</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="reportFormat" class="form-label">Report Format</label>
+                        <select class="form-select" id="reportFormat" name="reportFormat" required>
+                            <option value="pdf">PDF</option>
+                            <option value="excel">Excel</option>
+                            <option value="csv">CSV</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="generateReportBtn">
+                    <i class="fas fa-download me-1"></i>Generate Report
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- Dashboard Scripts -->
+<script>
+    // Sales Chart
+    const salesCtx = document.getElementById('salesChart').getContext('2d');
+    new Chart(salesCtx, {
+        type: 'line',
+        data: {
+            labels: ['Sept', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb'],
+            datasets: [{
+                label: 'Revenue',
+                data: '<%= JSON.stringify(revenueData) %>',
+                borderColor: '#36A2EB',
+                tension: 0.4
+            }, {
+                label: 'Orders',
+                data: '<%= JSON.stringify(ordersData) %>',
+                borderColor: '#4BC0C0',
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'top',
+                }
+            }
+        }
+    });
+
+    // Product Chart
+    const productCtx = document.getElementById('productChart').getContext('2d');
+    new Chart(productCtx, {
+        type: 'doughnut',
+        data: {
+            labels: '<%= JSON.stringify(productLabels) %>',
+            datasets: [{
+                data: '<%= JSON.stringify(productData) %>',
+                backgroundColor: ['#36A2EB', '#4BC0C0', '#FF6384']
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+
+    // Download Report
+    document.getElementById('downloadReport').addEventListener('click', function() {
+        var myModal = new bootstrap.Modal(document.getElementById('generateReportModal'));
+        myModal.show();
+    });
+</script>
+
+<%- include("../../views/admin/partials/footer") %>

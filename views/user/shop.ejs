@@ -190,10 +190,10 @@
         </div>
           
         <ul class="pagination">
-          <% if (currentPage > 1) { %>
+          <!-- <% if (currentPage > 1) { %>
             <% const prevQuery = {...query, page: currentPage - 1} %>
             <a href="?<%= new URLSearchParams(prevQuery).toString() %>">&laquo; Previous</a>
-          <% } %>
+          <% } %> -->
           
           <% for (let i = 1; i <= totalPages; i++) { %>
             <% const pageQuery = {...query, page: i} %>
@@ -204,10 +204,10 @@
             </a>
           <% } %>
           
-          <% if (currentPage < totalPages) { %>
+          <!-- <% if (currentPage < totalPages) { %>
             <% const nextQuery = {...query, page: currentPage + 1} %>
             <a href="?<%= new URLSearchParams(nextQuery).toString() %>">Next &raquo;</a>
-          <% } %>
+          <% } %> -->
         </ul>
       </section>
     </div>

@@ -1,0 +1,155 @@
+<%- include("../../views/admin/partials/header") %>
+
+<head>
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.css"
+  />
+</head>
+
+<div class="content-main">
+    <div class="content-header">
+        <div class="content-title">
+            <h4>Coupons Management</h4>
+        </div>
+        <button type="button" class="btn btn-success" style="margin-bottom: 20px;" data-bs-toggle="modal" data-bs-target="#addCouponModal">Create Coupon</button>
+    </div>
+
+    <!-- Add Coupon Modal -->
+    <div class="modal fade" id="addCouponModal" tabindex="-1" aria-labelledby="addCouponModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addCouponModalLabel">Create New Coupon</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addCouponForm">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="couponName" class="form-label">Coupon Name</label>
+                                <input type="text" class="form-control" id="couponName" name="name" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="couponCode" class="form-label">Coupon Code</label>
+                                <input type="text" class="form-control" id="couponCode" name="code" required>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="couponType" class="form-label">Type</label>
+                                <select class="form-select" id="couponType" name="type" required>
+                                    <option value="fixed">Fixed</option>
+                                    <option value="percentage">Percentage</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="couponValue" class="form-label">Value</label>
+                                <input type="number" class="form-control" id="couponValue" name="value" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="couponDescription" class="form-label">Description</label>
+                            <textarea class="form-control" id="couponDescription" name="description" rows="2" required></textarea>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="usageLimit" class="form-label">Usage Limit</label>
+                                <input type="number" class="form-control" id="usageLimit" name="usageLimit" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="expirationDate" class="form-label">Expiration Date</label>
+                                <input type="date" class="form-control" id="expirationDate" name="expirationDate" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="status" class="form-label">Status</label>
+                            <select class="form-select" id="status" name="status" required>
+                                <option value="Active">Active</option>
+                                <option value="Inactive">Inactive</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" form="addCouponForm" class="btn btn-primary">Create Coupon</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Code</th>
+                            <th>Type</th>
+                            <th>Value</th>
+                            <th>Description</th>
+                            <th>Usage Limit</th>
+                            <th>Used Count</th>
+                            <th>Expiration Date</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>February Fest</td>
+                            <td>FEB2000</td>
+                            <td>fixed</td>
+                            <td>2000</td>
+                            <td>valid only feb 25</td>
+                            <td>100</td>
+                            <td>0</td>
+                            <td>2025-02-28</td>
+                            <td>Active</td>
+                            <td>
+                                <button class="btn btn-sm btn-danger">
+                                    <i class="material-icons md-delete"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>mega fest</td>
+                            <td>MEGA4000</td>
+                            <td>fixed</td>
+                            <td>4000</td>
+                            <td>valid upto feb2025</td>
+                            <td>10000</td>
+                            <td>0</td>
+                            <td>2025-02-28</td>
+                            <td>Active</td>
+                            <td>
+                                <button class="btn btn-sm btn-danger">
+                                    <i class="material-icons md-delete"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        <!-- Add other sample rows as shown in the image -->
+                    </tbody>
+                </table>
+                <nav class="float-end mt-4" aria-label="Page navigation">
+                    <ul class="pagination">
+                        <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('addCouponForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        // Form submission logic will be handled here
+        const modal = bootstrap.Modal.getInstance(document.getElementById('addCouponModal'));
+        modal.hide();
+    });
+</script>
+
+<%- include("../../views/admin/partials/footer") %>

@@ -162,7 +162,7 @@ const verifyOtp = async (req, res, next) => {
 
       await saveUserData.save();
       req.session.user = saveUserData._id;
-      res.json({ success: true, redirectUrl: "/" });
+      res.json({ success: true, redirectUrl: "/home" });
     } else {
       res
         .status(400)
@@ -249,7 +249,7 @@ const loadShopingPage = async (req, res, next) => {
     const brands = await Brand.find({ isBlocked: false });
     const categoryIds = categories.map((category) => category._id.toString());
     const page = parseInt(req.query.page) || 1;
-    const limit = 9;
+    const limit = 12;
     const skip = (page - 1) * limit;
 
     const sizes = [5, 6, 7, 8, 9, 10, 11, 12, 13];

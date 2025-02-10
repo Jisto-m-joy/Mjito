@@ -1785,10 +1785,6 @@ table {
   display: none;
 }
 
-.tab__content {
-  border: 1px solid var(--border-color-alt);
-}
-
 .tab__header {
   background-color: var(--container-color);
   border-bottom: 1px solid var(--border-color-alt);
@@ -2374,8 +2370,6 @@ table {
   background-color: var(--first-color);
   color: var(--body-color);
   font-weight: var(--weight-600);
-  border-radius: 0.25rem;
-  margin-bottom: 0.75rem;
 }
 
 .clear-btn {
@@ -2384,7 +2378,6 @@ table {
   background-color: var(--second-color);
   color: var(--title-color);
   font-weight: var(--weight-600);
-  border-radius: 0.25rem;
 }
 
 .shop-content {
@@ -2748,4 +2741,181 @@ table {
 
 .quantity-input[type=number] {
   -moz-appearance: textfield;
+}
+
+/* Coupon Code Styles */
+.coupon__container {
+    margin: 2rem 0;
+    padding: 1.5rem;
+    background-color: var(--container-color);
+    border-radius: 0.5rem;
+}
+
+.coupon__input-group {
+    display: flex;
+    gap: 0.5rem;
+    margin: 1rem 0;
+}
+
+.coupon__input {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--border-color-alt);
+    border-radius: 0.25rem;
+    font-size: var(--normal-font-size);
+}
+
+.coupon__btn {
+    padding: 0.75rem 1.5rem;
+    background-color: var(--first-color);
+    color: var(--body-color);
+    border: none;
+    border-radius: 0.25rem;
+    font-weight: var(--weight-600);
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.coupon__btn:hover {
+    background-color: var(--first-color-alt);
+}
+
+.coupon__message-container {
+    min-height: 2rem;
+    color: var(--second-color);
+    font-size: var(--small-font-size);
+    margin-bottom: 1rem;
+}
+
+.available__coupons {
+    margin-top: 1.5rem;
+}
+
+.available__coupons h4 {
+    font-size: var(--normal-font-size);
+    color: var(--title-color);
+    margin-bottom: 1rem;
+}
+
+.coupon__card {
+    background-color: var(--body-color);
+    border: 1px solid var(--border-color-alt);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.coupon__code {
+    font-size: var(--h3-font-size);
+    font-weight: var(--weight-700);
+    color: var(--title-color);
+    margin-bottom: 0.5rem;
+}
+
+.coupon__details {
+    color: var(--text-color);
+}
+
+.coupon__details p {
+    margin-bottom: 0.25rem;
+}
+
+.coupon__details small {
+    color: var(--text-color-light);
+    font-size: var(--smaller-font-size);
+}
+
+/*=============== WALLET STYLES ===============*/
+.wallet__content {
+  padding: 2rem;
+  background-color: var(--body-color);
+  border-radius: 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.wallet__header {
+  margin-bottom: 2rem;
+}
+
+.wallet__balance {
+  background-color: var(--first-color-alt);
+  padding: 2rem;
+  border-radius: 0.5rem;
+  margin-top: 1.5rem;
+  text-align: center;
+}
+
+.balance__label {
+  color: var(--text-color);
+  font-size: var(--normal-font-size);
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.balance__amount {
+  color: var(--first-color);
+  font-size: var(--h2-font-size);
+  font-weight: var(--weight-700);
+  margin-bottom: 1rem;
+}
+
+.add-money__btn {
+  background-color: var(--first-color);
+  color: var(--body-color);
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.25rem;
+  font-weight: var(--weight-600);
+}
+
+.transaction__history {
+  margin-top: 2rem;
+}
+
+.table__container {
+  margin-top: 1rem;
+  overflow-x: auto;
+}
+
+/* Modal Styles */
+.modal-content {
+  border-radius: 0.5rem;
+}
+
+.modal-header {
+  border-bottom: 1px solid var(--border-color-alt);
+  padding: 1rem 1.5rem;
+}
+
+.modal-title {
+  color: var(--title-color);
+  font-size: var(--h4-font-size);
+  font-weight: var(--weight-600);
+}
+
+.modal-body {
+  padding: 1.5rem;
+}
+
+.form__group {
+  margin-bottom: 1.5rem;
+}
+
+.form__label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: var(--text-color);
+  font-size: var(--normal-font-size);
+}
+
+.form__input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 0.25rem;
+  font-size: var(--normal-font-size);
+}
+
+.form__input:focus {
+  border-color: var(--first-color);
+  outline: none;
 }

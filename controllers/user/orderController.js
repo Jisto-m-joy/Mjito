@@ -15,7 +15,7 @@ const loadMyOrders = async (req, res, next) => {
         path: 'orderedItems.product',
         select: 'name images' 
       })
-      .populate('address')
+      // .populate('address')
       .sort({ orderDate: -1 })
       .skip((page - 1) * limit)
       .limit(limit);

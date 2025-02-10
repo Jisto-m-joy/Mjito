@@ -11,7 +11,7 @@ const addressSchema = new Schema(
     address: [
       {
         addressType: {
-          type: String, // "home" or "work"
+          type: String,
           enum: ["home", "work"],
           required: true,
         },
@@ -44,11 +44,13 @@ const addressSchema = new Schema(
           required: true,
         },
         pincode: {
-          type: String, // Changed from Number to String
+          type: String,
           required: true,
         },
       },
     ],
-  },{timestamps:true});
+  },
+  {timestamps: true}
+);
 
 module.exports = mongoose.model("Address", addressSchema);

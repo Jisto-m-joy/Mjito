@@ -48,6 +48,17 @@ const placeOrder = async (req, res) => {
         const { paymentMethod } = req.body;
         const selectedAddressId = req.body.addressId;
 
+        // Get the selected address
+        const userAddress = await Address.findOne({ userId });
+        if (!userAddress) {
+            return res.status(400).json({ error: 'No address found for user' });
+        }
+
+        const selectedAddress = userAddress.address.find(addr => addr._id.toString() === selectedAddressId);
+        if (!selectedAddress) {
+            return res.status(400).json({ error: 'Selected address not found' });
+        }
+
         // Get cart items
         const cart = await Cart.findOne({ userId }).populate('items.productId');
         if (!cart || cart.items.length === 0) {
@@ -62,12 +73,10 @@ const placeOrder = async (req, res) => {
             );
             
             if (comboIndex !== -1) {
-                // Check if there's sufficient stock BEFORE reducing quantity
                 if (product.combos[comboIndex].quantity < item.quantity) {
-                    // Handle out of stock scenario
                     return res.status(400).json({ 
-                        error: `Insufficient stock for product ${product.productId.name}`,
-                        productName: product.productId.name
+                        error: `Insufficient stock for product ${product.name}`,
+                        productName: product.name
                     });
                 }
             }
@@ -75,11 +84,11 @@ const placeOrder = async (req, res) => {
 
         // Calculate totals
         const totalPrice = cart.items.reduce((sum, item) => sum + item.totalPrice, 0);
-        const shippingCharge = 0; // Free shipping as per your checkout page
-        const discount = 0; // Add discount logic if needed
+        const shippingCharge = 0;
+        const discount = 0;
         const finalAmount = totalPrice + shippingCharge - discount;
 
-        // Create order
+        // Create order with embedded address
         const order = new Order({
             userId,
             orderedItems: cart.items.map(item => ({
@@ -91,10 +100,19 @@ const placeOrder = async (req, res) => {
             shippingCharge,
             discount,
             finalAmount,
-            address: selectedAddressId,
+            shippingAddress: {
+                fullName: selectedAddress.fullName,
+                address: selectedAddress.address,
+                landmark: selectedAddress.landmark || '',
+                city: selectedAddress.city,
+                state: selectedAddress.state,
+                pincode: selectedAddress.pincode,
+                phone: selectedAddress.phone,
+                altPhone: selectedAddress.altPhone
+            },
             paymentMethod,
             orderDate: new Date(),
-            deliveryDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
+            deliveryDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
             status: paymentMethod === 'cod' ? 'Pending COD' : 'Pending'
         });
 
@@ -122,7 +140,6 @@ const placeOrder = async (req, res) => {
         res.status(500).json({ error: 'Failed to place order' });
     }
 };
-
 
 module.exports = {
     loadCheckoutPage,

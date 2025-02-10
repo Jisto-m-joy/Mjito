@@ -292,6 +292,36 @@ const editProduct = async (req, res, next) => {
   }
 };
 
+const searchProducts = async (req, res, next) => {
+  try {
+    const searchQuery = req.query.query || "";
+    const page = req.query.page || 1;
+    const limit = 10;
+
+    const productData = await Product.find({
+      name: { $regex: new RegExp(".*" + searchQuery + ".*", "i") },
+    })
+      .populate("brand")
+      .populate("category")
+      .limit(limit)
+      .skip((page - 1) * limit)
+      .exec();
+
+    const count = await Product.find({
+      name: { $regex: new RegExp(".*" + searchQuery + ".*", "i") },
+    }).countDocuments();
+
+    res.render("search-results", {
+      data: productData,
+      currentPage: page,
+      totalPages: Math.ceil(count / limit),
+      searchQuery,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 
 module.exports = {
   getProductAddPage,
@@ -303,4 +333,5 @@ module.exports = {
   unblockProduct,
   getEditProduct,
   editProduct,
+  searchProducts
 };
