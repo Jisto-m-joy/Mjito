@@ -41,18 +41,14 @@ router.get('/auth/google/callback',
     res.redirect('/');
   });
 
-
 //Home Page & Shop Page
 router.get("/", checkBlockStatus, userController.loadHomepage);
 router.get("/home", checkBlockStatus, userController.loadHomepage);
 router.get('/shop', userController.loadShopingPage);
 
-
-
 // Product Management
 router.get("/productDetails", productController.productDetails);
 router.post("/submitReview", userAuth, productController.submitReview); 
-
 
 // Profile Management
 router.get('/user-profile', userAuth, profileController.loadUserProfile);

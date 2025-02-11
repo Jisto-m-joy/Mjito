@@ -169,7 +169,11 @@
             <p>Total Quantity: <%= order.quantity %></p>
             <p class="total-amount">Total Amount: ₹<%= order.totalAmount %></p>
           </div>
-          <button class="btn btn-danger cancel-order-btn" data-order-id="<%= order.orderId %>">Cancel Order</button>
+          <% if (order.status === 4) { %>
+            <button class="btn btn-warning return-order-btn" data-order-id="<%= order.orderId %>">Return Order</button>
+          <% } else { %>
+            <button class="btn btn-danger cancel-order-btn" data-order-id="<%= order.orderId %>">Cancel Order</button>
+          <% } %>
         </div>
 
         <div class="order-details">

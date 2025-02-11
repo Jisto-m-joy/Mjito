@@ -5,10 +5,17 @@ const Address = require("../../models/addressSchema");
 
 const getAllOrders = async (req, res) => {
     try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = 8;
+
         const orders = await Order.find()
             .populate('userId')
             .populate('orderedItems.product')
-            .sort({ orderDate: -1 });
+            .sort({ orderDate: -1 })
+            .skip((page - 1) * limit)
+            .limit(limit);
+
+        const totalOrders = await Order.countDocuments();
 
         const formattedOrders = orders.map(order => ({
             _id: order.orderId,
@@ -25,7 +32,11 @@ const getAllOrders = async (req, res) => {
             status: order.status
         }));
 
-        res.render('orders', { orders: formattedOrders });
+        res.render('orders', { 
+            orders: formattedOrders,
+            currentPage: page,
+            totalPages: Math.ceil(totalOrders / limit)
+        });
     } catch (error) {
         console.error('Error fetching orders:', error);
         res.status(500).send('Error fetching orders');

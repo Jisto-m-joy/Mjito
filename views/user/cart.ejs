@@ -1,6 +1,7 @@
 <%- include("../../views/user/partials/header") %>
 <head>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/izitoast/1.4.0/css/iziToast.min.css">
 
 </head>
 <!--=============== MAIN ===============-->
@@ -142,31 +143,52 @@
 <%- include("../../views/user/partials/footer") %>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/izitoast/1.4.0/js/iziToast.min.js"></script>
 
 <script>
-  async function updateQuantity(input) {
-    const productId = input.dataset.productId;
-    const quantity = parseInt(input.value);
+async function updateQuantity(input) {
+  const productId = input.dataset.productId;
+  const quantity = parseInt(input.value);
+  const row = input.closest('tr');
+  
+  try {
+    const response = await fetch('/update-cart-quantity', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ productId, quantity })
+    });
     
-    try {
-      const response = await fetch('/update-cart-quantity', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ productId, quantity })
-      });
+    const data = await response.json();
+    if (data.success) {
+      // Update the subtotal for this item
+      row.querySelector('.subtotal').textContent = `₹${data.newTotal.toFixed(2)}`;
       
-      const data = await response.json();
-      if (data.success) {
-        const row = input.closest('tr');
-        row.querySelector('.subtotal').textContent = `$${data.newTotal.toFixed(2)}`;
-        document.querySelector('.cart__total-price').textContent = `$${data.cartSubtotal.toFixed(2)}`;
-      }
-    } catch (error) {
-      console.error('Error updating quantity:', error);
+      // Update cart subtotal
+      const subtotalElements = document.querySelectorAll('.cart__total-price');
+      subtotalElements.forEach((element, index) => {
+        if (index === 0) {
+          element.textContent = `₹${data.cartSubtotal.toFixed(2)}`;
+        } else if (index === 2) {
+          const total = data.cartSubtotal + 10;
+          element.textContent = `₹${total.toFixed(2)}`;
+        }
+      });
+    } else {
+      // Reset the quantity input to its previous value
+      input.value = quantity - 1;
+      // Show error message using iziToast
+      iziToast.error({
+        title: 'Error',
+        message: data.message || 'Failed to update quantity',
+        position: 'topRight'
+      });
     }
+  } catch (error) {
+    console.error('Error updating quantity:', error);
   }
+}
   
   async function removeFromCart(icon) {
     const productId = icon.dataset.productId;
