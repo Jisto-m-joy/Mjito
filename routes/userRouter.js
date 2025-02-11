@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const userController = require("../controllers/user/userController");
+const passwordController  = require("../controllers/user/passwordController");
 const profileController = require("../controllers/user/profileController");
 const productController = require("../controllers/user/productController");
 const cartController = require("../controllers/user/cartController");
@@ -14,6 +15,12 @@ const { errorHandler } = require('../middlewares/errorHandler');
 
 // Error handling middleware
 router.use(errorHandler);
+
+// Debugging Middleware
+// router.use((req, res, next) => {
+//   console.log(`Incoming request: ${req.method} ${req.url}`);
+//   next();
+// });
 
 router.get("/pageNotFound", userController.pageNotFound);
 router.get("/signup", userController.loadSignup);
@@ -66,13 +73,12 @@ router.post('/cancel-order/:orderId', userAuth, orderController.cancelOrder);
 
 // Forgot Password Management
 router.post('/reset-password',userAuth, profileController.resetPassword);
-router.get('/forgot-password', profileController.getForgotPassPage);
-router.post('/forgot-email-valid', profileController.forgotEmailValid);
-router.post('/verify-passForgot-otp', profileController.verifyForgotPassOtp);
-router.get('/reset-password', profileController.getResetPassPage);
-router.post('/resend-forgot-otp', profileController.resendOtp);
-router.post('/reset-password', profileController.postNewPassword);
-
+router.get('/forgot-password', passwordController.getForgotPassPage);
+router.post('/forgot-email-valid', passwordController.forgotEmailValid);
+router.post('/verify-passForgot-otp', passwordController.verifyForgotPassOtp);
+router.get('/reset-password', passwordController.getResetPassPage);
+router.post('/resend-forgot-otp', passwordController.resendOtp);
+router.post('/post-reset-password', passwordController.postNewPassword);
 
 // Cart Management 
 router.get('/cart', userAuth, cartController.loadCartPage);
