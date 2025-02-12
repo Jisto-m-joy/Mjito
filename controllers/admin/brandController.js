@@ -6,18 +6,28 @@ const getBrandPage = async (req, res, next) => {
     const page = parseInt(req.query.page) || 1;
     const limit = 6;
     const skip = (page - 1) * limit;
-    const brandData = await Brand.find({})
+    const searchQuery = req.query.search || '';
+
+    // Create search filter
+    const searchFilter = searchQuery 
+      ? { brandName: { $regex: searchQuery, $options: 'i' } }
+      : {};
+
+    const brandData = await Brand.find(searchFilter)
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);
-    const totalBrands = await Brand.countDocuments();
+
+    const totalBrands = await Brand.countDocuments(searchFilter);
     const totalPages = Math.ceil(totalBrands / limit);
-    const reverseBrands = brandData.reverse();
+
+    // Remove the reverse() here since we're already sorting by createdAt
     res.render("brand", {
-      data: reverseBrands,
+      data: brandData,
       totalPages: totalPages,
       currentPage: page,
       totalBrands: totalBrands,
+      searchQuery: searchQuery
     });
   } catch (error) {
     next(error);

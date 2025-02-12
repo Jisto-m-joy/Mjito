@@ -6,20 +6,31 @@ const categoryInfo = async (req, res, next) => {
     const page = parseInt(req.query.page) || 1;
     const limit = 4;
     const skip = (page - 1) * limit;
+    
+    // Get search query from request
+    const searchQuery = req.query.search;
+    
+    // Build the filter object
+    let filter = {};
+    if (searchQuery) {
+      filter.name = { $regex: new RegExp(searchQuery, 'i') };
+    }
 
-    const categoriesData = await Category.find({})
+    // Apply filter to database query
+    const categoriesData = await Category.find(filter)
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);
 
-    const totalCategories = await Category.countDocuments();
+    const totalCategories = await Category.countDocuments(filter);
     const totalPages = Math.ceil(totalCategories / limit);
+    
     res.render("category", {
       cat: categoriesData,
       totalPages: totalPages,
       currentPage: page,
-      totalPages: totalPages,
       totalCategories: totalCategories,
+      searchQuery: searchQuery || '' // Pass search query back to view
     });
   } catch (error) {
     next(error);
