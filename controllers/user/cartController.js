@@ -78,7 +78,7 @@ const addToCart = async (req, res, next) => {
     if (matchingCombo.quantity < quantity) {
       return res.status(400).json({ 
         success: false, 
-        message: "Requested quantity not available" 
+        message: "Out of stock" 
       });
     }
 

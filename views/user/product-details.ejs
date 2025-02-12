@@ -105,7 +105,12 @@
             <ul class="size__list">
               <% product.combos.forEach(function(combo) { %>
                 <li>
-                  <a href="#" class="size__link size-active" data-salesPrice="<%= combo.salesPrice %>" data-regularPrice="<%= combo.regularPrice %>" data-quantity="<%= combo.quantity %>"><%= combo.size %></a>
+                  <a href="#" class="size__link" 
+                     data-salesPrice="<%= combo.salesPrice %>" 
+                     data-regularPrice="<%= combo.regularPrice %>" 
+                     data-quantity="<%= combo.quantity %>">
+                     <%= combo.size %>
+                  </a>
                 </li>
               <% }); %>
             </ul>
@@ -121,14 +126,20 @@
                 <i class="fi fi-rs-heart"></i>
             </a>
         </div>
-          <ul class="details__meta">
-            <li class="meta__list flex">
-              <span>Tags:</span><%= product.brand %>, <%= product.category.name %> , <%= product.name %>
-            </li>
-            <li class="meta__list flex">
-              <span>Availability:</span><span id="availability"><%= quantity %></span> Items in Stock
-            </li>
-          </ul>
+        <ul class="details__meta">
+          <li class="meta__list flex">
+            <span>Tags:</span><%= product.brand %>, <%= product.category.name %> , <%= product.name %>
+          </li>
+          <li class="meta__list flex">
+            <span>Availability:</span>
+            <span 
+              id="availability" 
+              style=<%= quantity === 0 ? 'color: red;' : '' %>
+            >
+              <%= quantity === 0 ? 'Out of stock' : quantity + ' Items in Stock' %>
+            </span>
+          </li>
+        </ul>
         </div>
       </div>
     </section>
@@ -614,6 +625,41 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }
   });
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    const sizeLinks = document.querySelectorAll('.size__link');
+    const salesPriceElement = document.getElementById('salesPrice');
+    const regularPriceElement = document.getElementById('regularPrice');
+    const availabilityElement = document.getElementById('availability');
+
+    sizeLinks.forEach(link => {
+        link.addEventListener('click', function(event) {
+            event.preventDefault();
+            
+            // Get values from data attributes
+            const salesPrice = this.getAttribute('data-salesPrice');
+            const regularPrice = this.getAttribute('data-regularPrice');
+            const quantity = this.getAttribute('data-quantity');
+
+            // Update displayed values
+            salesPriceElement.textContent = `₹${salesPrice}`;
+            regularPriceElement.textContent = `₹${regularPrice}`;
+            
+            // Update availability text and style based on quantity
+            if (parseInt(quantity) === 0) {
+                availabilityElement.textContent = 'Out of stock';
+                availabilityElement.style.color = 'red';
+            } else {
+                availabilityElement.textContent = `${quantity} Items in Stock`;
+                availabilityElement.style.color = ''; // Reset to default color
+            }
+
+            // Update active size selection
+            sizeLinks.forEach(l => l.classList.remove('size-active'));
+            this.classList.add('size-active');
+        });
+    });
 });
   </script>
   

@@ -8,7 +8,6 @@ const productDetails = async (req, res, next) => {
     const productId = req.query.id;
     const product = await Product.findById(productId).populate("category");
     const reviews = await Review.find({ productId: productId }).populate("userId"); // Fetch reviews for the product
-
     const findCategory = product.category;
     const categoryOffer = findCategory?.categoryOffer || 0;
     const productOffer = product.productOffer || 0;

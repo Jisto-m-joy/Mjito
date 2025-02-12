@@ -3,6 +3,7 @@ const Cart = require("../../models/cartSchema");
 const Address = require("../../models/addressSchema");
 const Order = require("../../models/orderSchema");  
 const Product = require("../../models/productSchema");
+const mongoose = require('mongoose');
 
 
 const loadCheckoutPage = async (req, res, next) => {
@@ -59,36 +60,107 @@ const placeOrder = async (req, res) => {
             return res.status(400).json({ error: 'Selected address not found' });
         }
 
-        // Get cart items
+        // Get cart items with complete product details
         const cart = await Cart.findOne({ userId }).populate('items.productId');
         if (!cart || cart.items.length === 0) {
             return res.status(400).json({ error: 'Cart is empty' });
         }
 
-        // Check stock availability first
+        // Debug log entire cart structure
+        console.log('Cart contents:', JSON.stringify(cart, null, 2));
+
+        // First verify all products and their combos exist
         for (const item of cart.items) {
+            console.log('Processing cart item:', {
+                productId: item.productId._id,
+                productName: item.productId.name,
+                color: item.color,
+                size: item.size,
+                quantity: item.quantity,
+                fullItem: item
+            });
+
             const product = await Product.findById(item.productId._id);
-            const comboIndex = product.combos.findIndex(combo => 
-                combo.color === item.color && combo.size === item.size
-            );
-            
-            if (comboIndex !== -1) {
-                if (product.combos[comboIndex].quantity < item.quantity) {
+            if (!product) {
+                return res.status(400).json({ 
+                    error: `Product ${item.productId.name} not found`,
+                    productName: item.productId.name
+                });
+            }
+
+            // If color and size are not in cart items, try to get the first available combo
+            let targetColor = item.color;
+            let targetSize = item.size;
+
+            if (!targetColor || !targetSize) {
+                if (product.combos && product.combos.length > 0) {
+                    const firstCombo = product.combos[0];
+                    targetColor = firstCombo.color;
+                    targetSize = firstCombo.size;
+                    console.log('Using default combo:', { targetColor, targetSize });
+                } else {
                     return res.status(400).json({ 
-                        error: `Insufficient stock for product ${product.name}`,
+                        error: `No combos available for product ${product.name}`,
                         productName: product.name
                     });
                 }
             }
+
+            console.log('Product combos:', product.combos);
+            console.log('Looking for combo with:', { targetColor, targetSize });
+
+            const combo = product.combos.find(c => 
+                String(c.color).toLowerCase() === String(targetColor).toLowerCase() && 
+                Number(c.size) === Number(targetSize)
+            );
+
+            if (!combo) {
+                return res.status(400).json({ 
+                    error: `Product ${product.name} combo not found for color: ${targetColor}, size: ${targetSize}`,
+                    productName: product.name
+                });
+            }
+
+            if (combo.quantity < item.quantity) {
+                return res.status(400).json({ 
+                    error: `Insufficient stock for product ${product.name}`,
+                    productName: product.name
+                });
+            }
+
+            // Update quantity
+            const result = await Product.updateOne(
+                {
+                    _id: item.productId._id,
+                    'combos': {
+                        $elemMatch: {
+                            color: targetColor,
+                            size: Number(targetSize),
+                            quantity: { $gte: item.quantity }
+                        }
+                    }
+                },
+                {
+                    $inc: {
+                        'combos.$.quantity': -item.quantity
+                    }
+                }
+            );
+
+            if (result.matchedCount === 0 || result.modifiedCount === 0) {
+                return res.status(400).json({ 
+                    error: `Failed to update quantity for product ${product.name}`,
+                    productName: product.name
+                });
+            }
         }
 
-        // Calculate totals
+        // Calculate totals and create order as before
         const totalPrice = cart.items.reduce((sum, item) => sum + item.totalPrice, 0);
         const shippingCharge = 0;
         const discount = 0;
         const finalAmount = totalPrice + shippingCharge - discount;
 
-        // Create order with embedded address
         const order = new Order({
             userId,
             orderedItems: cart.items.map(item => ({
@@ -116,28 +188,13 @@ const placeOrder = async (req, res) => {
             status: paymentMethod === 'cod' ? 'Pending COD' : 'Pending'
         });
 
-        // Reduce product quantities
-        for (const item of cart.items) {
-            const product = await Product.findById(item.productId._id);
-            const comboIndex = product.combos.findIndex(combo => 
-                combo.color === item.color && combo.size === item.size
-            );
-            
-            if (comboIndex !== -1) {
-                product.combos[comboIndex].quantity -= item.quantity;
-                await product.save();
-            }
-        }
-
         await order.save();
-
-        // Clear cart after successful order
         await Cart.findOneAndDelete({ userId });
-
         res.redirect('/order-placed');
+
     } catch (error) {
         console.error('Error placing order:', error);
-        res.status(500).json({ error: 'Failed to place order' });
+        res.status(500).json({ error: error.message || 'Failed to place order' });
     }
 };
 
