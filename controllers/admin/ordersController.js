@@ -8,6 +8,8 @@ const getAllOrders = async (req, res) => {
         const page = parseInt(req.query.page) || 1;
         const limit = 8;
 
+        const searchText = req.query.search ? req.query.search.toLowerCase() : '';
+
         const orders = await Order.find()
             .populate('userId')
             .populate('orderedItems.product')
@@ -30,7 +32,7 @@ const getAllOrders = async (req, res) => {
             total: order.finalAmount,
             payment: order.paymentMethod,
             status: order.status
-        }));
+        })).filter(order => order.products.some(product => product.name.toLowerCase().includes(searchText)));
 
         res.render('orders', { 
             orders: formattedOrders,

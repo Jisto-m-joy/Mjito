@@ -12,7 +12,7 @@
             <h2 class="content-title card-title">Order Management</h2>
         </div>
         <div>
-            <input type="text" placeholder="Search by Order ID" class="form-control bg-white" id="searchInput">
+            <input type="text" placeholder="Search by Product Name" class="form-control bg-white" id="searchInput">
         </div>
     </div>
 
@@ -248,11 +248,12 @@
         const rows = document.querySelectorAll('tbody tr');
         
         rows.forEach(row => {
-            const orderId = row.querySelector('td:first-child').textContent.toLowerCase();
-            row.style.display = orderId.includes(searchText) ? '' : 'none';
+            const productNames = Array.from(row.querySelectorAll('.product-info span')).map(span => span.textContent.toLowerCase());
+            const matches = productNames.some(name => name.includes(searchText));
+            row.style.display = matches ? '' : 'none';
         });
     });
-
+    
 // View details function
 async function viewDetails(orderId) {
     try {
