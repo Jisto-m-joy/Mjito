@@ -148,12 +148,13 @@
                   <i class="fi fi-rs-eye"></i>
                 </a>
                 <a
-                  href="/addToWishlist?id=<%= products[i]._id %>"
-                  class="action__btn"
-                  aria-label="Add to Wishlist"
-                >
-                  <i class="fi fi-rs-heart"></i>
-                </a>
+                href="#"
+                class="action__btn"
+                aria-label="Add to Wishlist"
+                data-product-id="<%= products[i]._id %>"
+              >
+                <i class="fi fi-rs-heart"></i>
+              </a>
                 <a href="#" class="action__btn" aria-label="Compare">
                   <i class="fi fi-rs-shuffle"></i>
                 </a>
@@ -190,11 +191,6 @@
         </div>
           
         <ul class="pagination">
-          <!-- <% if (currentPage > 1) { %>
-            <% const prevQuery = {...query, page: currentPage - 1} %>
-            <a href="?<%= new URLSearchParams(prevQuery).toString() %>">&laquo; Previous</a>
-          <% } %> -->
-          
           <% for (let i = 1; i <= totalPages; i++) { %>
             <% const pageQuery = {...query, page: i} %>
             <a 
@@ -203,11 +199,6 @@
               <%= i %>
             </a>
           <% } %>
-          
-          <!-- <% if (currentPage < totalPages) { %>
-            <% const nextQuery = {...query, page: currentPage + 1} %>
-            <a href="?<%= new URLSearchParams(nextQuery).toString() %>">Next &raquo;</a>
-          <% } %> -->
         </ul>
       </section>
     </div>
@@ -219,6 +210,7 @@
 <script src="/assets/js/user/shop.js"></script>
 <!-- iziToast JS -->
 <script src="https://cdn.jsdelivr.net/npm/izitoast/dist/js/iziToast.min.js"></script>
+<script src="/assets/js/user/wishlist.js"></script>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -318,5 +310,47 @@ document.addEventListener('DOMContentLoaded', function() {
      });
    });
  });
+});
+
+//Wishlist functionality
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Helper function to handle wishlist actions
+    async function handleWishlist(event, heartIcon) {
+        event.preventDefault();
+        
+        try {
+            const productId = heartIcon.closest('a').dataset.productId;
+            const response = await fetch(`/wishlist/add/${productId}`, {
+                method: 'POST',
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                heartIcon.style.color = '#00B207';
+                iziToast.success({
+                    title: 'Success',
+                    message: 'Product added to wishlist',
+                    position: 'topRight'
+                });
+            }
+        } catch (error) {
+            iziToast.error({
+                title: 'Error',
+                message: 'Failed to add product to wishlist',
+                position: 'topRight'
+            });
+        }
+    }
+
+    // Add click event listeners to all wishlist icons
+    document.querySelectorAll('.action__btn[aria-label="Add to Wishlist"]').forEach(btn => {
+        const heartIcon = btn.querySelector('.fi-rs-heart');
+        btn.setAttribute('data-product-id', btn.href.split('id=')[1]);
+        btn.href = '#';
+        
+        btn.addEventListener('click', (e) => handleWishlist(e, heartIcon));
+    });
 });
 </script>

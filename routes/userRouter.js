@@ -7,6 +7,7 @@ const productController = require("../controllers/user/productController");
 const cartController = require("../controllers/user/cartController");
 const checkoutController = require("../controllers/user/checkoutController");
 const orderController = require("../controllers/user/orderController");
+const wishlistController = require("../controllers/user/wishlistController");
 const passport = require("passport");
 const validateSession = require("../middlewares/session-validation");
 const { userAuth, adminAuth, checkBlockStatus } = require("../middlewares/auth");
@@ -87,5 +88,15 @@ router.delete('/remove-from-cart/:productId', userAuth, cartController.removeFro
 router.get('/checkout', userAuth, checkBlockStatus, checkoutController.loadCheckoutPage);
 router.post('/place-order', userAuth, checkoutController.placeOrder);
 router.get('/order-placed', userAuth, checkoutController.loadOrderPlacedPage);
+
+
+// wishlist Management
+router.get('/wishlist', userAuth, wishlistController.loadWishlistPage);
+router.post('/wishlist/add/:productId', userAuth, wishlistController.addToWishlist);
+router.delete('/wishlist/remove/:productId', userAuth, wishlistController.removeFromWishlist);
+router.get('/wishlist/check-status', userAuth, wishlistController.checkWishlistStatus);
+
+
+
 
 module.exports = router;

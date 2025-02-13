@@ -1,0 +1,116 @@
+<%- include("../../views/user/partials/header") %>
+
+    <!--=============== MAIN ===============-->
+    <main class="main">
+        <!--=============== BREADCRUMB ===============-->
+        <section class="breadcrumb">
+          <ul class="breadcrumb__list flex container">
+            <li><a href="index.html" class="breadcrumb__link">Home</a></li>
+            <li><span class="breadcrumb__link"></span>></li>
+            <li><span class="breadcrumb__link">Shop</span></li>
+            <li><span class="breadcrumb__link"></span>></li>
+            <li><span class="breadcrumb__link">Wishlist</span></li>
+          </ul>
+        </section>
+  
+        <!--=============== WISHLIST ===============-->
+        <section class="wishlist section--lg container">
+          <div class="table__container">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Image</th>
+                  <th>Name</th>
+                  <th>Price</th>
+                  <th>Stock Status</th>
+                  <th>Action</th>
+                  <th>Remove</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% if (wishlistItems && wishlistItems.length > 0) { %>
+                  <% wishlistItems.forEach(item => { %>
+                    <tr>
+                      <td>
+                        <img
+                          src="<%= item.productId.images[0] %>"
+                          alt="<%= item.productId.name %>"
+                          class="table__img"
+                        />
+                      </td>
+                      <td>
+                        <h3 class="table__title">
+                          <%= item.productId.name %>
+                        </h3>
+                        <p class="table__description">
+                          <%= item.productId.description %>
+                        </p>
+                      </td>
+                      <td>
+                        <span class="table__price">$<%= item.productId.combos[0].salesPrice %></span>
+                      </td>
+                      <td>
+                        <span class="table__stock">
+                          <%= item.productId.combos[0].status %>
+                        </span>
+                      </td>
+                      <td>
+                        <a href="/cart/add/<%= item.productId._id %>" class="btn btn--sm">Add to Cart</a>
+                      </td>
+                      <td>
+                        <i class="fi fi-rs-trash table__trash" 
+                           onclick="removeFromWishlist('<%= item.productId._id %>')"></i>
+                      </td>
+                    </tr>
+                  <% }); %>
+                <% } else { %>
+                  <tr>
+                    <td colspan="6" class="text-center">Your wishlist is empty</td>
+                  </tr>
+                <% } %>
+              </tbody>
+            </table>
+          </div>
+        </section>
+  
+        <!--=============== NEWSLETTER ===============-->
+        <section class="newsletter section">
+          <div class="newsletter__container container grid">
+            <h3 class="newsletter__title flex">
+              <img
+                src="./assets/img/icon-email.svg"
+                alt=""
+                class="newsletter__icon"
+              />
+              Sign in to Newsletter
+            </h3>
+            <p class="newsletter__description">
+              ...and receive $25 coupon for first shopping.
+            </p>
+            <form action="" class="newsletter__form">
+              <input
+                type="text"
+                placeholder="Enter Your Email"
+                class="newsletter__input"
+              />
+              <button type="submit" class="newsletter__btn">Subscribe</button>
+            </form>
+          </div>
+        </section>
+      </main>
+
+<%- include("../../views/user/partials/footer") %>
+<script>
+    async function removeFromWishlist(productId) {
+        try {
+            const response = await fetch(`/wishlist/remove/${productId}`, {
+                method: 'DELETE'
+            });
+            if (response.ok) {
+                window.location.reload();
+            }
+        } catch (error) {
+            console.error('Error removing item from wishlist:', error);
+        }
+    }
+    </script>

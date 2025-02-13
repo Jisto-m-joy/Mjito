@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const { Schema } = mongoose();
+const { Schema } = mongoose;
 
 const wishlistSchema = new Schema({
   userId: {
@@ -20,7 +20,9 @@ const wishlistSchema = new Schema({
       },
     },
   ],
-});
+},
+  { timestamps: true }
+);
 
 const Wishlist = mongoose.model("Wishlist", wishlistSchema);
 
