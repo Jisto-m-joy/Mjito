@@ -38,20 +38,37 @@ const loadHomepage = async (req, res, next) => {
     const categories = await Category.find({ isListed: true });
     const categoryIds = categories.map((category) => category._id);
 
-    const productQuery = {
+    const baseQuery = {
       isBlocked: false,
       category: { $in: categoryIds }
     };
 
-    const allProducts = await Product.find(productQuery)
-      .populate('category')
-      .lean(); // For better performance and easier debugging
+    // Fetch all products first
+    const allProducts = await Product.find(baseQuery).populate('category').lean();
 
+    // 1. Branded Section: Highest priced product from each brand
+    const brandedProducts = await getBrandedProducts(allProducts);
 
-    // Sort and limit products
-    let productData = allProducts
-      .sort((a, b) => new Date(b.createdOn || b.createdAt) - new Date(a.createdOn || a.createdAt))
+    // 2. Popular Section: Highest priced products overall
+    const popularProducts = [...allProducts]
+      .sort((a, b) => {
+        const aPrice = Math.max(...a.combos.map(combo => combo.salesPrice));
+        const bPrice = Math.max(...b.combos.map(combo => combo.salesPrice));
+        return bPrice - aPrice;
+      })
       .slice(0, 4);
+
+    // 3. New Added Section: Latest products
+    const newAddedProducts = [...allProducts]
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      .slice(0, 4);
+
+    // Prepare the final data object
+    const productData = {
+      branded: brandedProducts,
+      popular: popularProducts,
+      newAdded: newAddedProducts
+    };
 
     if (user) {
       const userData = await User.findOne({ _id: user._id });
@@ -65,6 +82,23 @@ const loadHomepage = async (req, res, next) => {
   }
 };
 
+// Helper function to get highest priced product from each brand
+async function getBrandedProducts(products) {
+  const brandMap = new Map();
+
+  // Group products by brand and find highest priced product for each
+  products.forEach(product => {
+    const maxPrice = Math.max(...product.combos.map(combo => combo.salesPrice));
+    
+    if (!brandMap.has(product.brand) || 
+        maxPrice > Math.max(...brandMap.get(product.brand).combos.map(combo => combo.salesPrice))) {
+      brandMap.set(product.brand, product);
+    }
+  });
+
+  // Convert map values to array and limit to 8 products
+  return Array.from(brandMap.values()).slice(0, 4);
+}
 
 function generateOtp() {
   return Math.floor(100000 + Math.random() * 900000).toString();

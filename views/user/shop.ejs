@@ -149,12 +149,12 @@
                 </a>
                 <a
                 href="#"
-                class="action__btn"
+                class="action__btn wishlist-btn"
                 aria-label="Add to Wishlist"
                 data-product-id="<%= products[i]._id %>"
-              >
-                <i class="fi fi-rs-heart"></i>
-              </a>
+                >
+                  <i class="fi fi-rs-heart"></i>
+                </a>
                 <a href="#" class="action__btn" aria-label="Compare">
                   <i class="fi fi-rs-shuffle"></i>
                 </a>
@@ -310,47 +310,5 @@ document.addEventListener('DOMContentLoaded', function() {
      });
    });
  });
-});
-
-//Wishlist functionality
-
-document.addEventListener('DOMContentLoaded', function() {
-    // Helper function to handle wishlist actions
-    async function handleWishlist(event, heartIcon) {
-        event.preventDefault();
-        
-        try {
-            const productId = heartIcon.closest('a').dataset.productId;
-            const response = await fetch(`/wishlist/add/${productId}`, {
-                method: 'POST',
-            });
-            
-            const data = await response.json();
-            
-            if (data.success) {
-                heartIcon.style.color = '#00B207';
-                iziToast.success({
-                    title: 'Success',
-                    message: 'Product added to wishlist',
-                    position: 'topRight'
-                });
-            }
-        } catch (error) {
-            iziToast.error({
-                title: 'Error',
-                message: 'Failed to add product to wishlist',
-                position: 'topRight'
-            });
-        }
-    }
-
-    // Add click event listeners to all wishlist icons
-    document.querySelectorAll('.action__btn[aria-label="Add to Wishlist"]').forEach(btn => {
-        const heartIcon = btn.querySelector('.fi-rs-heart');
-        btn.setAttribute('data-product-id', btn.href.split('id=')[1]);
-        btn.href = '#';
-        
-        btn.addEventListener('click', (e) => handleWishlist(e, heartIcon));
-    });
 });
 </script>

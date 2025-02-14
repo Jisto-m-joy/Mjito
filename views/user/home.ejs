@@ -109,44 +109,175 @@
       <section class="products container section">
         <div class="tab__btns">
           <span class="tab__btn active-tab" data-target="#featured"
-            >Featured</span
+            >Branded</span
           >
           <span class="tab__btn" data-target="#popular">Popular</span>
           <span class="tab__btn" data-target="#new-added">New Added</span>
         </div>
 
-        <div class="tab__items">
+      <div class="tab__items">
+          <!-- Branded section  -->
           <div class="tab__item active-tab" content id="featured">
             <div class="products__container grid">
+              <% products.branded.forEach(function(product) { %>
+                <div class="product__item">
+                  <div class="product__banner">
+                    <a href="/productDetails?id=<%=product._id%>" class="product__images">
+                      <img
+                        src="<%=product.images[0]%>"
+                        alt="<%=product.name%>"
+                        class="product__img default"
+                      />
+                      <img
+                        src="<%=product.images[1]%>"
+                        alt="<%=product.name%>"
+                        class="product__img hover"
+                      />
+                    </a>
+                    <div class="product__actions">
+                      <a href="/productDetails?id=<%=product._id%>" class="action__btn" aria-label="Quick View">
+                        <i class="fi fi-rs-eye"></i>
+                      </a>
+                      <a
+                        href="#"
+                        class="action__btn wishlist-btn"
+                        aria-label="Add to Wishlist"
+                        data-product-id="<%=product._id%>"
+                      >
+                        <i class="fi fi-rs-heart"></i>
+                      </a>
+                      <a href="#" class="action__btn" aria-label="Compare">
+                        <i class="fi fi-rs-shuffle"></i>
+                      </a>
+                    </div>
+                    <div class="product__badge light-orange">Hot</div>
+                  </div>
+                  <div class="product__content">
+                    <span class="product__category"><%=product.brand%></span>
+                    <a href="details.html">
+                      <h3 class="product__title"><%=product.name%></h3>
+                    </a>
+                    <div class="product__rating">
+                      <i class="fi fi-rs-star"></i>
+                      <i class="fi fi-rs-star"></i>
+                      <i class="fi fi-rs-star"></i>
+                      <i class="fi fi-rs-star"></i>
+                      <i class="fi fi-rs-star"></i>
+                    </div>
+                    <div class="product__price flex">
+                      <span class="new__price">₹<%=product.combos[0].salesPrice%></span>
+                      <span class="old__price">₹<%=product.combos[0].regularPrice%></span>
+                    </div>
+                    <a
+                      href="#"
+                      class="action__btn cart__btn"
+                      aria-label="Add To Cart"
+                      data-combo-size="<%= product.combos[0].size %>"
+                    >
+                      <i class="fi fi-rs-shopping-bag-add"></i>
+                    </a>
+                  </div>
+                </div>
+              <% }); %>
+            </div>
+          </div>
 
-              <% for(let i = 0; i < products.length ; i++){ %>
+          <!-- Popular section  -->
+          <div class="tab__item" content id="popular">
+            <div class="products__container grid">
+              <% products.popular.forEach(function(product) { %>
+                <div class="product__item">
+                  <div class="product__banner">
+                    <a href="/productDetails?id=<%=product._id%>" class="product__images">
+                      <img
+                        src="<%=product.images[0]%>"
+                        alt="<%=product.name%>"
+                        class="product__img default"
+                      />
+                      <img
+                        src="<%=product.images[1]%>"
+                        alt="<%=product.name%>"
+                        class="product__img hover"
+                      />
+                    </a>
+                    <div class="product__actions">
+                      <a href="/productDetails?id=<%=product._id%>" class="action__btn" aria-label="Quick View">
+                        <i class="fi fi-rs-eye"></i>
+                      </a>
+                      <a
+                        href="#"
+                        class="action__btn wishlist-btn"
+                        aria-label="Add to Wishlist"
+                        data-product-id="<%=product._id%>"
+                      >
+                        <i class="fi fi-rs-heart"></i>
+                      </a>
+                      <a href="#" class="action__btn" aria-label="Compare">
+                        <i class="fi fi-rs-shuffle"></i>
+                      </a>
+                    </div>
+                    <div class="product__badge light-orange">Hot</div>
+                  </div>
+                  <div class="product__content">
+                    <span class="product__category"><%=product.brand%></span>
+                    <a href="details.html">
+                      <h3 class="product__title"><%=product.name%></h3>
+                    </a>
+                    <div class="product__rating">
+                      <i class="fi fi-rs-star"></i>
+                      <i class="fi fi-rs-star"></i>
+                      <i class="fi fi-rs-star"></i>
+                      <i class="fi fi-rs-star"></i>
+                      <i class="fi fi-rs-star"></i>
+                    </div>
+                    <div class="product__price flex">
+                      <span class="new__price">₹<%=product.combos[0].salesPrice%></span>
+                      <span class="old__price">₹<%=product.combos[0].regularPrice%></span>
+                    </div>
+                    <a
+                      href="#"
+                      class="action__btn cart__btn"
+                      aria-label="Add To Cart"
+                      data-combo-size="<%= product.combos[0].size %>"
+                    >
+                      <i class="fi fi-rs-shopping-bag-add"></i>
+                    </a>
+                  </div>
+                </div>
+              <% }); %>
+            </div>
+          </div>
 
+          <!-- New added section  -->
+        <div class="tab__item" content id="new-added">
+          <div class="products__container grid">
+            <% products.newAdded.forEach(function(product) { %>
               <div class="product__item">
                 <div class="product__banner">
-                  <a href="/productDetails?id=<%=products[i]._id%>" class="product__images">
+                  <a href="/productDetails?id=<%=product._id%>" class="product__images">
                     <img
-                      src="<%=products[i].images[0]%>"
-                      alt="<%=products[i].name%>"
+                      src="<%=product.images[0]%>"
+                      alt="<%=product.name%>"
                       class="product__img default"
                     />
                     <img
-                      src="<%=products[i].images[1]%>"
-                      alt="<%=products[i].name%>"
+                      src="<%=product.images[1]%>"
+                      alt="<%=product.name%>"
                       class="product__img hover"
                     />
                   </a>
                   <div class="product__actions">
-                    <a href="/productDetails?id=<%=products[i]._id%>" class="action__btn" aria-label="Quick View">
+                    <a href="/productDetails?id=<%=product._id%>" class="action__btn" aria-label="Quick View">
                       <i class="fi fi-rs-eye"></i>
                     </a>
                     <a
-                    href="#"
-                    class="action__btn wishlist-btn"
-                    aria-label="Add to Wishlist"
-                    data-product-id="<%=products[i]._id%>"
-                  >
-                    <i class="fi fi-rs-heart"></i>
-                  </a>
+                      href="#"
+                      class="action__btn wishlist-btn"
+                      aria-label="Add to Wishlist"
+                      data-product-id="<%=product._id%>"
+                    >
+                      <i class="fi fi-rs-heart"></i>
+                    </a>
                     <a href="#" class="action__btn" aria-label="Compare">
                       <i class="fi fi-rs-shuffle"></i>
                     </a>
@@ -154,9 +285,9 @@
                   <div class="product__badge light-orange">Hot</div>
                 </div>
                 <div class="product__content">
-                  <span class="product__category"><%=products[i].brand%></span>
+                  <span class="product__category"><%=product.brand%></span>
                   <a href="details.html">
-                    <h3 class="product__title"><%=products[i].name%></h3>
+                    <h3 class="product__title"><%=product.name%></h3>
                   </a>
                   <div class="product__rating">
                     <i class="fi fi-rs-star"></i>
@@ -166,157 +297,23 @@
                     <i class="fi fi-rs-star"></i>
                   </div>
                   <div class="product__price flex">
-                    <span class="new__price">₹<%=products[i].combos[0].salesPrice%></span>
-                    <span class="old__price">₹<%=products[i].combos[0].regularPrice%></span>
+                    <span class="new__price">₹<%=product.combos[0].salesPrice%></span>
+                    <span class="old__price">₹<%=product.combos[0].regularPrice%></span>
                   </div>
                   <a
-                  href="#"
-                  class="action__btn cart__btn"
-                  aria-label="Add To Cart"
-                  data-combo-size="<%= products[i].combos[0].size %>"
-                >
-                  <i class="fi fi-rs-shopping-bag-add"></i>
-                </a>
-                </div>
-              </div>
-            <% } %>
-            </div>
-          </div>
-          <div class="tab__item" content id="popular">
-            <div class="products__container grid">
-
-              <% for(let i = 0; i < products.length ; i++){ %>
-
-              <div class="product__item">
-                <div class="product__banner">
-                  <a href="/productDetails?id=<%=products[i]._id%>" class="product__images">
-                    <img
-                      src="<%=products[i].images[0]%>"
-                      alt="<%=products[i].name%>"
-                      class="product__img default"
-                    />
-                    <img
-                      src="<%=products[i].images[1]%>"
-                      alt="<%=products[i].name%>"
-                      class="product__img hover"
-                    />
-                  </a>
-                  <div class="product__actions">
-                    <a href="/productDetails?id=<%=products[i]._id%>" class="action__btn" aria-label="Quick View">
-                      <i class="fi fi-rs-eye"></i>
-                    </a>
-                    <a
                     href="#"
-                    class="action__btn wishlist-btn"
-                    aria-label="Add to Wishlist"
-                    data-product-id="<%=products[i]._id%>"
+                    class="action__btn cart__btn"
+                    aria-label="Add To Cart"
+                    data-combo-size="<%= product.combos[0].size %>"
                   >
-                    <i class="fi fi-rs-heart"></i>
+                    <i class="fi fi-rs-shopping-bag-add"></i>
                   </a>
-                    <a href="#" class="action__btn" aria-label="Compare">
-                      <i class="fi fi-rs-shuffle"></i>
-                    </a>
-                  </div>
-                  <div class="product__badge light-blue">Hot</div>
-                </div>
-                <div class="product__content">
-                  <span class="product__category"><%=products[i].brand%></span>
-                  <a href="details.html">
-                    <h3 class="product__title"><%=products[i].name%></h3>
-                  </a>
-                  <div class="product__rating">
-                    <i class="fi fi-rs-star"></i>
-                    <i class="fi fi-rs-star"></i>
-                    <i class="fi fi-rs-star"></i>
-                    <i class="fi fi-rs-star"></i>
-                    <i class="fi fi-rs-star"></i>
-                  </div>
-                  <div class="product__price flex">
-                    <span class="new__price">₹<%=products[i].combos[0].salesPrice%></span>
-                    <span class="old__price">₹<%=products[i].combos[0].regularPrice%></span>
-                  </div>
-                  <a
-                  href="#"
-                  class="action__btn cart__btn"
-                  aria-label="Add To Cart"
-                  data-combo-size="<%= products[i].combos[0].size %>"
-                >
-                  <i class="fi fi-rs-shopping-bag-add"></i>
-                </a>
                 </div>
               </div>
-              <% } %>
-              </div>
-              <!-- product page end  -->
-            </div>
-          </div>
-          <div class="tab__item" content id="new-added">
-            <div class="products__container grid">
-
-              <% for(let i = 0; i < products.length ; i++){ %>
-
-              <div class="product__item">
-                <div class="product__banner">
-                  <a href="/productDetails?id=<%=products[i]._id%>" class="product__images">
-                    <img
-                      src="<%=products[i].images[0]%>"
-                      alt="<%=products[i].name%>"
-                      class="product__img default"
-                    />
-                    <img
-                      src="<%=products[i].images[1]%>"
-                      alt="<%=products[i].name%>"
-                      class="product__img hover"
-                    />
-                  </a>
-                  <div class="product__actions">
-                    <a href="/productDetails?id=<%=products[i]._id%>" class="action__btn" aria-label="Quick View">
-                      <i class="fi fi-rs-eye"></i>
-                    </a>
-                    <a
-                    href="#"
-                    class="action__btn wishlist-btn"
-                    aria-label="Add to Wishlist"
-                    data-product-id="<%=products[i]._id%>"
-                  >
-                    <i class="fi fi-rs-heart"></i>
-                  </a>
-                    <a href="#" class="action__btn" aria-label="Compare">
-                      <i class="fi fi-rs-shuffle"></i>
-                    </a>
-                  </div>
-                  <div class="product__badge light-green">Hot</div>
-                </div>
-                <div class="product__content">
-                  <span class="product__category"><%=products[i].brand%></span>
-                  <a href="details.html">
-                    <h3 class="product__title"><%=products[i].name%></h3>
-                  </a>
-                  <div class="product__rating">
-                    <i class="fi fi-rs-star"></i>
-                    <i class="fi fi-rs-star"></i>
-                    <i class="fi fi-rs-star"></i>
-                    <i class="fi fi-rs-star"></i>
-                    <i class="fi fi-rs-star"></i>
-                  </div>
-                  <div class="product__price flex">
-                    <span class="new__price">₹<%=products[i].combos[0].salesPrice%></span>
-                    <span class="old__price">₹<%=products[i].combos[0].regularPrice%></span>
-                  </div>
-                  <a
-                  href="#"
-                  class="action__btn cart__btn"
-                  aria-label="Add To Cart"
-                  data-combo-size="<%= products[i].combos[0].size %>"
-                >
-                  <i class="fi fi-rs-shopping-bag-add"></i>
-                </a>
-                </div>
-              </div>
-              <% } %>
-            </div>
+            <% }); %>
           </div>
         </div>
+      </div>
       </section>
       
       <!--=============== NEWSLETTER ===============-->
@@ -449,99 +446,5 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     });
   });
-});
-
-//Wishlist functionality
-
-document.addEventListener('DOMContentLoaded', function() {
-    let isProcessing = false; // Flag to prevent multiple simultaneous requests
-    
-    // Create a single event listener on the parent container using event delegation
-    document.addEventListener('click', async function(event) {
-        // Find the closest wishlist button if clicked on button or heart icon
-        const wishlistBtn = event.target.closest('.wishlist-btn');
-        if (!wishlistBtn || isProcessing) return;
-        
-        event.preventDefault();
-        isProcessing = true;
-        
-        const heartIcon = wishlistBtn.querySelector('.fi-rs-heart');
-        const productId = wishlistBtn.dataset.productId;
-        const isInWishlist = heartIcon.style.color === 'rgb(0, 178, 7)';
-        
-        try {
-            const endpoint = isInWishlist ? 
-                `/wishlist/remove/${productId}` : 
-                `/wishlist/add/${productId}`;
-            
-            const response = await fetch(endpoint, {
-                method: isInWishlist ? 'DELETE' : 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-            
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            
-            const data = await response.json();
-            
-            if (data.success) {
-                // Update all matching heart icons
-                document.querySelectorAll(`.wishlist-btn[data-product-id="${productId}"] .fi-rs-heart`)
-                    .forEach(icon => {
-                        icon.style.color = isInWishlist ? '' : '#00B207';
-                    });
-                
-                iziToast.success({
-                    title: 'Success',
-                    message: isInWishlist ? 
-                        'Product removed from wishlist' : 
-                        'Product added to wishlist',
-                    position: 'topRight'
-                });
-            } else {
-                throw new Error(data.error || 'Failed to update wishlist');
-            }
-        } catch (error) {
-            console.error('Wishlist error:', error);
-            iziToast.error({
-                title: 'Error',
-                message: error.message || 'Failed to update wishlist',
-                position: 'topRight'
-            });
-        } finally {
-            isProcessing = false;
-        }
-    });
-
-    // Initial setup to show existing wishlist items
-    async function initializeWishlistStatus() {
-        // Get all unique product IDs
-        const productIds = new Set(
-            Array.from(document.querySelectorAll('.wishlist-btn'))
-                .map(btn => btn.dataset.productId)
-        );
-
-        // Check status for each unique product
-        for (const productId of productIds) {
-            try {
-                const response = await fetch(`/wishlist/check-status?productId=${productId}`);
-                const data = await response.json();
-                
-                if (data.success && data.inWishlist) {
-                    document.querySelectorAll(`.wishlist-btn[data-product-id="${productId}"] .fi-rs-heart`)
-                        .forEach(icon => {
-                            icon.style.color = '#00B207';
-                        });
-                }
-            } catch (error) {
-                console.error('Failed to check wishlist status:', error);
-            }
-        }
-    }
-
-    initializeWishlistStatus();
 });
  </script>
