@@ -30,7 +30,29 @@ const loadWalletPage = async (req, res, next) => {
 const addMoneyToWallet = async (req, res, next) => {
     try {
         const { amount } = req.body;
-        
+
+        // Find the user's wallet
+        let wallet = await Wallet.findOne({ user: req.user._id });
+        if (!wallet) {
+            wallet = new Wallet({ user: req.user._id });
+        }
+
+        // Check if the amount exceeds the per-transaction limit
+        if (amount > 100000) {
+            return res.json({
+                success: false,
+                error: 'You cannot add more than ₹1,00,000 at a time.'
+            });
+        }
+
+        // Check if adding the amount would exceed the wallet balance limit
+        if (wallet.balance + Number(amount) > 200000) {
+            return res.json({
+                success: false,
+                error: 'Your wallet cannot hold more than ₹2,00,000.'
+            });
+        }
+    
         // Create Razorpay order
         const options = {
             amount: amount * 100, // Convert to paise

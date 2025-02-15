@@ -6,6 +6,7 @@ const categoryController = require("../controllers/admin/categoryController");
 const brandController = require("../controllers/admin/brandController");
 const productController = require("../controllers/admin/productController");
 const ordersController = require("../controllers/admin/ordersController");
+const couponController = require("../controllers/admin/couponController");
 const { userAuth, adminAuth } = require("../middlewares/auth");
 const multer = require("multer");
 const storage = require("../helpers/multer");
@@ -83,5 +84,8 @@ router.post("/orders/update-status/:orderId", adminAuth, ordersController.update
 // Search Management
 router.get("/search", productController.searchProducts);
 router.get("/shop/search", productController.searchProducts);
+
+// Coupon Management
+router.get("/coupons", adminAuth, couponController.getCouponPage);
 
 module.exports = router;

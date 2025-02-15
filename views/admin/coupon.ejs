@@ -27,47 +27,33 @@
                     <form id="addCouponForm">
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="couponName" class="form-label">Coupon Name</label>
-                                <input type="text" class="form-control" id="couponName" name="name" required>
-                            </div>
-                            <div class="col-md-6 mb-3">
                                 <label for="couponCode" class="form-label">Coupon Code</label>
                                 <input type="text" class="form-control" id="couponCode" name="code" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="offerAmount" class="form-label">Offer Amount</label>
+                                <input type="number" class="form-control" id="offerAmount" name="offerPrice" required>
                             </div>
                         </div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="couponType" class="form-label">Type</label>
-                                <select class="form-select" id="couponType" name="type" required>
-                                    <option value="fixed">Fixed</option>
-                                    <option value="percentage">Percentage</option>
-                                </select>
+                                <label for="minimumPurchase" class="form-label">Minimum Purchase Amount</label>
+                                <input type="number" class="form-control" id="minimumPurchase" name="minimumPrice" required>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label for="couponValue" class="form-label">Value</label>
-                                <input type="number" class="form-control" id="couponValue" name="value" required>
+                                <label for="startDate" class="form-label">Start Date</label>
+                                <input type="date" class="form-control" id="startDate" name="startOn" required>
                             </div>
-                        </div>
-                        <div class="mb-3">
-                            <label for="couponDescription" class="form-label">Description</label>
-                            <textarea class="form-control" id="couponDescription" name="description" rows="2" required></textarea>
                         </div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="usageLimit" class="form-label">Usage Limit</label>
-                                <input type="number" class="form-control" id="usageLimit" name="usageLimit" required>
+                                <input type="number" class="form-control" id="usageLimit" name="maxUses" required>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="expirationDate" class="form-label">Expiration Date</label>
-                                <input type="date" class="form-control" id="expirationDate" name="expirationDate" required>
+                                <input type="date" class="form-control" id="expirationDate" name="expireOn" required>
                             </div>
-                        </div>
-                        <div class="mb-3">
-                            <label for="status" class="form-label">Status</label>
-                            <select class="form-select" id="status" name="status" required>
-                                <option value="Active">Active</option>
-                                <option value="Inactive">Inactive</option>
-                            </select>
                         </div>
                     </form>
                 </div>
@@ -85,11 +71,10 @@
                 <table class="table table-hover">
                     <thead>
                         <tr>
-                            <th>Name</th>
                             <th>Code</th>
-                            <th>Type</th>
-                            <th>Value</th>
-                            <th>Description</th>
+                            <th>Offer Amount</th>
+                            <th>Minimum Purchase</th>
+                            <th>Start Date</th>
                             <th>Usage Limit</th>
                             <th>Used Count</th>
                             <th>Expiration Date</th>
@@ -98,47 +83,54 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td>February Fest</td>
-                            <td>FEB2000</td>
-                            <td>fixed</td>
-                            <td>2000</td>
-                            <td>valid only feb 25</td>
-                            <td>100</td>
-                            <td>0</td>
-                            <td>2025-02-28</td>
-                            <td>Active</td>
-                            <td>
-                                <button class="btn btn-sm btn-danger">
-                                    <i class="material-icons md-delete"></i>
-                                </button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>mega fest</td>
-                            <td>MEGA4000</td>
-                            <td>fixed</td>
-                            <td>4000</td>
-                            <td>valid upto feb2025</td>
-                            <td>10000</td>
-                            <td>0</td>
-                            <td>2025-02-28</td>
-                            <td>Active</td>
-                            <td>
-                                <button class="btn btn-sm btn-danger">
-                                    <i class="material-icons md-delete"></i>
-                                </button>
-                            </td>
-                        </tr>
-                        <!-- Add other sample rows as shown in the image -->
+                        <% coupons.forEach(coupon => { %>
+                            <tr>
+                                <td><%= coupon.code %></td>
+                                <td>₹<%= coupon.offerPrice %></td>
+                                <td>₹<%= coupon.minimumPrice %></td>
+                                <td><%= new Date(coupon.startOn).toISOString().split('T')[0] %></td>
+                                <td><%= coupon.maxUses %></td>
+                                <td><%= coupon.usesCount %></td>
+                                <td><%= new Date(coupon.expireOn).toISOString().split('T')[0] %></td>
+                                <td><%= coupon.isListed ? 'Active' : 'Inactive' %></td>
+                                <td>
+                                    <button class="btn btn-sm btn-danger" onclick="deleteCoupon('<%= coupon._id %>')">
+                                        <i class="material-icons md-delete"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        <% }); %>
                     </tbody>
                 </table>
-                <nav class="float-end mt-4" aria-label="Page navigation">
-                    <ul class="pagination">
-                        <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                    </ul>
-                </nav>
             </div>
+        </div>
+        <!-- Pagination  -->
+        <div class="card-footer">
+            <nav aria-label="Page navigation" class="d-flex justify-content-center mt-4">
+                <ul class="pagination">
+                    <% if (hasPrevPage) { %>
+                        <li class="page-item">
+                            <a class="page-link" href="?page=<%= currentPage - 1 %>" aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+                    <% } %>
+                    
+                    <% for(let i = 1; i <= totalPages; i++) { %>
+                        <li class="page-item <%= currentPage === i ? 'active' : '' %>">
+                            <a class="page-link" href="?page=<%= i %>"><%= i %></a>
+                        </li>
+                    <% } %>
+                    
+                    <% if (hasNextPage) { %>
+                        <li class="page-item">
+                            <a class="page-link" href="?page=<%= currentPage + 1 %>" aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                    <% } %>
+                </ul>
+            </nav>
         </div>
     </div>
 </div>

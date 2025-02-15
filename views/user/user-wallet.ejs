@@ -13,6 +13,9 @@
   <!--=============== CSS ===============-->
   <link rel="stylesheet" href="/assets/css/styles.css" />
 
+  <!--=============== IZITOAST CSS LINK ===============-->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/izitoast/1.4.0/css/iziToast.min.css">
+
   <title>My Wallet</title>
 
   <style>
@@ -162,6 +165,7 @@
 
   <%- include("../../views/user/partials/footer") %>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/izitoast/1.4.0/js/iziToast.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
@@ -191,11 +195,21 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-        addMoneyForm.addEventListener('submit', async function(e) {
+    addMoneyForm.addEventListener('submit', async function(e) {
         e.preventDefault();
         
         const amount = document.getElementById('amount').value;
-        
+
+        // Check if the amount exceeds the limit
+        if (amount > 100000) {
+            iziToast.error({
+                title: 'Error',
+                message: 'You cannot add more than ₹1,00,000 at a time.',
+                position: 'topRight'
+            });
+            return;
+        }
+
         try {
             // First create order
             const response = await fetch('/add-money-to-wallet', {
@@ -208,6 +222,15 @@ document.addEventListener('DOMContentLoaded', function() {
             
             const data = await response.json();
             
+            if (data.error) {
+                iziToast.error({
+                    title: 'Error',
+                    message: data.error,
+                    position: 'topRight'
+                });
+                return;
+            }
+
             if (data.order) {
                 const options = {
                     key: data.keyId, // Razorpay Key ID
@@ -256,14 +279,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 const rzp1 = new Razorpay(options);
                 rzp1.open();
                 
-            } else {
+              } else {
                 throw new Error(data.message || 'Something went wrong');
             }
         } catch (error) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Oops...',
-                text: error.message || 'Something went wrong!'
+            iziToast.error({
+                title: 'Error',
+                message: error.message || 'Something went wrong!',
+                position: 'topRight'
             });
         }
     });
