@@ -672,34 +672,52 @@ document.addEventListener('DOMContentLoaded', function() {
         
         try {
             const productId = heartIcon.closest('a').dataset.productId;
-            const response = await fetch(`/wishlist/add/${productId}`, {
-                method: 'POST',
+            const isInWishlist = heartIcon.style.color === 'rgb(0, 178, 7)'; // Check if product is already in wishlist
+            
+            const response = await fetch(`/wishlist/${isInWishlist ? 'remove' : 'add'}/${productId}`, {
+                method: isInWishlist ? 'DELETE' : 'POST',
             });
             
             const data = await response.json();
             
             if (data.success) {
-                heartIcon.style.color = '#00B207';
+                // Toggle heart icon color
+                heartIcon.style.color = isInWishlist ? '' : '#00B207';
+                
+                // Show success message
                 iziToast.success({
                     title: 'Success',
-                    message: 'Product added to wishlist',
+                    message: isInWishlist ? 'Product removed from wishlist' : 'Product added to wishlist',
                     position: 'topRight'
                 });
+            } else {
+                throw new Error(data.error || 'Operation failed');
             }
         } catch (error) {
             iziToast.error({
                 title: 'Error',
-                message: 'Failed to add product to wishlist',
+                message: error.message || 'Failed to update wishlist',
                 position: 'topRight'
             });
         }
     }
 
     // Add click event listeners to all wishlist icons
-    document.querySelectorAll('.action__btn[aria-label="Add to Wishlist"]').forEach(btn => {
+    document.querySelectorAll('.action__btn[aria-label="Add to Wishlist"]').forEach(async btn => {
         const heartIcon = btn.querySelector('.fi-rs-heart');
-        btn.setAttribute('data-product-id', btn.href.split('id=')[1]);
-        btn.href = '#';
+        const productId = btn.dataset.productId;
+        
+        // Check initial wishlist status
+        try {
+            const response = await fetch(`/wishlist/check-status?productId=${productId}`);
+            const data = await response.json();
+            
+            if (data.success && data.inWishlist) {
+                heartIcon.style.color = '#00B207';
+            }
+        } catch (error) {
+            console.error('Failed to check wishlist status:', error);
+        }
         
         btn.addEventListener('click', (e) => handleWishlist(e, heartIcon));
     });
