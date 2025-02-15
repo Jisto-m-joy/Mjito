@@ -1,23 +1,38 @@
 const mongoose = require("mongoose");
-const { Schema } = mongoose;
 
-const walletSchema = new Schema(
-  {
-    userId: {
-      type: Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
-    },
-    availableBalance: {
-      type: Number,
-      required: true,
-      default: 0,
-      min: [0, "Balance cannot be negative"],
-    },
+const walletSchema = new mongoose.Schema({
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
+    unique: true,
   },
-  { timestamps: true }
-);
+  balance: {
+    type: Number,
+    default: 0,
+    min: 0,
+  },
+  transactions: [
+    {
+      type: {
+        type: String,
+        enum: ["credit", "debit"],
+        required: true,
+      },
+      amount: {
+        type: Number,
+        required: true,
+        min: 0,
+      },
+      date: {
+        type: Date,
+        default: Date.now,
+      },
+      description: {
+        type: String,
+      },
+    },
+  ],
+});
 
-const Wallet = mongoose.model("Wallet", walletSchema);
-
-module.exports = Wallet;
+module.exports = mongoose.model("Wallet", walletSchema);

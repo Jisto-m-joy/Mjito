@@ -65,9 +65,9 @@ const addToCart = async (req, res, next) => {
     }
 
     const matchingCombo = product.combos.find(
-      combo => combo.size.toString() === selectedCombo.size.toString()
+      combo => combo.size.toString().trim() === selectedCombo.size.toString().trim()
     );
-
+    
     if (!matchingCombo) {
       return res.status(400).json({ 
         success: false, 

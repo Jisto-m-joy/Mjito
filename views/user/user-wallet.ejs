@@ -14,6 +14,59 @@
   <link rel="stylesheet" href="/assets/css/styles.css" />
 
   <title>My Wallet</title>
+
+  <style>
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 1050;
+    }
+    
+    .modal.show {
+        display: block;
+    }
+    
+    .modal-dialog {
+        position: relative;
+        width: auto;
+        margin: 1.75rem auto;
+        max-width: 500px;
+    }
+    
+    .modal-content {
+        background-color: #fff;
+        border-radius: 0.3rem;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    }
+    
+    /* Additional styles for better modal appearance */
+    .modal-header {
+        border-bottom: 1px solid #dee2e6;
+        padding: 1rem;
+    }
+    
+    .modal-body {
+        padding: 1rem;
+    }
+    
+    .btn-close {
+        background: transparent;
+        border: 0;
+        font-size: 1.5rem;
+        padding: 0.5rem;
+        cursor: pointer;
+    }
+    
+    /* Make sure the modal appears on top of everything */
+    #addMoneyModal {
+        z-index: 1050 !important;
+    }
+    </style>    
 </head>
 <body>
   <main class="main">
@@ -46,11 +99,11 @@
             <h3 class="section__title">My Wallet</h3>
             <div class="wallet__balance">
               <span class="balance__label">Wallet Balance</span>
-              <h2 class="balance__amount">₹30.00</h2>
+              <h2 class="balance__amount">₹<%= wallet.balance.toFixed(2) %></h2>
               <button class="button add-money__btn" data-bs-toggle="modal" data-bs-target="#addMoneyModal">
-                Add Money
+                  Add Money
               </button>
-            </div>
+           </div>
           </div>
 
           <!-- Transaction History -->
@@ -67,8 +120,17 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <!-- Transaction rows will be dynamically added here -->
-                </tbody>
+                  <% transactions.forEach(transaction => { %>
+                      <tr>
+                          <td><%= new Date(transaction.date).toLocaleDateString() %></td>
+                          <td><%= transaction.description %></td>
+                          <td class="<%= transaction.type === 'credit' ? 'text-success' : 'text-danger' %>">
+                              <%= transaction.type === 'credit' ? '+' : '-' %>₹<%= transaction.amount.toFixed(2) %>
+                          </td>
+                          <td><%= transaction.type === 'credit' ? 'Success' : 'Debit' %></td>
+                      </tr>
+                  <% }); %>
+              </tbody>
               </table>
             </div>
           </div>
@@ -99,3 +161,111 @@
   </div>
 
   <%- include("../../views/user/partials/footer") %>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const addMoneyForm = document.getElementById('addMoneyForm');
+    const addMoneyModal = document.getElementById('addMoneyModal');
+    const addMoneyBtn = document.querySelector('.add-money__btn');
+    const closeBtn = document.querySelector('.btn-close');
+    
+    // Initialize Bootstrap modal
+    const modal = new bootstrap.Modal(addMoneyModal);
+    
+    // Open modal on button click
+    addMoneyBtn.addEventListener('click', () => {
+        modal.show();
+    });
+    
+    // Close modal on close button click
+    closeBtn.addEventListener('click', () => {
+        modal.hide();
+    });
+    
+    // Close modal when clicking outside
+    window.addEventListener('click', (e) => {
+        if (e.target === addMoneyModal) {
+            modal.hide();
+        }
+    });
+    
+        addMoneyForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const amount = document.getElementById('amount').value;
+        
+        try {
+            // First create order
+            const response = await fetch('/add-money-to-wallet', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ amount })
+            });
+            
+            const data = await response.json();
+            
+            if (data.order) {
+                const options = {
+                    key: data.keyId, // Razorpay Key ID
+                    amount: data.order.amount,
+                    currency: "INR",
+                    name: "GoalZone",
+                    description: "Wallet Recharge",
+                    order_id: data.order.id,
+                    handler: async function (response) {
+                        // Verify payment
+                        const verifyResponse = await fetch('/verify-payment', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                razorpay_order_id: response.razorpay_order_id,
+                                razorpay_payment_id: response.razorpay_payment_id,
+                                razorpay_signature: response.razorpay_signature
+                            })
+                        });
+                        
+                        const verifyData = await verifyResponse.json();
+                        
+                        if (verifyData.success) {
+                            modal.hide();
+                            document.querySelector('.balance__amount').textContent = `₹${verifyData.newBalance.toFixed(2)}`;
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Success!',
+                                text: 'Payment successful!'
+                            }).then(() => {
+                                window.location.reload();
+                            });
+                        }
+                    },
+                    prefill: {
+                        name: "<%= user.name %>",
+                        email: "<%= user.email %>"
+                    },
+                    theme: {
+                        color: "#3399cc"
+                    }
+                };
+                
+                const rzp1 = new Razorpay(options);
+                rzp1.open();
+                
+            } else {
+                throw new Error(data.message || 'Something went wrong');
+            }
+        } catch (error) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: error.message || 'Something went wrong!'
+            });
+        }
+    });
+});
+</script>

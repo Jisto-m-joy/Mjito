@@ -8,6 +8,7 @@ const cartController = require("../controllers/user/cartController");
 const checkoutController = require("../controllers/user/checkoutController");
 const orderController = require("../controllers/user/orderController");
 const wishlistController = require("../controllers/user/wishlistController");
+const walletController = require('../controllers/user/walletController');
 const passport = require("passport");
 const validateSession = require("../middlewares/session-validation");
 const { userAuth, adminAuth, checkBlockStatus } = require("../middlewares/auth");
@@ -62,6 +63,12 @@ router.delete('/delete-address/:addressId', userAuth, profileController.deleteAd
 router.post('/change-password', userAuth, profileController.resetPassword);
 router.post('/update-name', userAuth, profileController.updateUserName); 
 
+/// Wallet Management 
+router.get('/user-wallet', userAuth, walletController.loadWalletPage);
+router.post('/add-money-to-wallet', userAuth, walletController.addMoneyToWallet);
+router.post('/verify-payment', userAuth, walletController.verifyPayment);
+
+
 
 // Order Management
 router.get('/my-orders', userAuth, orderController.loadMyOrders);
@@ -90,7 +97,7 @@ router.post('/place-order', userAuth, checkoutController.placeOrder);
 router.get('/order-placed', userAuth, checkoutController.loadOrderPlacedPage);
 
 
-// wishlist Management
+// Wishlist Management
 router.get('/wishlist', userAuth, wishlistController.loadWishlistPage);
 router.post('/wishlist/add/:productId', userAuth, wishlistController.addToWishlist);
 router.delete('/wishlist/remove/:productId', userAuth, wishlistController.removeFromWishlist);

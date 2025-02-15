@@ -463,8 +463,9 @@
             return;
         }
 
+        // Update how we get the size value
         const selectedCombo = {
-            size: activeSizeElement.textContent,
+            size: activeSizeElement.textContent.trim(), // Add trim() here
             salesPrice: activeSizeElement.getAttribute('data-salesPrice'),
             regularPrice: activeSizeElement.getAttribute('data-regularPrice')
         };
