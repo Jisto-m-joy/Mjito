@@ -6,6 +6,8 @@ const couponSchema = new Schema({
     type: String,
     required: true,
     unique: true,
+    trim: true, 
+    uppercase: true,
   },
   createdOn: {
     type: Date,
@@ -49,6 +51,7 @@ const couponSchema = new Schema({
     default: false,
   },
 });
+
 
 const Coupon = mongoose.model("Coupon", couponSchema);
 

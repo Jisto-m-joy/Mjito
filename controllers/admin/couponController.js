@@ -26,6 +26,88 @@ const getCouponPage = async (req, res, next) => {
     }
 }
 
+const addCoupon = async (req, res) => {
+    try {
+        let {
+            code,
+            offerPrice,
+            minimumPrice,
+            startOn,
+            maxUses,
+            expireOn
+        } = req.body;
+
+        // Validate code presence and format
+        if (!code || typeof code !== 'string' || code.trim() === '') {
+            return res.status(400).json({
+                success: false,
+                message: 'Valid coupon code is required'
+            });
+        }
+
+        // Clean and format the code
+        code = code.trim().toUpperCase();
+
+        // Rest of your validation logic...
+
+        // Create new coupon with explicit fields
+        const newCoupon = new Coupons({
+            code,
+            offerPrice: Number(offerPrice),
+            minimumPrice: Number(minimumPrice),
+            startOn: new Date(startOn),
+            maxUses: Number(maxUses),
+            expireOn: new Date(expireOn),
+            createdOn: new Date(),
+            usesCount: 0,
+            isListed: true,
+            isDeleted: false
+        });
+
+        await newCoupon.save();
+
+        res.status(200).json({
+            success: true,
+            message: 'Coupon created successfully'
+        });
+    } catch (error) {
+        console.error('Error in addCoupon:', error);
+        
+        // Handle duplicate key error specifically
+        if (error.code === 11000) {
+            return res.status(400).json({
+                success: false,
+                message: 'This coupon code already exists'
+            });
+        }
+
+        res.status(500).json({
+            success: false,
+            message: 'Internal server error'
+        });
+    }
+};
+
+const toggleCouponStatus = async (req, res) => {
+    try {
+        const { couponId } = req.params;
+        const coupon = await Coupons.findById(couponId);
+        const newStatus = !coupon.isListed;
+        await Coupons.findByIdAndUpdate(couponId, { isListed: newStatus });
+        res.status(200).json({ 
+            success: true, 
+            message: `Coupon ${newStatus ? 'listed' : 'unlisted'} successfully`,
+            isListed: newStatus
+        });
+    } catch (error) {
+        console.error('Error in toggleCouponStatus:', error);
+        res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+};
+
+
 module.exports = {
     getCouponPage,
+    addCoupon,
+    toggleCouponStatus,
 }

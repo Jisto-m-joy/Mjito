@@ -5,6 +5,17 @@
     rel="stylesheet"
     href="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.css"
   />
+  <!-- Material Icons font -->
+  <link
+    href="https://fonts.googleapis.com/icon?family=Material+Icons"
+    rel="stylesheet"
+  />
+  <style>
+    .error-message {
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+    }
+ </style>
 </head>
 
 <div class="content-main">
@@ -94,9 +105,12 @@
                                 <td><%= new Date(coupon.expireOn).toISOString().split('T')[0] %></td>
                                 <td><%= coupon.isListed ? 'Active' : 'Inactive' %></td>
                                 <td>
-                                    <button class="btn btn-sm btn-danger" onclick="deleteCoupon('<%= coupon._id %>')">
-                                        <i class="material-icons md-delete"></i>
-                                    </button>
+                                <button 
+                                    class="btn btn-sm list-toggle-btn" 
+                                    onclick="toggleCouponStatus('<%= coupon._id %>', <%= coupon.isListed %>)"
+                                    style="background-color: <%= coupon.isListed ? '#dc3545' : '#198754' %>; color: white;">
+                                    <%= coupon.isListed ? 'Unlist' : 'List' %>
+                                </button>
                                 </td>
                             </tr>
                         <% }); %>
@@ -135,12 +149,184 @@
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
 <script>
-    document.getElementById('addCouponForm').addEventListener('submit', function(e) {
+    // Helper function to display error messages
+    function displayError(fieldId, message) {
+        const field = document.getElementById(fieldId);
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'error-message text-danger mt-1';
+        errorDiv.textContent = message;
+        field.parentNode.appendChild(errorDiv);
+    }
+
+    // Function to handle coupon listing and unlisting
+    async function toggleCouponStatus(couponId, currentStatus) {
+    try {
+        const result = await Swal.fire({
+            title: 'Are you sure?',
+            text: `This coupon will be ${currentStatus ? 'unlisted' : 'listed'}!`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: `Yes, ${currentStatus ? 'unlist' : 'list'} it!`
+        });
+
+        if (result.isConfirmed) {
+            const response = await fetch(`/admin/toggleCouponStatus/${couponId}`, {
+                method: 'PATCH'
+            });
+            const data = await response.json();
+            
+            if (data.success) {
+                await Swal.fire(
+                    'Success!',
+                    `The coupon has been ${data.isListed ? 'listed' : 'unlisted'}.`,
+                    'success'
+                );
+                location.reload();
+            } else {
+                Swal.fire(
+                    'Error!',
+                    data.message || 'Error updating coupon status',
+                    'error'
+                );
+            }
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        Swal.fire(
+            'Error!',
+            'An error occurred while updating the coupon status',
+            'error'
+        );
+    }
+}
+
+    // Reset form and clear errors when modal is closed
+    document.getElementById('addCouponModal').addEventListener('hidden.bs.modal', function () {
+        document.getElementById('addCouponForm').reset();
+        document.querySelectorAll('.error-message').forEach(el => el.remove());
+    });
+
+    // Initialize date restrictions
+    document.addEventListener('DOMContentLoaded', function() {
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('startDate').setAttribute('min', today);
+        
+        // Update expiry date min when start date changes
+        document.getElementById('startDate').addEventListener('change', function() {
+            const startDate = this.value;
+            document.getElementById('expirationDate').setAttribute('min', startDate);
+            
+            // Clear expiry date if it's before start date
+            const expirationDate = document.getElementById('expirationDate');
+            if (expirationDate.value && expirationDate.value <= startDate) {
+                expirationDate.value = '';
+            }
+        });
+    });
+
+    // Form submission handling
+    document.getElementById('addCouponForm').addEventListener('submit', async function(e) {
         e.preventDefault();
-        // Form submission logic will be handled here
-        const modal = bootstrap.Modal.getInstance(document.getElementById('addCouponModal'));
-        modal.hide();
+        
+        // Clear any existing error messages
+        document.querySelectorAll('.error-message').forEach(el => el.remove());
+        
+        // Convert coupon code to uppercase
+        const codeInput = document.getElementById('couponCode');
+        codeInput.value = codeInput.value.toUpperCase();
+        
+        const offerAmount = Number(document.getElementById('offerAmount').value);
+        const minimumPurchase = Number(document.getElementById('minimumPurchase').value);
+        const startDate = new Date(document.getElementById('startDate').value);
+        const expirationDate = new Date(document.getElementById('expirationDate').value);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        let hasError = false;
+
+        // Validate offer amount
+        if (offerAmount >= minimumPurchase) {
+            displayError('offerAmount', 'Offer amount must be less than minimum purchase amount');
+            hasError = true;
+        }
+
+        // Validate start date
+        if (startDate < today) {
+            displayError('startDate', 'Start date cannot be in the past');
+            hasError = true;
+        }
+
+        // Validate expiration date
+        if (expirationDate <= startDate) {
+            displayError('expirationDate', 'Expiry date must be after start date');
+            hasError = true;
+        }
+
+        // Validate usage limit
+        const usageLimit = Number(document.getElementById('usageLimit').value);
+        if (usageLimit <= 0) {
+            displayError('usageLimit', 'Usage limit must be greater than 0');
+            hasError = true;
+        }
+
+        if (hasError) {
+            return;
+        }
+
+        const formData = {
+            code: codeInput.value,
+            offerPrice: offerAmount,
+            minimumPrice: minimumPurchase,
+            startOn: document.getElementById('startDate').value,
+            maxUses: usageLimit,
+            expireOn: document.getElementById('expirationDate').value
+        };
+
+        try {
+            const response = await fetch('/admin/addCoupon', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                // Show success message
+                await Swal.fire({
+                    icon: 'success',
+                    title: 'Success!',
+                    text: 'Coupon created successfully',
+                    timer: 1500
+                });
+                
+                // Close modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('addCouponModal'));
+                modal.hide();
+                
+                // Refresh the page to show new coupon
+                location.reload();
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error!',
+                    text: data.message || 'Error creating coupon'
+                });
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error!',
+                text: 'An error occurred while creating the coupon'
+            });
+        }
     });
 </script>
 
