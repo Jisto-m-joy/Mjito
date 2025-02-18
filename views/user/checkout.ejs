@@ -329,7 +329,7 @@
     </div>
   </section>
 </main>
-
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <%- include("../../views/user/partials/footer") %>
 <script>
   document.addEventListener("DOMContentLoaded", function () {
@@ -347,6 +347,158 @@
       });
     });
   });
+
+  document.querySelector('form').addEventListener('submit', function(e) {
+    const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
+    
+    if (paymentMethod === 'online') {
+      e.preventDefault();
+      const addressId = document.getElementById('selectedAddressId').value;
+      
+      // Get coupon code if applied
+      let couponCode = null;
+      const couponInput = document.getElementById('couponInput');
+      if (couponInput && couponInput.value) {
+        couponCode = couponInput.value;
+      }
+      
+      fetch('/initiate-razorpay', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ 
+          addressId,
+          couponCode
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          var options = {
+            key: data.keyId,
+            amount: data.order.amount,
+            currency: data.order.currency,
+            name: "GoalZone",
+            description: "Payment for your order",
+            order_id: data.order.id,
+            handler: function (response) {
+              verifyPayment(response);
+            },
+            prefill: {
+              name: "",
+              email: "",
+              contact: ""
+            },
+            theme: {
+              color: "#3399cc"
+            }
+          };
+          
+          var rzp = new Razorpay(options);
+          rzp.open();
+        } else {
+          alert(data.error || 'Failed to initiate payment');
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('Something went wrong. Please try again later.');
+      });
+    }
+  });
+
+  function verifyPayment(response) {
+    fetch('/verify-razorpay', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        razorpay_order_id: response.razorpay_order_id,
+        razorpay_payment_id: response.razorpay_payment_id,
+        razorpay_signature: response.razorpay_signature
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        window.location.href = '/order-placed';
+      } else {
+        alert(data.error || 'Payment verification failed');
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert('Payment verification failed. Please contact customer support.');
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+  const walletRadio = document.querySelector('input[value="wallet"]');
+  const placeOrderBtn = document.querySelector('.place-order__btn');
+  let walletError = document.createElement('div');
+  walletError.className = 'error-message wallet-error';
+  walletError.style.color = 'red';
+  walletError.style.marginTop = '5px';
+  
+  // Add the error element after the wallet payment option
+  const walletPaymentOption = document.querySelector('label[for="l1"]').parentNode;
+  walletPaymentOption.appendChild(walletError);
+  
+  // Handle wallet radio selection
+  walletRadio.addEventListener('change', async function() {
+    if (this.checked) {
+      await checkWalletBalance();
+    } else {
+      walletError.textContent = '';
+      placeOrderBtn.disabled = false;
+    }
+  });
+  
+  // Also check wallet balance on page load if wallet is selected by default
+  if (walletRadio.checked) {
+    checkWalletBalance();
+  }
+  
+  async function checkWalletBalance() {
+    try {
+      const totalAmount = parseFloat(document.querySelector('.order__grand-total').textContent.replace('₹', ''));
+      
+      const response = await fetch('/wallet-balance');
+      const data = await response.json();
+      
+      if (data.success && data.balance < totalAmount) {
+        walletError.textContent = `Insufficient balance: ₹${data.balance.toFixed(2)}. You need ₹${totalAmount.toFixed(2)}.`;
+        placeOrderBtn.disabled = true;
+      } else {
+        walletError.textContent = '';
+        placeOrderBtn.disabled = false;
+      }
+    } catch (error) {
+      console.error('Error checking wallet balance:', error);
+    }
+  }
+
+    // Validate wallet balance before form submission
+    document.querySelector('form').addEventListener('submit', async function(e) {
+    const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
+    
+    if (paymentMethod === 'wallet') {
+      e.preventDefault();
+      const response = await fetch('/wallet-balance');
+      const data = await response.json();
+      const totalAmount = parseFloat(document.querySelector('.order__grand-total').textContent.replace('₹', ''));
+      
+      if (data.success && data.balance >= totalAmount) {
+        this.submit();
+      } else {
+        walletError.textContent = `Insufficient balance: ₹${data.balance.toFixed(2)}. You need ₹${totalAmount.toFixed(2)}.`;
+        placeOrderBtn.disabled = true;
+      }
+    }
+  });
+});
 
   document
     .getElementById("applyCouponBtn")

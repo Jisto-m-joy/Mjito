@@ -96,6 +96,9 @@ router.get('/checkout', userAuth, checkBlockStatus, checkoutController.loadCheck
 router.post('/place-order', userAuth, checkoutController.placeOrder);
 router.get('/order-placed', userAuth, checkoutController.loadOrderPlacedPage);
 router.post('/apply-coupon', userAuth, checkoutController.applyCoupon);
+router.post('/initiate-razorpay', userAuth, checkoutController.initiateRazorpayPayment);
+router.post('/verify-razorpay', userAuth, checkoutController.verifyRazorpayPayment);
+router.get('/wallet-balance', userAuth, checkoutController.getWalletBalance);
 
 
 // Wishlist Management

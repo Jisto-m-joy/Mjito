@@ -1,62 +1,72 @@
 <%- include("../../views/admin/partials/header") %>
 
 <section class="content-main">
-    <div class="content-header">
+    <div class="content-header mb-4">
         <div>
             <h2 class="content-title card-title">Dashboard</h2>
+            <p class="text-muted">Welcome to your admin dashboard</p>
+        </div>
+        <div>
+            <button class="btn btn-primary" id="downloadReport">
+                <i class="fas fa-download me-2"></i> Download Report
+            </button>
         </div>
     </div>
 
     <!-- Stats -->
     <div class="row">
         <div class="col-lg-3">
-            <div class="card card-body mb-4">
-                <article class="icontext">
-                    <span class="icon icon-sm rounded-circle bg-primary-light">
-                        <i class="fas fa-users text-primary"></i>
-                    </span>
-                    <div class="text">
-                        <h6 class="mb-1">Total Users</h6>
-                        <span><%= totalUsers %></span>
+            <div class="card card-body mb-4 shadow-sm border-0">
+                <article class="d-flex align-items-center">
+                    <div class="icon-stat me-3 rounded-circle d-flex align-items-center justify-content-center bg-primary-light" style="width: 52px; height: 52px;">
+                        <i class="fas fa-users text-primary fs-4"></i>
+                    </div>
+                    <div>
+                        <h6 class="mb-1 text-muted">Total Users</h6>
+                        <span class="fs-4 fw-bold"><%= totalUsers %></span>
+                        <p class="small text-success mb-0"><i class="fas fa-arrow-up"></i> 5.3% growth</p>
                     </div>
                 </article>
             </div>
         </div>
         <div class="col-lg-3">
-            <div class="card card-body mb-4">
-                <article class="icontext">
-                    <span class="icon icon-sm rounded-circle bg-success-light">
-                        <i class="fas fa-box text-success"></i>
-                    </span>
-                    <div class="text">
-                        <h6 class="mb-1">Total Products</h6>
-                        <span><%= totalProducts %></span>
+            <div class="card card-body mb-4 shadow-sm border-0">
+                <article class="d-flex align-items-center">
+                    <div class="icon-stat me-3 rounded-circle d-flex align-items-center justify-content-center bg-success-light" style="width: 52px; height: 52px;">
+                        <i class="fas fa-box text-success fs-4"></i>
+                    </div>
+                    <div>
+                        <h6 class="mb-1 text-muted">Total Products</h6>
+                        <span class="fs-4 fw-bold"><%= totalProducts %></span>
+                        <p class="small text-success mb-0"><i class="fas fa-arrow-up"></i> 7.1% growth</p>
                     </div>
                 </article>
             </div>
         </div>
         <div class="col-lg-3">
-            <div class="card card-body mb-4">
-                <article class="icontext">
-                    <span class="icon icon-sm rounded-circle bg-warning-light">
-                        <i class="fas fa-shopping-cart text-warning"></i>
-                    </span>
-                    <div class="text">
-                        <h6 class="mb-1">Total Orders</h6>
-                        <span><%= totalOrders %></span>
+            <div class="card card-body mb-4 shadow-sm border-0">
+                <article class="d-flex align-items-center">
+                    <div class="icon-stat me-3 rounded-circle d-flex align-items-center justify-content-center bg-warning-light" style="width: 52px; height: 52px;">
+                        <i class="fas fa-shopping-cart text-warning fs-4"></i>
+                    </div>
+                    <div>
+                        <h6 class="mb-1 text-muted">Total Orders</h6>
+                        <span class="fs-4 fw-bold"><%= totalOrders %></span>
+                        <p class="small text-success mb-0"><i class="fas fa-arrow-up"></i> 3.2% growth</p>
                     </div>
                 </article>
             </div>
         </div>
         <div class="col-lg-3">
-            <div class="card card-body mb-4">
-                <article class="icontext">
-                    <span class="icon icon-sm rounded-circle bg-info-light">
-                        <i class="fas fa-money-bill text-info"></i>
-                    </span>
-                    <div class="text">
-                        <h6 class="mb-1">Total Revenue</h6>
-                        <span>₹<%= totalRevenue %></span>
+            <div class="card card-body mb-4 shadow-sm border-0">
+                <article class="d-flex align-items-center">
+                    <div class="icon-stat me-3 rounded-circle d-flex align-items-center justify-content-center bg-info-light" style="width: 52px; height: 52px;">
+                        <i class="fas fa-indian-rupee-sign text-info fs-4"></i>
+                    </div>
+                    <div>
+                        <h6 class="mb-1 text-muted">Total Revenue</h6>
+                        <span class="fs-4 fw-bold">₹<%= totalRevenue %></span>
+                        <p class="small text-success mb-0"><i class="fas fa-arrow-up"></i> 8.9% growth</p>
                     </div>
                 </article>
             </div>
@@ -66,35 +76,57 @@
     <!-- Sales Report -->
     <div class="row">
         <div class="col-xl-8 col-lg-12">
-            <div class="card mb-4">
+            <div class="card mb-4 shadow-sm border-0">
                 <article class="card-body">
-                    <h5 class="card-title">Revenue & Orders Overview</h5>
-                    <button class="btn btn-primary btn-sm float-end" id="downloadReport">
-                        <i class="fas fa-download"></i> Download Report
-                    </button>
-                    <canvas id="salesChart" height="300"></canvas>
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h5 class="card-title mb-0">Revenue & Orders Overview</h5>
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="timeRangeDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-calendar me-1"></i> Last 30 days
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="timeRangeDropdown">
+                                <li><a class="dropdown-item" href="#">Last 7 days</a></li>
+                                <li><a class="dropdown-item" href="#">Last 30 days</a></li>
+                                <li><a class="dropdown-item" href="#">Last 3 months</a></li>
+                                <li><a class="dropdown-item" href="#">Last year</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="chart-container" style="position: relative; height:300px;">
+                        <canvas id="salesChart"></canvas>
+                    </div>
                 </article>
             </div>
         </div>
         <div class="col-xl-4 col-lg-12">
-            <div class="card mb-4">
+            <div class="card mb-4 shadow-sm border-0">
                 <article class="card-body">
-                    <h5 class="card-title">Top Products</h5>
-                    <canvas id="productChart" height="300"></canvas>
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h5 class="card-title mb-0">Top Products</h5>
+                        <button class="btn btn-sm btn-outline-secondary">
+                            <i class="fas fa-filter me-1"></i> Filter
+                        </button>
+                    </div>
+                    <div class="chart-container" style="position: relative; height:300px;">
+                        <canvas id="productChart"></canvas>
+                    </div>
                 </article>
             </div>
         </div>
     </div>
 
     <!-- Recent Orders -->
-    <div class="card mb-4">
-        <header class="card-header">
-            <h4 class="card-title">Recent Orders</h4>
+    <div class="card mb-4 shadow-sm border-0">
+        <header class="card-header bg-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <h4 class="card-title mb-0">Recent Orders</h4>
+                <a href="#" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
         </header>
         <div class="card-body">
             <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead>
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
                         <tr>
                             <th>Order ID</th>
                             <th>Customer</th>
@@ -102,6 +134,7 @@
                             <th>Amount</th>
                             <th>Status</th>
                             <th>Date</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -111,10 +144,33 @@
                             <td><%= order.customerName %></td>
                             <td><%= order.productName %></td>
                             <td>₹<%= order.amount %></td>
-                            <td><span class="badge bg-<%= order.status === 'Pending' ? 'warning' : 'success' %>">
-                                <%= order.status %>
-                            </span></td>
+                            <td>
+                                <% if (order.status === 'Pending') { %>
+                                <span class="badge bg-warning text-dark">Pending</span>
+                                <% } else if (order.status === 'Processing') { %>
+                                <span class="badge bg-info text-dark">Processing</span>
+                                <% } else if (order.status === 'Delivered') { %>
+                                <span class="badge bg-success">Delivered</span>
+                                <% } else if (order.status === 'Cancelled') { %>
+                                <span class="badge bg-danger">Cancelled</span>
+                                <% } else { %>
+                                <span class="badge bg-secondary"><%= order.status %></span>
+                                <% } %>
+                            </td>
                             <td><%= order.date %></td>
+                            <td>
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-light" type="button" id="dropdownMenuButton-<%= order.orderId %>" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="fas fa-ellipsis-v"></i>
+                                    </button>
+                                    <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton-<%= order.orderId %>">
+                                        <li><a class="dropdown-item" href="#"><i class="fas fa-eye me-2"></i>View Details</a></li>
+                                        <li><a class="dropdown-item" href="#"><i class="fas fa-print me-2"></i>Print</a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item text-danger" href="#"><i class="fas fa-trash me-2"></i>Delete</a></li>
+                                    </ul>
+                                </div>
+                            </td>
                         </tr>
                         <% }); %>
                     </tbody>
@@ -165,64 +221,253 @@
     </div>
 </div>
 
+<!-- Required Libraries -->
+<!-- FontAwesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 <!-- Chart.js -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Custom Styles -->
+<style>
+    .icon-stat {
+        transition: all 0.3s;
+    }
+    .card {
+        transition: all 0.3s;
+    }
+    .card:hover {
+        transform: translateY(-5px);
+    }
+    .bg-primary-light {
+        background-color: rgba(13, 110, 253, 0.1);
+    }
+    .bg-success-light {
+        background-color: rgba(25, 135, 84, 0.1);
+    }
+    .bg-warning-light {
+        background-color: rgba(255, 193, 7, 0.1);
+    }
+    .bg-info-light {
+        background-color: rgba(13, 202, 240, 0.1);
+    }
+    .bg-danger-light {
+        background-color: rgba(220, 53, 69, 0.1);
+    }
+    .chart-container {
+        margin: 0 auto;
+        width: 100%;
+        height: 300px;
+        position: relative;
+    }
+    canvas#salesChart, canvas#productChart {
+        width: 100% !important;
+        height: 100% !important;
+        display: block;
+    }
+</style>
 
 <!-- Dashboard Scripts -->
 <script>
-    // Sales Chart
-    const salesCtx = document.getElementById('salesChart').getContext('2d');
-    new Chart(salesCtx, {
-        type: 'line',
-        data: {
-            labels: ['Sept', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb'],
-            datasets: [{
-                label: 'Revenue',
-                data: '<%= JSON.stringify(revenueData) %>',
-                borderColor: '#36A2EB',
-                tension: 0.4
-            }, {
-                label: 'Orders',
-                data: '<%= JSON.stringify(ordersData) %>',
-                borderColor: '#4BC0C0',
-                tension: 0.4
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: {
-                    position: 'top',
-                }
+    document.addEventListener('DOMContentLoaded', function() {
+        try {
+            // Parse data from JSON strings
+            const revenueData = JSON.parse('<%= revenueData %>');
+            const ordersData = JSON.parse('<%= ordersData %>');
+            const chartLabels = JSON.parse('<%= chartLabels %>');
+            const productLabels = JSON.parse('<%= productLabels %>');
+            const productData = JSON.parse('<%= productData %>');
+            
+            // Sales Chart with improved styling
+            const salesCtx = document.getElementById('salesChart');
+            if (!salesCtx) {
+                console.error('Sales chart canvas not found');
+                return;
             }
-        }
-    });
+            
+            const ctxSales = salesCtx.getContext('2d');
+            
+            const gradient1 = ctxSales.createLinearGradient(0, 0, 0, 400);
+            gradient1.addColorStop(0, 'rgba(54, 162, 235, 0.5)');
+            gradient1.addColorStop(1, 'rgba(54, 162, 235, 0.05)');
+            
+            const gradient2 = ctxSales.createLinearGradient(0, 0, 0, 400);
+            gradient2.addColorStop(0, 'rgba(75, 192, 192, 0.5)');
+            gradient2.addColorStop(1, 'rgba(75, 192, 192, 0.05)');
 
-    // Product Chart
-    const productCtx = document.getElementById('productChart').getContext('2d');
-    new Chart(productCtx, {
-        type: 'doughnut',
-        data: {
-            labels: '<%= JSON.stringify(productLabels) %>',
-            datasets: [{
-                data: '<%= JSON.stringify(productData) %>',
-                backgroundColor: ['#36A2EB', '#4BC0C0', '#FF6384']
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: {
-                    position: 'bottom'
+            const salesChart = new Chart(ctxSales, {
+                type: 'line',
+                data: {
+                    labels: chartLabels,
+                    datasets: [{
+                        label: 'Revenue',
+                        data: revenueData,
+                        borderColor: '#36A2EB',
+                        borderWidth: 3,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#36A2EB',
+                        tension: 0.4,
+                        fill: true,
+                        backgroundColor: gradient1
+                    }, {
+                        label: 'Orders',
+                        data: ordersData,
+                        borderColor: '#4BC0C0',
+                        borderWidth: 3,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#4BC0C0',
+                        tension: 0.4,
+                        fill: true,
+                        backgroundColor: gradient2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                boxWidth: 10,
+                                padding: 20,
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0,0,0,0.7)',
+                            padding: 10,
+                            titleFont: {
+                                size: 14
+                            },
+                            bodyFont: {
+                                size: 14
+                            },
+                            displayColors: false,
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.dataset.label === 'Revenue') {
+                                        label += '₹' + context.parsed.y;
+                                    } else {
+                                        label += context.parsed.y;
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0,0,0,0.05)'
+                            }
+                        }
+                    },
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    }
                 }
+            });
+
+            // Product Chart with improved styling
+            const productCtx = document.getElementById('productChart');
+            if (!productCtx) {
+                console.error('Product chart canvas not found');
+                return;
             }
+            
+            const ctxProduct = productCtx.getContext('2d');
+            const colorPalette = [
+                'rgba(54, 162, 235, 0.8)',
+                'rgba(75, 192, 192, 0.8)',
+                'rgba(255, 99, 132, 0.8)',
+                'rgba(255, 159, 64, 0.8)',
+                'rgba(153, 102, 255, 0.8)',
+            ];
+
+            const productChart = new Chart(ctxProduct, {
+                type: 'doughnut',
+                data: {
+                    labels: productLabels,
+                    datasets: [{
+                        data: productData,
+                        backgroundColor: colorPalette,
+                        borderColor: 'white',
+                        borderWidth: 2,
+                        hoverBorderWidth: 0,
+                        hoverOffset: 10
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '65%',
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 15,
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0,0,0,0.7)',
+                            padding: 10,
+                            titleFont: {
+                                size: 14
+                            },
+                            bodyFont: {
+                                size: 14
+                            },
+                            displayColors: false,
+                            callbacks: {
+                                label: function(context) {
+                                    const total = context.dataset.data.reduce((acc, val) => acc + val, 0);
+                                    const value = context.raw;
+                                    const percentage = ((value / total) * 100).toFixed(1);
+                                    return `${context.label}: ${percentage}% (${value})`;
+                                }
+                            }
+                        }
+                    },
+                    animation: {
+                        animateScale: true,
+                        animateRotate: true
+                    }
+                }
+            });
+        } catch (error) {
+            console.error('Error initializing charts:', error);
         }
     });
 
     // Download Report
     document.getElementById('downloadReport').addEventListener('click', function() {
-        var myModal = new bootstrap.Modal(document.getElementById('generateReportModal'));
+        const myModal = new bootstrap.Modal(document.getElementById('generateReportModal'));
         myModal.show();
+    });
+
+    document.getElementById('generateReportBtn').addEventListener('click', function() {
+        // Handle report generation here
+        const reportType = document.getElementById('reportType').value;
+        const reportFormat = document.getElementById('reportFormat').value;
+        alert(`Generating ${reportType} report in ${reportFormat} format`);
+        // Close modal
+        bootstrap.Modal.getInstance(document.getElementById('generateReportModal')).hide();
     });
 </script>
 
