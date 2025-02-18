@@ -4,6 +4,11 @@ const Wishlist = require("../../models/wishlistSchema");
 
 const loadWishlistPage = async (req, res, next) => {
     try {
+        // Check if user exists in request
+        if (!req.user) {
+            return res.redirect('/login');
+        }
+        
         // Find wishlist for current user and populate product details
         const wishlist = await Wishlist.findOne({ userId: req.user._id })
             .populate({
@@ -18,7 +23,6 @@ const loadWishlistPage = async (req, res, next) => {
         next(error);
     }
 }
-
 const addToWishlist = async (req, res) => {
     try {
         const productId = req.params.productId;

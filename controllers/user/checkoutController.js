@@ -3,6 +3,7 @@ const Cart = require("../../models/cartSchema");
 const Address = require("../../models/addressSchema");
 const Order = require("../../models/orderSchema");  
 const Product = require("../../models/productSchema");
+const Coupon = require("../../models/couponSchema");
 const mongoose = require('mongoose');
 
 
@@ -19,14 +20,22 @@ const loadCheckoutPage = async (req, res, next) => {
           select: 'name images combos'
       });
 
+      const activeCoupons = await Coupon.find({
+        isListed: true,
+        isDeleted: false,
+        startOn: { $lte: new Date() },
+        expireOn: { $gte: new Date() }
+    });
+
       // Calculate totals
       const subtotal = cart ? cart.items.reduce((total, item) => total + item.totalPrice, 0) : 0;
       
       res.render('checkout', {
-          addresses: userAddresses ? userAddresses.address : [],
-          cartItems: cart ? cart.items : [],
-          subtotal: subtotal.toFixed(2)
-      });
+        addresses: userAddresses ? userAddresses.address : [],
+        cartItems: cart ? cart.items : [],
+        subtotal: subtotal.toFixed(2),
+        coupons: activeCoupons  
+    });
       
   } catch (error) {
       next(error);
@@ -198,8 +207,66 @@ const placeOrder = async (req, res) => {
     }
 };
 
+const applyCoupon = async (req, res) => {
+    try {
+        const { couponCode } = req.body;
+        const userId = req.session.user._id;
+
+        // Find the coupon
+        const coupon = await Coupon.findOne({
+            code: couponCode.toUpperCase(),
+            isListed: true,
+            isDeleted: false,
+            startOn: { $lte: new Date() },
+            expireOn: { $gte: new Date() }
+        });
+
+        if (!coupon) {
+            return res.status(400).json({ error: 'Invalid coupon code' });
+        }
+
+        // Get cart total
+        const cart = await Cart.findOne({ userId }).populate('items.productId');
+        const cartTotal = cart.items.reduce((sum, item) => sum + item.totalPrice, 0);
+
+        if (cartTotal < coupon.minimumPrice) {
+            return res.status(400).json({
+                error: `Minimum purchase amount of ₹${coupon.minimumPrice} required`
+            });
+        }
+
+        // Check if user has already used this coupon
+        const userOrders = await Order.find({
+            userId,
+            couponCode: couponCode
+        });
+
+        if (userOrders.length >= coupon.maxUsesPerUser) {
+            return res.status(400).json({ error: 'You have already used this coupon' });
+        }
+
+        // Check total usage limit
+        if (coupon.usesCount >= coupon.maxUses) {
+            return res.status(400).json({ error: 'Coupon usage limit exceeded' });
+        }
+
+        // Calculate discount
+        const discount = Math.min(coupon.offerPrice, cartTotal);
+
+        res.json({
+            success: true,
+            discount,
+            finalAmount: cartTotal - discount
+        });
+
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to apply coupon' });
+    }
+};
+
 module.exports = {
     loadCheckoutPage,
     placeOrder,
-    loadOrderPlacedPage
+    loadOrderPlacedPage,
+    applyCoupon,
 };

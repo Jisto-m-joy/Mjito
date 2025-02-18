@@ -107,7 +107,7 @@
                                 <td>
                                 <button 
                                     class="btn btn-sm list-toggle-btn" 
-                                    onclick="toggleCouponStatus('<%= coupon._id %>', <%= coupon.isListed %>)"
+                                    onclick="toggleCouponStatus('<%= coupon._id %>', '<%= coupon.isListed %>')"
                                     style="background-color: <%= coupon.isListed ? '#dc3545' : '#198754' %>; color: white;">
                                     <%= coupon.isListed ? 'Unlist' : 'List' %>
                                 </button>

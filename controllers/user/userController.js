@@ -242,6 +242,7 @@ const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
     const user = await User.findOne({ email });
+    req.session.user = user._id;
 
     if (!user) {
       return res.render("login", { message: "User not found" });

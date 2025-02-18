@@ -1,199 +1,429 @@
 <%- include("../../views/user/partials/header") %>
+<head>
+  <style>
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+    }
 
- 
- <!--=============== MAIN ===============-->
- <main class="main">
-    <!--=============== BREADCRUMB ===============-->
-    <section class="breadcrumb">
-      <ul class="breadcrumb__list flex container">
-        <li><a href="/home" class="breadcrumb__link">Home</a></li>
-        <li><span class="breadcrumb__link">></span></li>
-        <li><a href="/shop" class="breadcrumb__link">Shop</a></li>
-        <li><span class="breadcrumb__link">></span></li>
-        <li><a href="/home" class="breadcrumb__link">Checkout</a></li>
-      </ul>
-    </section>
+    .modal-content {
+      background-color: #fefefe;
+      margin: 15% auto;
+      padding: 20px;
+      border: 1px solid #888;
+      width: 80%;
+      max-width: 600px;
+      border-radius: 8px;
+    }
 
-    <!--=============== CHECKOUT ===============-->
-    <section class="checkout section--lg">
-      <div class="checkout__container container grid">
-        <div class="checkout__group">
-          <h3 class="section__title">Select Delivery Address</h3>
-          <div class="address__list grid">
-            <% addresses.forEach((address, index) => { %>
-                <div class="address__item">
-                  <input type="radio" name="address" id="address<%= index + 1 %>" 
-                  value="<%= address._id %>" 
-                  class="address__radio" <%= index === 0 ? 'checked' : '' %>>
-                    <label for="address<%= index + 1 %>" class="address__label">
-                        <div class="address__details">
-                            <h4 class="address__name"><%= address.addressType %></h4>
-                            <p class="address__text"><%= address.fullName %></p>
-                            <p class="address__text"><%= address.address %></p>
-                            <p class="address__text"><%= address.city %>, <%= address.state %> <%= address.pincode %></p>
-                            <p class="address__text">Phone: <%= address.phone %></p>
-                        </div>
-                    </label>
-                </div>
-            <% }); %>
-        
-            <a href="/user-address"><button class="btn add__address-btn">
-                <i class="fas fa-plus">Add New Address </i>
-            </button></a>
+    .close {
+      color: #aaa;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .close:hover {
+      color: black;
+    }
+
+    .modal-coupons {
+      max-height: 400px;
+      overflow-y: auto;
+      padding: 10px;
+    }
+
+    .coupon__card {
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .coupon__card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .success-message {
+      color: green;
+      padding: 5px;
+      border-radius: 4px;
+      margin-top: 5px;
+    }
+
+    .error-message {
+      color: red;
+      padding: 5px;
+      border-radius: 4px;
+      margin-top: 5px;
+    }
+
+    .show-more__btn {
+      margin-top: 10px;
+      width: 100%;
+      background-color: #f0f0f0;
+      border: 1px solid #ddd;
+      color: black; /* Text color changed to black */
+    }
+  </style>
+</head>
+
+<!--=============== MAIN ===============-->
+<main class="main">
+  <!--=============== BREADCRUMB ===============-->
+  <section class="breadcrumb">
+    <ul class="breadcrumb__list flex container">
+      <li><a href="/home" class="breadcrumb__link">Home</a></li>
+      <li><span class="breadcrumb__link">></span></li>
+      <li><a href="/shop" class="breadcrumb__link">Shop</a></li>
+      <li><span class="breadcrumb__link">></span></li>
+      <li><a href="/home" class="breadcrumb__link">Checkout</a></li>
+    </ul>
+  </section>
+
+  <!--=============== CHECKOUT ===============-->
+  <section class="checkout section--lg">
+    <div class="checkout__container container grid">
+      <div class="checkout__group">
+        <h3 class="section__title">Select Delivery Address</h3>
+        <div class="address__list grid">
+          <% addresses.forEach((address, index) => { %>
+          <div class="address__item">
+            <input type="radio" name="address" id="address<%= index + 1 %>"
+            value="<%= address._id %>" class="address__radio" <%= index === 0 ?
+            'checked' : '' %>>
+            <label for="address<%= index + 1 %>" class="address__label">
+              <div class="address__details">
+                <h4 class="address__name"><%= address.addressType %></h4>
+                <p class="address__text"><%= address.fullName %></p>
+                <p class="address__text"><%= address.address %></p>
+                <p class="address__text">
+                  <%= address.city %>, <%= address.state %> <%= address.pincode
+                  %>
+                </p>
+                <p class="address__text">Phone: <%= address.phone %></p>
+              </div>
+            </label>
+          </div>
+          <% }); %>
+
+          <a href="/user-address"
+            ><button class="btn add__address-btn">
+              <i class="fas fa-plus">Add New Address </i>
+            </button></a
+          >
         </div>
-        
+
         <!-- Coupon Code Section -->
-        <div class="coupon__container">
+        <div class="checkout__group coupon-group">
+          <div class="coupon__container">
             <h3 class="section__title">Apply Coupon</h3>
             <div class="coupon__input-group">
-                <input type="text" class="coupon__input" placeholder="Enter coupon code">
-                <button type="button" class="btn coupon__btn">Apply</button>
+              <input
+                type="text"
+                id="couponInput"
+                class="coupon__input"
+                placeholder="Enter coupon code"
+              />
+              <button type="button" id="applyCouponBtn" class="btn coupon__btn">
+                Apply
+              </button>
             </div>
-            <div class="coupon__message-container"></div>
-            <div class="available__coupons">
-                <h4>Available Coupons:</h4>
-                <div class="coupon__card">
-                    <div class="coupon__code">ASAS</div>
-                    <div class="coupon__details">
-                        <p>Get ₹1000 off on minimum purchase of ₹10000</p>
-                        <small>Valid till 2/13/2025</small>
-                    </div>
-                </div>
-            </div>
-        </div>
-        </div>
-        <div class="checkout__group">
-          <h3 class="section__title">Cart Totals</h3>
-          <table class="order__table">
-            <thead>
-              <tr>
-                <th colspan="2">Products</th>
-                <th>Total</th>
-              </tr>
-            </thead>
+            <div id="couponMessage" class="coupon__message-container"></div>
 
-            <tbody>
-              <% cartItems.forEach(item => { %>
-                  <tr>
-                      <td>
-                          <img src="<%= item.productId.images[0] %>" alt="" class="order__img"/>
-                      </td>
-                      <td>
-                          <h3 class="table__title"><%= item.productId.name %></h3>
-                          <p class="table__quantity">x <%= item.quantity %></p>
-                      </td>
-                      <td><span class="table__price">₹<%= item.totalPrice.toFixed(2) %></span></td>
-                  </tr>
-              <% }); %>
-          
-              <tr>
-                  <td><span class="order__subtitle">Subtotal</span></td>
-                  <td colspan="2"><span class="table__price">₹<%= subtotal %></span></td>
-              </tr>
-              <tr>
-                  <td><span class="order__subtitle">Shipping</span></td>
-                  <td colspan="2">
-                      <span class="table__price">Free Shipping</span>
-                  </td>
-              </tr>
-              <tr>
-                  <td><span class="order__subtitle">Total</span></td>
-                  <td colspan="2">
-                      <span class="order__grand-total">₹<%= subtotal %></span>
-                  </td>
-              </tr>
-          </tbody>
-          </table>
-          <form action="/place-order" method="POST">
-            <input type="hidden" name="addressId" id="selectedAddressId" value="">
-              <div class="payment__methods">
-                <h3 class="checkout__title payment__title">Payment</h3>
-                <div class="payment__option flex">
-                  <input
-                    type="radio"
-                    name="paymentMethod"
-                    id="l1"
-                    value="wallet"
-                    checked
-                    class="payment__input"
-                  />
-                  <label for="l1" class="payment__label"
-                    >Wallet</label
-                  >
-                </div>
-                <div class="payment__option flex">
-                  <input
-                    type="radio"
-                    name="paymentMethod"
-                    id="l2"
-                    value="cod"
-                    checked
-                    class="payment__input"
-                  />
-                  <label for="l2" class="payment__label"
-                    >Cash on delivery</label
-                  >
-                </div>
-                <div class="payment__option flex">
-                  <input
-                    type="radio"
-                    name="paymentMethod"
-                    id="l3"
-                    value="online"
-                    class="payment__input"
-                  />
-                  <label for="l3" class="payment__label"
-                    >Online Payment</label
+            <!-- Show first coupon and "Show More" button -->
+            <div class="available__coupons">
+              <h4>Available Coupons:</h4>
+              <% if (coupons.length > 0) { %>
+              <div
+                class="coupon__card"
+                onclick="applyCouponCode('<%= coupons[0].code %>')"
+              >
+                <div class="coupon__code"><%= coupons[0].code %></div>
+                <div class="coupon__details">
+                  <p>
+                    Get ₹<%= coupons[0].offerPrice %> off on minimum purchase of
+                    ₹<%= coupons[0].minimumPrice %>
+                  </p>
+                  <small
+                    >Valid till <%= coupons[0].expireOn.toLocaleDateString()
+                    %></small
                   >
                 </div>
               </div>
-              
-              <button type="submit" class="btn place-order__btn">Place Order</button>
-          </form>
+              <% if (coupons.length > 1) { %>
+              <button id="showMoreCoupons" class="btn show-more__btn">
+                Show More Coupons
+              </button>
+              <% } %> <% } %>
+            </div>
+          </div>
         </div>
       </div>
-    </section>
 
-    <!--=============== NEWSLETTER ===============-->
-    <section class="newsletter section">
-      <div class="newsletter__container container grid">
-        <h3 class="newsletter__title flex">
-          <img
-            src="./assets/img/icon-email.svg"
-            alt=""
-            class="newsletter__icon"
-          />
-          Sign in to Newsletter
-        </h3>
-        <p class="newsletter__description">
-          ...and receive ₹25 coupon for first shopping.
-        </p>
-        <form action="" class="newsletter__form">
+      <!-- Cart totals  -->
+      <div class="checkout__group">
+        <h3 class="section__title">Cart Totals</h3>
+        <table class="order__table">
+          <thead>
+            <tr>
+              <th colspan="2">Products</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <% cartItems.forEach(item => { %>
+            <tr>
+              <td>
+                <img
+                  src="<%= item.productId.images[0] %>"
+                  alt=""
+                  class="order__img"
+                />
+              </td>
+              <td>
+                <h3 class="table__title"><%= item.productId.name %></h3>
+                <p class="table__quantity">x <%= item.quantity %></p>
+              </td>
+              <td>
+                <span class="table__price"
+                  >₹<%= item.totalPrice.toFixed(2) %></span
+                >
+              </td>
+            </tr>
+            <% }); %>
+
+            <tr>
+              <td><span class="order__subtitle">Subtotal</span></td>
+              <td colspan="2">
+                <span class="table__price">₹<%= subtotal %></span>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="order__subtitle">Shipping</span></td>
+              <td colspan="2">
+                <span class="table__price">Free Shipping</span>
+              </td>
+            </tr>
+            <tr id="coupon-discount-row" style="display: none">
+              <td><span class="order__subtitle">Coupon Discount</span></td>
+              <td colspan="2">
+                <span class="table__price coupon-discount">-₹0</span>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="order__subtitle">Total</span></td>
+              <td colspan="2">
+                <span class="order__grand-total">₹<%= subtotal %></span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <form action="/place-order" method="POST">
           <input
-            type="text"
-            placeholder="Enter Your Email"
-            class="newsletter__input"
+            type="hidden"
+            name="addressId"
+            id="selectedAddressId"
+            value=""
           />
-          <button type="submit" class="newsletter__btn">Subscribe</button>
+          <div class="payment__methods">
+            <h3 class="checkout__title payment__title">Payment</h3>
+            <div class="payment__option flex">
+              <input
+                type="radio"
+                name="paymentMethod"
+                id="l1"
+                value="wallet"
+                checked
+                class="payment__input"
+              />
+              <label for="l1" class="payment__label">Wallet</label>
+            </div>
+            <div class="payment__option flex">
+              <input
+                type="radio"
+                name="paymentMethod"
+                id="l2"
+                value="cod"
+                checked
+                class="payment__input"
+              />
+              <label for="l2" class="payment__label">Cash on delivery</label>
+            </div>
+            <div class="payment__option flex">
+              <input
+                type="radio"
+                name="paymentMethod"
+                id="l3"
+                value="online"
+                class="payment__input"
+              />
+              <label for="l3" class="payment__label">Razorpay</label>
+            </div>
+          </div>
+
+          <button type="submit" class="btn place-order__btn">
+            Place Order
+          </button>
         </form>
       </div>
-    </section>
-  </main>
+    </div>
+  </section>
 
-  <%- include("../../views/user/partials/footer") %>
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Set initial selected address
-        const firstAddressRadio = document.querySelector('input[name="address"]');
-        if (firstAddressRadio) {
-            document.getElementById('selectedAddressId').value = firstAddressRadio.value;
-        }
-    
-        // Update selected address when radio changes
-        document.querySelectorAll('input[name="address"]').forEach(radio => {
-            radio.addEventListener('change', function() {
-                document.getElementById('selectedAddressId').value = this.value;
-            });
-        });
+  <!-- Coupon Modal -->
+  <div id="couponModal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h2>Available Coupons</h2>
+      <div class="modal-coupons">
+        <% coupons.forEach(coupon => { %>
+        <div
+          class="coupon__card"
+          onclick="applyCouponCode('<%= coupon.code %>')"
+        >
+          <div class="coupon__code"><%= coupon.code %></div>
+          <div class="coupon__details">
+            <p>
+              Get ₹<%= coupon.offerPrice %> off on minimum purchase of ₹<%=
+              coupon.minimumPrice %>
+            </p>
+            <small
+              >Valid till <%= coupon.expireOn.toLocaleDateString() %></small
+            >
+          </div>
+        </div>
+        <% }); %>
+      </div>
+    </div>
+  </div>
+
+  <!--=============== NEWSLETTER ===============-->
+  <section class="newsletter section">
+    <div class="newsletter__container container grid">
+      <h3 class="newsletter__title flex">
+        <img
+          src="./assets/img/icon-email.svg"
+          alt=""
+          class="newsletter__icon"
+        />
+        Sign in to Newsletter
+      </h3>
+      <p class="newsletter__description">
+        ...and receive ₹25 coupon for first shopping.
+      </p>
+      <form action="" class="newsletter__form">
+        <input
+          type="text"
+          placeholder="Enter Your Email"
+          class="newsletter__input"
+        />
+        <button type="submit" class="newsletter__btn">Subscribe</button>
+      </form>
+    </div>
+  </section>
+</main>
+
+<%- include("../../views/user/partials/footer") %>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    // Set initial selected address
+    const firstAddressRadio = document.querySelector('input[name="address"]');
+    if (firstAddressRadio) {
+      document.getElementById("selectedAddressId").value =
+        firstAddressRadio.value;
+    }
+
+    // Update selected address when radio changes
+    document.querySelectorAll('input[name="address"]').forEach((radio) => {
+      radio.addEventListener("change", function () {
+        document.getElementById("selectedAddressId").value = this.value;
+      });
     });
-    </script>
+  });
+
+  document
+    .getElementById("applyCouponBtn")
+    .addEventListener("click", async function () {
+      const couponCode = document.getElementById("couponInput").value;
+      const messageContainer = document.getElementById("couponMessage");
+
+      try {
+        const response = await fetch("/apply-coupon", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ couponCode }),
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          messageContainer.innerHTML = `<div class="success-message">Coupon applied! Discount: ₹${data.discount}</div>`;
+
+          // Show and update the discount row
+          const discountRow = document.getElementById("coupon-discount-row");
+          discountRow.style.display = "table-row";
+          document.querySelector(
+            ".coupon-discount"
+          ).textContent = `-₹${data.discount}`;
+
+          // Update the total
+          document.querySelector(
+            ".order__grand-total"
+          ).textContent = `₹${data.finalAmount}`;
+
+          // Add hidden input for order placement
+          let hiddenInput = document.createElement("input");
+          hiddenInput.type = "hidden";
+          hiddenInput.name = "couponCode";
+          hiddenInput.value = couponCode;
+          document.querySelector("form").appendChild(hiddenInput);
+        } else {
+          messageContainer.innerHTML = `<div class="error-message">${data.error}</div>`;
+        }
+      } catch (error) {
+        messageContainer.innerHTML =
+          '<div class="error-message">Failed to apply coupon</div>';
+      }
+    });
+
+  document.addEventListener("DOMContentLoaded", function () {
+    const modal = document.getElementById("couponModal");
+    const showMoreBtn = document.getElementById("showMoreCoupons");
+    const closeBtn = document.querySelector(".close");
+
+    if (showMoreBtn) {
+      showMoreBtn.addEventListener("click", function () {
+        modal.style.display = "block";
+      });
+    }
+
+    if (closeBtn) {
+      closeBtn.addEventListener("click", function () {
+        modal.style.display = "none";
+      });
+    }
+
+    window.addEventListener("click", function (event) {
+      if (event.target == modal) {
+        modal.style.display = "none";
+      }
+    });
+  });
+
+  function applyCouponCode(code) {
+    document.getElementById("couponInput").value = code;
+    document.getElementById("applyCouponBtn").click();
+    if (document.getElementById("couponModal").style.display === "block") {
+      document.getElementById("couponModal").style.display = "none";
+    }
+  }
+</script>

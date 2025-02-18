@@ -5,6 +5,8 @@ const userAuth = (req, res, next) => {
     User.findById(req.session.user)
       .then((data) => {
         if (data && !data.isBlocked) {
+          // Set the user data in req.user
+          req.user = data;
           next();
         } else {
           console.error("User is not authenticated");
@@ -12,7 +14,7 @@ const userAuth = (req, res, next) => {
         }
       })
       .catch((error) => {
-        console.log("Error in user auth middleware");
+        console.log("Error in user auth middleware", error);
         res.status(500).send("Internal Server Error");
       });
   } else {
