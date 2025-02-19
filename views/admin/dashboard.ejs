@@ -92,8 +92,8 @@
                             </ul>
                         </div>
                     </div>
-                    <div class="chart-container" style="position: relative; height:300px;">
-                        <canvas id="salesChart"></canvas>
+                    <div class="chart-container" style="position: relative; height:400px; width:100%;">
+                        <canvas id="salesChart" width="800" height="400"></canvas>
                     </div>
                 </article>
             </div>
@@ -107,8 +107,8 @@
                             <i class="fas fa-filter me-1"></i> Filter
                         </button>
                     </div>
-                    <div class="chart-container" style="position: relative; height:300px;">
-                        <canvas id="productChart"></canvas>
+                    <div class="chart-container" style="position: relative; height:400px; width:100%;">
+                        <canvas id="productChart" width="400" height="400"></canvas>
                     </div>
                 </article>
             </div>
@@ -206,7 +206,6 @@
                         <select class="form-select" id="reportFormat" name="reportFormat" required>
                             <option value="pdf">PDF</option>
                             <option value="excel">Excel</option>
-                            <option value="csv">CSV</option>
                         </select>
                     </div>
                 </form>
@@ -226,6 +225,8 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 <!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <!-- Custom Styles -->
@@ -257,203 +258,124 @@
     .chart-container {
         margin: 0 auto;
         width: 100%;
-        height: 300px;
+        min-height: 380px;
+        padding: 20px;
         position: relative;
     }
+
     canvas#salesChart, canvas#productChart {
         width: 100% !important;
         height: 100% !important;
-        display: block;
     }
 </style>
 
 <!-- Dashboard Scripts -->
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        try {
-            // Parse data from JSON strings
-            const revenueData = JSON.parse('<%= revenueData %>');
-            const ordersData = JSON.parse('<%= ordersData %>');
-            const chartLabels = JSON.parse('<%= chartLabels %>');
-            const productLabels = JSON.parse('<%= productLabels %>');
-            const productData = JSON.parse('<%= productData %>');
-            
-            // Sales Chart with improved styling
-            const salesCtx = document.getElementById('salesChart');
-            if (!salesCtx) {
-                console.error('Sales chart canvas not found');
-                return;
-            }
-            
-            const ctxSales = salesCtx.getContext('2d');
-            
-            const gradient1 = ctxSales.createLinearGradient(0, 0, 0, 400);
-            gradient1.addColorStop(0, 'rgba(54, 162, 235, 0.5)');
-            gradient1.addColorStop(1, 'rgba(54, 162, 235, 0.05)');
-            
-            const gradient2 = ctxSales.createLinearGradient(0, 0, 0, 400);
-            gradient2.addColorStop(0, 'rgba(75, 192, 192, 0.5)');
-            gradient2.addColorStop(1, 'rgba(75, 192, 192, 0.05)');
+document.addEventListener('DOMContentLoaded', function() {
+    try {
+        // Get the data directly from a script variable
+        const chartData = <%- JSON.stringify(chartData) %>;
+        
+        console.log('Chart Data:', chartData);
 
-            const salesChart = new Chart(ctxSales, {
+        // Sales Chart configuration
+        const salesChart = new Chart(
+            document.getElementById('salesChart').getContext('2d'),
+            {
                 type: 'line',
                 data: {
-                    labels: chartLabels,
-                    datasets: [{
-                        label: 'Revenue',
-                        data: revenueData,
-                        borderColor: '#36A2EB',
-                        borderWidth: 3,
-                        pointRadius: 4,
-                        pointBackgroundColor: '#36A2EB',
-                        tension: 0.4,
-                        fill: true,
-                        backgroundColor: gradient1
-                    }, {
-                        label: 'Orders',
-                        data: ordersData,
-                        borderColor: '#4BC0C0',
-                        borderWidth: 3,
-                        pointRadius: 4,
-                        pointBackgroundColor: '#4BC0C0',
-                        tension: 0.4,
-                        fill: true,
-                        backgroundColor: gradient2
-                    }]
+                    labels: chartData.chartLabels,
+                    datasets: [
+                        {
+                            label: 'Revenue (₹)',
+                            data: chartData.revenueData,
+                            borderColor: '#36A2EB',
+                            backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            yAxisID: 'y-revenue'
+                        },
+                        {
+                            label: 'Orders',
+                            data: chartData.ordersData,
+                            borderColor: '#FF6384',
+                            backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            yAxisID: 'y-orders'
+                        }
+                    ]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    scales: {
+                        'y-revenue': {
+                            type: 'linear',
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'Revenue (₹)'
+                            }
+                        },
+                        'y-orders': {
+                            type: 'linear',
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: 'Number of Orders'
+                            }
+                        }
+                    },
                     plugins: {
                         legend: {
                             position: 'top',
-                            labels: {
-                                boxWidth: 10,
-                                padding: 20,
-                                font: {
-                                    size: 12
-                                }
-                            }
-                        },
-                        tooltip: {
-                            backgroundColor: 'rgba(0,0,0,0.7)',
-                            padding: 10,
-                            titleFont: {
-                                size: 14
-                            },
-                            bodyFont: {
-                                size: 14
-                            },
-                            displayColors: false,
-                            callbacks: {
-                                label: function(context) {
-                                    let label = context.dataset.label || '';
-                                    if (label) {
-                                        label += ': ';
-                                    }
-                                    if (context.dataset.label === 'Revenue') {
-                                        label += '₹' + context.parsed.y;
-                                    } else {
-                                        label += context.parsed.y;
-                                    }
-                                    return label;
-                                }
-                            }
                         }
-                    },
-                    scales: {
-                        x: {
-                            grid: {
-                                display: false
-                            }
-                        },
-                        y: {
-                            beginAtZero: true,
-                            grid: {
-                                color: 'rgba(0,0,0,0.05)'
-                            }
-                        }
-                    },
-                    interaction: {
-                        mode: 'index',
-                        intersect: false
                     }
                 }
-            });
-
-            // Product Chart with improved styling
-            const productCtx = document.getElementById('productChart');
-            if (!productCtx) {
-                console.error('Product chart canvas not found');
-                return;
             }
-            
-            const ctxProduct = productCtx.getContext('2d');
-            const colorPalette = [
-                'rgba(54, 162, 235, 0.8)',
-                'rgba(75, 192, 192, 0.8)',
-                'rgba(255, 99, 132, 0.8)',
-                'rgba(255, 159, 64, 0.8)',
-                'rgba(153, 102, 255, 0.8)',
-            ];
+        );
 
-            const productChart = new Chart(ctxProduct, {
+        // Product Chart configuration
+        const productChart = new Chart(
+            document.getElementById('productChart').getContext('2d'),
+            {
                 type: 'doughnut',
                 data: {
-                    labels: productLabels,
+                    labels: chartData.productLabels,
                     datasets: [{
-                        data: productData,
-                        backgroundColor: colorPalette,
-                        borderColor: 'white',
-                        borderWidth: 2,
-                        hoverBorderWidth: 0,
-                        hoverOffset: 10
+                        data: chartData.productData,
+                        backgroundColor: [
+                            '#FF6384',
+                            '#36A2EB',
+                            '#FFCE56',
+                            '#4BC0C0',
+                            '#9966FF'
+                        ]
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    cutout: '65%',
                     plugins: {
                         legend: {
                             position: 'bottom',
                             labels: {
-                                padding: 15,
+                                boxWidth: 12,
                                 font: {
-                                    size: 12
-                                }
-                            }
-                        },
-                        tooltip: {
-                            backgroundColor: 'rgba(0,0,0,0.7)',
-                            padding: 10,
-                            titleFont: {
-                                size: 14
-                            },
-                            bodyFont: {
-                                size: 14
-                            },
-                            displayColors: false,
-                            callbacks: {
-                                label: function(context) {
-                                    const total = context.dataset.data.reduce((acc, val) => acc + val, 0);
-                                    const value = context.raw;
-                                    const percentage = ((value / total) * 100).toFixed(1);
-                                    return `${context.label}: ${percentage}% (${value})`;
+                                    size: 11
                                 }
                             }
                         }
-                    },
-                    animation: {
-                        animateScale: true,
-                        animateRotate: true
                     }
                 }
-            });
-        } catch (error) {
-            console.error('Error initializing charts:', error);
-        }
-    });
+            }
+        );
+    } catch (error) {
+        console.error('Error initializing charts:', error);
+        console.error('Error details:', error.message);
+    }
+});
 
     // Download Report
     document.getElementById('downloadReport').addEventListener('click', function() {

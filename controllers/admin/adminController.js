@@ -155,18 +155,29 @@ const loadDashboard = async (req, res, next) => {
         productData = [100];
       }
 
+      console.log('Sending to frontend:', {
+        revenueData,
+        ordersData,
+        chartLabels,
+        productLabels,
+        productData
+    });
+
       res.render("dashboard", {
         totalUsers,
         totalProducts,
         totalOrders,
         totalRevenue,
         recentOrders: formattedRecentOrders,
-        revenueData: JSON.stringify(revenueData),
-        ordersData: JSON.stringify(ordersData),
-        chartLabels: JSON.stringify(chartLabels),
-        productLabels: JSON.stringify(productLabels),
-        productData: JSON.stringify(productData)
-      });
+        // Add a chartData object to contain all chart-related data
+        chartData: {
+            revenueData,
+            ordersData,
+            chartLabels,
+            productLabels,
+            productData
+        }
+    });
       
     } catch (error) {
       console.error("Dashboard Error:", error);
