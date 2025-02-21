@@ -197,9 +197,21 @@
                         <select class="form-select" id="reportType" name="reportType" required>
                             <option value="daily">Daily Report</option>
                             <option value="weekly">Weekly Report</option>
-                            <option value="monthly">Monthly Report</option>
+                            <option value="custom">Custom Date Range</option>
                             <option value="yearly">Yearly Report</option>
                         </select>
+                    </div>
+                    <div class="mb-3" id="customDateFields" style="display: none;">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label for="startDate" class="form-label">Start Date</label>
+                                <input type="date" class="form-control" id="startDate" name="startDate">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="endDate" class="form-label">End Date</label>
+                                <input type="date" class="form-control" id="endDate" name="endDate">
+                            </div>
+                        </div>
                     </div>
                     <div class="mb-3">
                         <label for="reportFormat" class="form-label">Report Format</label>
@@ -276,8 +288,6 @@ document.addEventListener('DOMContentLoaded', function() {
         // Get the data directly from a script variable
         const chartData = <%- JSON.stringify(chartData) %>;
         
-        console.log('Chart Data:', chartData);
-
         // Sales Chart configuration
         const salesChart = new Chart(
             document.getElementById('salesChart').getContext('2d'),
@@ -383,12 +393,33 @@ document.addEventListener('DOMContentLoaded', function() {
         myModal.show();
     });
 
+    document.getElementById('reportType').addEventListener('change', function() {
+        const customDateFields = document.getElementById('customDateFields');
+        customDateFields.style.display = this.value === 'custom' ? 'block' : 'none';
+    });
+
     document.getElementById('generateReportBtn').addEventListener('click', function() {
-        // Handle report generation here
         const reportType = document.getElementById('reportType').value;
         const reportFormat = document.getElementById('reportFormat').value;
-        alert(`Generating ${reportType} report in ${reportFormat} format`);
-        // Close modal
+        let downloadUrl = `/admin/download-report?reportType=${reportType}&reportFormat=${reportFormat}`;
+        
+        if (reportType === 'custom') {
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            if (!startDate || !endDate) {
+                alert('Please select both start and end dates');
+                return;
+            }
+            downloadUrl += `&startDate=${startDate}&endDate=${endDate}`;
+        }
+        
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+        link.target = '_blank';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
         bootstrap.Modal.getInstance(document.getElementById('generateReportModal')).hide();
     });
 </script>

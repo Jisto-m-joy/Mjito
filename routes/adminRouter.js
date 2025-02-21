@@ -7,6 +7,7 @@ const brandController = require("../controllers/admin/brandController");
 const productController = require("../controllers/admin/productController");
 const ordersController = require("../controllers/admin/ordersController");
 const couponController = require("../controllers/admin/couponController");
+const dashboardController = require("../controllers/admin/dashboardController");
 const { userAuth, adminAuth } = require("../middlewares/auth");
 const multer = require("multer");
 const storage = require("../helpers/multer");
@@ -19,8 +20,11 @@ router.use(adminErrorHandler);
 // Login Management
 router.get("/login", adminController.loadLogin);
 router.post("/login", adminController.login);
-router.get("/", adminAuth, adminController.loadDashboard);
 router.get("/logout", adminController.logout);
+
+// Dashboard Management
+router.get("/", adminAuth, dashboardController.loadDashboard);
+router.get("/download-report", adminAuth, dashboardController.downloadReport);
 
 // Customer Management
 router.get("/users", adminAuth, customerController.customerInfo);
