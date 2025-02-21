@@ -4,7 +4,8 @@ function replaceImage(event, imageName, index) {
     const input = event.target;
     const file = input.files[0];
     const reader = new FileReader();
-    input.name = `replace_${imageName}`;
+    // Do NOT change the input name dynamically; keep it as replace_image1, replace_image2, etc.
+    // input.name = `replace_${imageName}`; // Remove this line
 
     reader.onload = function(e) {
         const imgElement = document.getElementById(`cropperImg${index}`);

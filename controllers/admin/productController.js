@@ -186,8 +186,6 @@ const getEditProduct = async (req, res, next) => {
   }
 };
 
-// In productController.js
-
 const editProduct = async (req, res, next) => {
   try {
     const id = req.params.id;
@@ -234,7 +232,7 @@ const editProduct = async (req, res, next) => {
     const updateFields = {
       name: data.productName,
       description: data.description,
-      brand: brand.brandName, // Store brand name instead of ID
+      brand: brand.brandName,
       category: data.category,
       combos: combosArray,
     };
@@ -251,11 +249,22 @@ const editProduct = async (req, res, next) => {
       for (let i = 1; i <= 4; i++) {
         if (req.files[`replace_image${i}`] && req.files[`replace_image${i}`][0]) {
           try {
+            // Delete the old image from Cloudinary if it exists
+            if (updatedImages[i - 1]) {
+              const oldImageUrl = updatedImages[i - 1];
+              const publicId = oldImageUrl.split('/').pop().split('.')[0]; // Extract public ID from URL
+              await cloudinary.uploader.destroy(publicId);
+            }
+
+            // Upload the new image to Cloudinary
             const result = await cloudinary.uploader.upload(
               req.files[`replace_image${i}`][0].path,
               { quality: "100" }
             );
             updatedImages[i - 1] = result.secure_url;
+
+            // Delete the temporary file from disk
+            fs.unlinkSync(req.files[`replace_image${i}`][0].path);
           } catch (uploadError) {
             console.error('Image upload error:', uploadError);
             return res.status(500).json({ error: 'Error uploading image' });
