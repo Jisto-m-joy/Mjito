@@ -68,12 +68,11 @@ router.get('/user-wallet', userAuth, walletController.loadWalletPage);
 router.post('/add-money-to-wallet', userAuth, walletController.addMoneyToWallet);
 router.post('/verify-payment', userAuth, walletController.verifyPayment);
 
-
-
 // Order Management
 router.get('/my-orders', userAuth, orderController.loadMyOrders);
 router.post('/cancel-order/:orderId', userAuth, orderController.cancelOrder);
-
+router.post('/return-order/:orderId', userAuth, orderController.returnOrder);
+router.post('/approve-return/:orderId', adminAuth, orderController.approveReturn);
 
 // Forgot Password Management
 router.post('/reset-password',userAuth, profileController.resetPassword);

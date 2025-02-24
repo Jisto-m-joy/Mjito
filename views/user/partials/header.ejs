@@ -118,10 +118,17 @@
           </li> -->
         </ul>
         <div class="header__search">
-          <input type="text" placeholder="Search For Items..." class="form__input" />
-          <button class="search__btn">
-            <img src="assets/img/search.png" alt="search icon" />
-          </button>
+          <form action="/shop" method="GET" class="search-form">
+            <input 
+              type="text" 
+              name="search" 
+              placeholder="Search For Items..." 
+              class="form__input"
+            />
+            <button type="submit" class="search__btn">
+              <img src="assets/img/search.png" alt="search icon" />
+            </button>
+          </form>
         </div>
       </div>
       <div class="header__user-actions">

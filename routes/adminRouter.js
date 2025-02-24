@@ -84,6 +84,8 @@ router.post('/editProduct/:id', adminAuth, uploads.fields([
 router.get("/orders", adminAuth, ordersController.getAllOrders);
 router.get("/orders/details/:orderId", adminAuth, ordersController.getOrderDetails);
 router.post("/orders/update-status/:orderId", adminAuth, ordersController.updateOrderStatus);
+router.get("/orders/return-requests", adminAuth, ordersController.getReturnRequests);
+router.post("/orders/update-return-status/:orderId", adminAuth, ordersController.updateReturnStatus);
 
 // Search Management
 router.get("/search", productController.searchProducts);

@@ -169,8 +169,14 @@
             <p>Total Quantity: <%= order.quantity %></p>
             <p class="total-amount">Total Amount: ₹<%= order.totalAmount %></p>
           </div>
-          <% if (order.status === 4) { %>
+          <% if (order.status === 4 && !order.return_reason) { %>
             <button class="btn btn-warning return-order-btn" data-order-id="<%= order.orderId %>">Return Order</button>
+          <% } else if (order.status === 5) { %>
+            <button class="btn btn-secondary return-order-btn" data-order-id="<%= order.orderId %>" disabled>Return request in process</button>
+          <% } else if (order.status === 6) { %> 
+            <button class="btn btn-success return-order-btn" data-order-id="<%= order.orderId %>" disabled>Returned</button>
+          <% } else if (order.cancellation_reason) { %>
+            <button class="btn btn-secondary cancel-order-btn" data-order-id="<%= order.orderId %>" disabled>Cancelled</button>
           <% } else { %>
             <button class="btn btn-danger cancel-order-btn" data-order-id="<%= order.orderId %>">Cancel Order</button>
           <% } %>
@@ -221,41 +227,129 @@
       <% } %>
     </div>
   </div>
+
+<!-- Cancel Order Modal -->
+<div id="cancelOrderModal" class="modal" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); z-index: 1000; width: 500px; min-height: 300px;">
+  <h3>Cancel Order</h3>
+  <p>Please provide a reason for cancellation</p>
+  <textarea id="cancellationReason" placeholder="Enter your reason here..." style="width: 100%; min-height: 100px; margin: 10px 0; padding: 8px; border: 1px solid #ddd; border-radius: 4px;"></textarea>
+  <div style="text-align: right;">
+    <button id="closeModal" style="margin-right: 10px; padding: 8px 16px; border: none; border-radius: 4px; background: #f5f5f5; cursor: pointer;">Close</button>
+    <button id="confirmCancel" style="padding: 8px 16px; border: none; border-radius: 4px; background: #dc3545; color: white; cursor: pointer;">Confirm</button>
+  </div>
+</div>
+
+<!-- Return Order Modal -->
+<div id="returnOrderModal" class="modal" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); z-index: 1000; width: 500px; min-height: 300px;">
+  <h3>Return Order</h3>
+  <p>Please provide a reason for return</p>
+  <textarea id="returnReason" placeholder="Enter your reason here..." style="width: 100%; min-height: 100px; margin: 10px 0; padding: 8px; border: 1px solid #ddd; border-radius: 4px;"></textarea>
+  <div style="text-align: right;">
+    <button id="closeReturnModal" style="margin-right: 10px; padding: 8px 16px; border: none; border-radius: 4px; background: #f5f5f5; cursor: pointer;">Close</button>
+    <button id="confirmReturn" style="padding: 8px 16px; border: none; border-radius: 4px; background: #dc3545; color: white; cursor: pointer;">Confirm</button>
+  </div>
+</div>
+
 </body>
 
 <%- include("../../views/user/partials/footer") %>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
+//Cancel Order Handler
 document.querySelectorAll('.cancel-order-btn').forEach(button => {
   button.addEventListener('click', async (e) => {
     const orderId = e.target.getAttribute('data-order-id');
     
-    const result = await Swal.fire({
-      title: 'Cancel Order',
-      text: 'Are you sure you want to cancel this order?',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#d33',
-      cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Yes, cancel order'
+    // Show modal
+    const modal = document.getElementById('cancelOrderModal');
+    modal.style.display = 'block';
+
+    // Handle modal close
+    document.getElementById('closeModal').addEventListener('click', () => {
+      modal.style.display = 'none';
     });
 
-    if (result.isConfirmed) {
+    // Handle cancel confirmation
+    document.getElementById('confirmCancel').addEventListener('click', async () => {
+      const cancellationReason = document.getElementById('cancellationReason').value.trim();
+      
+      if (!cancellationReason) {
+        alert('Please provide a reason for cancellation.');
+        return;
+      }
+
       try {
-        const response = await fetch(`/cancel-order/${orderId}`, { method: 'POST' });
+        const response = await fetch(`/cancel-order/${orderId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ cancellationReason })
+        });
+        console.log('Fetch response:', response); // Debugging
         const data = await response.json();
         
         if (data.success) {
           Swal.fire('Cancelled!', 'Your order has been cancelled.', 'success');
-          e.target.textContent = 'Cancelled';
-          e.target.disabled = true;
+          
+          // Update the button (use e.target or find the specific button by orderId)
+          const buttonToUpdate = document.querySelector(`.cancel-order-btn[data-order-id="${orderId}"]`);
+          if (buttonToUpdate) {
+            buttonToUpdate.textContent = 'Cancelled';
+            buttonToUpdate.disabled = true;
+            buttonToUpdate.classList.remove('btn-danger'); // Optional: Remove danger class
+            buttonToUpdate.classList.add('btn-secondary'); // Optional: Add a different style
+          } else {
+            console.error('Button not found for orderId:', orderId); // Debugging
+          }
+          
+          modal.style.display = 'none'; // Hide modal on success
         } else {
           Swal.fire('Error', data.message || 'Failed to cancel order', 'error');
         }
       } catch (error) {
+        console.error('Fetch error:', error); // Debugging
         Swal.fire('Error', 'Something went wrong', 'error');
       }
-    }
+    });
+  });
+});
+
+// Return Order Handling
+document.querySelectorAll('.return-order-btn').forEach(button => {
+  button.addEventListener('click', async (e) => {
+    const orderId = e.target.getAttribute('data-order-id');
+    const modal = document.getElementById('returnOrderModal');
+    modal.style.display = 'block';
+
+    document.getElementById('closeReturnModal').onclick = () => modal.style.display = 'none';
+
+    document.getElementById('confirmReturn').onclick = async () => {
+      const returnReason = document.getElementById('returnReason').value.trim();
+      if (!returnReason) {
+        alert('Please provide a reason for return.');
+        return;
+      }
+
+      try {
+        const response = await fetch(`/return-order/${orderId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ returnReason })
+        });
+        const data = await response.json();
+        
+        if (data.success) {
+          Swal.fire('Success!', 'Your return request has been submitted.', 'success');
+          button.textContent = 'Return Request In Process';
+          button.disabled = true;
+          button.classList.replace('btn-warning', 'btn-secondary');
+          modal.style.display = 'none';
+        } else {
+          Swal.fire('Error', data.message || 'Failed to process return request', 'error');
+        }
+      } catch (error) {
+        Swal.fire('Error', 'Something went wrong', 'error');
+      }
+    };
   });
 });
 </script>

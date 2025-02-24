@@ -120,9 +120,42 @@ const verifyPayment = async (req, res, next) => {
     }
 };
 
+const addToWallet = async ({ user, amount, description }) => {
+    try {
+      // Validate inputs
+      if (!user || !amount || isNaN(amount) || amount <= 0) {
+        throw new Error('Invalid user ID or amount');
+      }
+  
+      let wallet = await Wallet.findOne({ user });
+      if (!wallet) {
+        wallet = new Wallet({ user, balance: 0, transactions: [] });
+      }
+  
+      // Add transaction
+      wallet.transactions.push({
+        type: 'credit',
+        amount: Number(amount),
+        date: new Date(),
+        description: description || 'Wallet refund'
+      });
+  
+      // Update balance
+      wallet.balance += Number(amount);
+  
+      // Save the wallet and check for errors
+      await wallet.save();
+      console.log(`Wallet updated for user ${user}: Added ₹${amount} with description "${description}"`);
+    } catch (error) {
+      console.error('Failed to update wallet:', error);
+      throw new Error('Failed to update wallet: ' + error.message); // Ensure error propagates
+    }
+  };
+  
 
 module.exports = {
     loadWalletPage,
     addMoneyToWallet,
-    verifyPayment
+    verifyPayment,
+    addToWallet,
 }

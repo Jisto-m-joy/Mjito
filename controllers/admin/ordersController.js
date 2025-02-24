@@ -103,9 +103,11 @@ const updateOrderStatus = async (req, res) => {
             return res.status(404).json({ error: 'Order not found' });
         }
 
-        // Prevent status changes for cancelled orders
-        if (order.status === 'Cancelled') {
-            return res.status(400).json({ error: 'Cannot modify status of a cancelled order' });
+        // Prevent status changes for cancelled or returned orders
+        if (order.status === 'Cancelled' || order.status === 'Returned') {
+            return res.status(400).json({ 
+                error: `Cannot modify status of a ${order.status.toLowerCase()} order` 
+            });
         }
 
         order.status = status;
@@ -118,8 +120,68 @@ const updateOrderStatus = async (req, res) => {
     }
 };
 
+
+const getReturnRequests = async (req, res) => {
+    try {
+        const returnRequests = await Order.find({ status: 'Return Request' })
+            .populate('userId', 'name')
+            .populate('orderedItems.product');
+
+        const formattedRequests = returnRequests.map(order => ({
+            _id: order.orderId,
+            customer: order.userId.name,
+            products: order.orderedItems.map(item => ({
+                name: item.product.name,
+                quantity: item.quantity
+            })),
+            total: order.finalAmount,
+            return_reason: order.return_reason,
+            status: order.status  // Add status for filtering in frontend
+        }));
+
+        res.json(formattedRequests);
+    } catch (error) {
+        console.error('Error fetching return requests:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+};
+
+const updateReturnStatus = async (req, res) => {
+    try {
+        const { orderId } = req.params;
+        const { status } = req.body;
+
+        const order = await Order.findOne({ orderId: orderId });
+        if (!order) {
+            return res.status(404).json({ error: 'Order not found' });
+        }
+
+        // Only allow updating to 'Returned' from 'Return Request'
+        if (order.status !== 'Return Request') {
+            return res.status(400).json({ error: 'Order is not in Return Request status' });
+        }
+
+        if (order.status === 'Cancelled' || order.status === 'Returned') {
+            return res.status(400).json({ 
+                error: `Cannot modify status of a ${order.status.toLowerCase()} order` 
+            });
+        }
+
+        order.status = status;
+        await order.save();
+
+        res.json({ message: 'Order status updated to Returned successfully' });
+    } catch (error) {
+        console.error('Error updating return status:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+};
+
 module.exports = {
     getAllOrders,
     getOrderDetails,
-    updateOrderStatus
+    updateOrderStatus,
+    getReturnRequests,
+    updateReturnStatus,
+
 };

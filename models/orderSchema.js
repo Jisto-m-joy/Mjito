@@ -129,6 +129,14 @@ const orderSchema = new Schema({
     type: String,
     default: null,
   },
+  cancellation_reason: {
+    type: String,
+    default: null,
+  },
+  return_reason: {
+    type: String,
+    default: null,
+  },
 });
 
 const Order = mongoose.model("Order", orderSchema);
