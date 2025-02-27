@@ -94,9 +94,25 @@ const placeOrder = async (req, res) => {
                 startOn: { $lte: new Date() },
                 expireOn: { $gte: new Date() }
             });
-
+        
             if (coupon && totalPrice >= coupon.minimumPrice) {
                 discount = Math.min(coupon.offerPrice, totalPrice);
+        
+                // Increment usesCount and update userUses
+                const userUsage = coupon.userUses.find(u => u.userId.toString() === userId.toString());
+                if (userUsage) {
+                    userUsage.count += 1;
+                } else {
+                    coupon.userUses.push({ userId, count: 1 });
+                }
+                coupon.usesCount += 1;
+        
+                // Check if usage limit is reached and update isDeleted
+                if (coupon.usesCount >= coupon.maxUses) {
+                    coupon.isDeleted = true;
+                }
+        
+                await coupon.save();
             }
         }
 
@@ -126,7 +142,6 @@ const placeOrder = async (req, res) => {
 
         // Verify all products and their combos exist and update quantities
         for (const item of cart.items) {
-            // [The rest of your existing product verification code]
             console.log('Processing cart item:', {
                 productId: item.productId._id,
                 productName: item.productId.name,

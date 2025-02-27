@@ -112,18 +112,18 @@ const downloadReport = async (req, res) => {
 
       // Generate report based on format
       if (reportFormat === 'excel') {
-          const workbook = await generateExcelReport(finalReportData, reportType);
-          res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-          res.setHeader('Content-Disposition', `attachment; filename=sales_report_${reportType}.xlsx`);
-          await workbook.xlsx.write(res);
-          res.end();
-      } else if (reportFormat === 'pdf') {
-          res.setHeader('Content-Type', 'application/pdf');
-          res.setHeader('Content-Disposition', `attachment; filename=sales_report_${reportType}.pdf`);
-          const doc = generatePDFReport(finalReportData, reportType);
-          doc.pipe(res);
-          doc.end();
-      }
+            const workbook = await generateExcelReport(reportData, reportType); // Use reportData instead of finalReportData
+            res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+            res.setHeader('Content-Disposition', `attachment; filename=sales_report_${reportType}.xlsx`);
+            await workbook.xlsx.write(res);
+            res.end();
+        } else if (reportFormat === 'pdf') {
+            res.setHeader('Content-Type', 'application/pdf');
+            res.setHeader('Content-Disposition', `attachment; filename=sales_report_${reportType}.pdf`);
+            const doc = generatePDFReport(finalReportData, reportType);
+            doc.pipe(res);
+            doc.end();
+        }
   } catch (error) {
       console.error('Report generation error:', error);
       res.status(500).json({ error: 'Failed to generate report' });
@@ -253,32 +253,34 @@ const getTopProductsData = async () => {
 };
 
 const generateExcelReport = async (data, reportType) => {
-    const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet('Sales Report');
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet('Sales Report');
 
-    worksheet.addRow(['Date', 'Orders', 'Revenue', 'Products Sold']);
-    
-    data.forEach(row => {
-        worksheet.addRow([row.date, row.orders, row.revenue, row.productsSold]);
-    });
+  // Headers matching the PDF report
+  worksheet.addRow(['Order ID', 'Date', 'Customer', 'Status', 'Amount']);
 
-    worksheet.getRow(1).font = { bold: true };
-    worksheet.columns.forEach(column => {
-        column.width = 15;
-    });
+  // Detailed order data
+  data.forEach(row => {
+      worksheet.addRow([row.orderId, row.date, row.customerName, row.status, row.revenue]);
+  });
 
-    return workbook;
+  worksheet.getRow(1).font = { bold: true };
+  worksheet.columns.forEach(column => {
+      column.width = 20; // Adjust width for better readability
+  });
+
+  return workbook;
 };
 
 const generatePDFReport = (data, reportType, startDate, endDate) => {
   const doc = new PDFDocument();
   
-  // Add title
+  // Title
   doc.fontSize(20).text('GoalZone Sales Report', {
       align: 'center'
   });
   
-  // Add report details
+  // Report details
   doc.fontSize(12).moveDown();
   doc.text(`Report Type: ${reportType.charAt(0).toUpperCase() + reportType.slice(1)}`, {
       align: 'center'
@@ -287,14 +289,14 @@ const generatePDFReport = (data, reportType, startDate, endDate) => {
       align: 'center'
   });
   
-  // Add period dates
+  // Period dates
   const periodStart = data[0]?.date || '';
   const periodEnd = data[data.length - 1]?.date || '';
   doc.text(`Period: ${periodStart} to ${periodEnd}`, {
       align: 'center'
   });
 
-  // Add summary section
+  // Summary section
   doc.moveDown();
   doc.text('Summary:', {
       align: 'center'
@@ -308,7 +310,7 @@ const generatePDFReport = (data, reportType, startDate, endDate) => {
     align: 'center'
   });
 
- // Add table headers
+ // Table headers
   doc.moveDown();
   const tableTop = 250;
 
@@ -325,7 +327,7 @@ const generatePDFReport = (data, reportType, startDate, endDate) => {
     .lineTo(600, tableTop + 20)  
     .stroke();
 
-  // Add order data
+  // Order data
   let yPosition = tableTop + 40;  
 
   // Use the data passed from downloadReport function

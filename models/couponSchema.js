@@ -30,18 +30,25 @@ const couponSchema = new Schema({
     type: Number,
     required: true,
   },
-  maxUses: {
+  maxUses: {  
     type: Number,
-    default: 1,
+    default: 5,  
   },
-  usesCount: {
+  usesCount: {  
     type: Number,
     default: 0,
   },
-  maxUsesPerUser: {
-    type: Number,
-    default: 1,
-  },
+  userUses: [{
+    userId: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      required: true
+    },
+    count: {
+      type: Number,
+      default: 0
+    }
+  }],
   isListed: {
     type: Boolean,
     default: true,

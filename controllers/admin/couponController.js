@@ -105,9 +105,65 @@ const toggleCouponStatus = async (req, res) => {
     }
 };
 
-
-module.exports = {
+const applyCoupon = async (req, res) => {
+    try {
+      const { couponCode } = req.body;
+      const userId = req.user._id; // Assuming you have user authentication middleware
+  
+      const coupon = await Coupons.findOne({ 
+        code: couponCode,
+        isListed: true,
+        isDeleted: false,
+        startOn: { $lte: new Date() },
+        expireOn: { $gte: new Date() }
+      });
+  
+      if (!coupon) {
+        return res.status(404).json({
+          success: false,
+          message: 'Coupon not found or invalid'
+        });
+      }
+  
+      // Check user's usage
+      let userUsage = coupon.userUses.find(use => use.userId.toString() === userId.toString());
+      
+      if (!userUsage) {
+        // First time user is using this coupon
+        userUsage = { userId, count: 0 };
+        coupon.userUses.push(userUsage);
+      }
+  
+      if (userUsage.count >= coupon.maxUses) {
+        return res.status(400).json({
+          success: false,
+          message: 'You have reached the maximum usage limit for this coupon'
+        });
+      }
+  
+      // Increment usage counts
+      userUsage.count += 1;
+      coupon.usesCount += 1;
+  
+      await coupon.save();
+  
+      res.status(200).json({
+        success: true,
+        message: 'Coupon applied successfully',
+        discount: coupon.offerPrice
+      });
+    } catch (error) {
+      console.error('Error in applyCoupon:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Internal server error'
+      });
+    }
+  };
+  
+  module.exports = {
     getCouponPage,
     addCoupon,
     toggleCouponStatus,
-}
+    applyCoupon
+  };

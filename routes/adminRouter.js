@@ -95,5 +95,6 @@ router.get("/shop/search", productController.searchProducts);
 router.get("/coupons", adminAuth, couponController.getCouponPage);
 router.post("/addCoupon", adminAuth, couponController.addCoupon);
 router.patch("/toggleCouponStatus/:couponId", adminAuth, couponController.toggleCouponStatus);
+router.post("/applyCoupon", userAuth, couponController.applyCoupon);
 
 module.exports = router;
