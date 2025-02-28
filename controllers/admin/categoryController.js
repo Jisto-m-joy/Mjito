@@ -62,6 +62,8 @@ const addCategoryOffer = async (req, res, next) => {
   try {
     const percentage = parseInt(req.body.percentage);
     const categoryId = req.body.categoryId;
+    const endDate = req.body.endDate ? new Date(req.body.endDate) : null;
+
     const category = await Category.findById(categoryId);
     if (!category) {
       return res
@@ -80,7 +82,7 @@ const addCategoryOffer = async (req, res, next) => {
     }
     await Category.updateOne(
       { _id: categoryId },
-      { $set: { categoryOffer: percentage } }
+      { $set: { categoryOffer: percentage, offerEndDate: endDate } }
     );
 
     for (const product of products) {

@@ -52,6 +52,10 @@ const productSchema = new Schema(
           type: Number,
           required: true,
         },
+        salePriceBeforeDiscount: {
+          type: Number,
+          default: null,
+        },
         status: {
           type: String,
           enum: ["Available", "Out of Stock", "Discontinued"],
@@ -67,7 +71,19 @@ const productSchema = new Schema(
     isBlocked: {
       type: Boolean,
       default: false,
-    }
+    },
+    offerPercentage: {
+      type: Number,
+      default: 0,
+    },
+    productOffer:{
+      type:Boolean,
+      default:false
+    },
+    offerEndDate: {
+      type: Date,
+      default: null,
+    },
   },
   { timestamps: true }
 );

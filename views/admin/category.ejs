@@ -122,7 +122,7 @@
                     <th class="text-center"></th>
                     <th>Name</th>
                     <th>Description</th>
-                    <th>Offer Price</th>
+                    <th>Offer Percentage</th>
                     <th>Offer</th>
                     <th>Status</th>
                     <th>List/Unlist</th>
@@ -136,8 +136,7 @@
                     <td class="text-start"><%= category.name %></td>
                     <td class="text-start"><%= category.description %></td>
                     <td>
-                      <% if(category.categoryOffer) { %> <%=
-                      category.categoryOffer %> <% } else { %> 0% <% } %>
+                      <% if(category.categoryOffer) { %> <%= category.categoryOffer %>% <% } else { %> 0% <% } %>
                     </td>
                     <td class="text-start">
                       <% if(category.categoryOffer===0) {%>
@@ -237,9 +236,109 @@
       <% } %>
     </div>
   </section>
+
+  <!-- Add Offer Modal -->
+  <div class="modal fade" id="addOfferModal" tabindex="-1" aria-labelledby="addOfferModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header" style="background-color: #007bff; color: white;">
+          <h5 class="modal-title" id="addOfferModalLabel">Add Offer</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="addOfferForm">
+            <input type="hidden" id="offerCategoryId" name="categoryId">
+            <div class="mb-3">
+              <label for="offerPercentage" class="form-label">Offer Percentage:</label>
+              <input type="number" class="form-control" id="offerPercentage" name="percentage" min="0" max="100" required>
+              <div id="offerPercentageError" class="text-danger"></div>
+            </div>
+            <div class="mb-3">
+              <label for="offerEndDate" class="form-label">End Date:</label>
+              <input type="date" class="form-control" id="offerEndDate" name="endDate" required>
+              <div id="offerEndDateError" class="text-danger"></div>
+            </div>
+            <button type="submit" class="btn btn-primary" id="saveOfferBtn">Save Offer</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+<%-include("../../views/admin/partials/footer")%>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.js"></script>
   <script src="/assets/js/admin/category.js"></script>
-  <%-include("../../views/admin/partials/footer")%>
-</body>
+  <script>
+    // Function to open the modal with category ID
+  function addOffer(categoryId) {
+    $('#addOfferModal').modal('show');
+    $('#offerCategoryId').val(categoryId);
+  }
+
+  // Handle form submission for adding offer
+  $('#addOfferForm').on('submit', async function(e) {
+    e.preventDefault();
+    const categoryId = $('#offerCategoryId').val();
+    const percentage = parseInt($('#offerPercentage').val());
+    const endDate = $('#offerEndDate').val();
+
+    // Validation
+    let isValid = true;
+    $('#offerPercentageError').text('');
+    $('#offerEndDateError').text('');
+
+    if (percentage < 0 || percentage > 100) {
+      $('#offerPercentageError').text('Offer percentage must be between 0 and 100.');
+      isValid = false;
+    }
+    if (!endDate) {
+      $('#offerEndDateError').text('End date is required.');
+      isValid = false;
+    } else {
+      const today = new Date().toISOString().split('T')[0];
+      if (endDate < today) {
+        $('#offerEndDateError').text('End date cannot be in the past.');
+        isValid = false;
+      }
+    }
+
+    if (isValid) {
+      try {
+        const response = await fetch('/admin/addCategoryOffer', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ categoryId, percentage, endDate }),
+        });
+
+        const data = await response.json();
+        if (data.status === true) {
+          Swal.fire({
+            icon: 'success',
+            title: 'Success',
+            text: 'Offer added successfully!',
+          }).then(() => {
+            $('#addOfferModal').modal('hide');
+            location.reload(); // Refresh the page to show the updated offer
+          });
+        } else {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: data.message || 'Failed to add offer.',
+          });
+        }
+      } catch (error) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'An error occurred while adding the offer.',
+        });
+      }
+    }
+  });
+  </script>

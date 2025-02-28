@@ -9,8 +9,6 @@ const mongoose = require('mongoose');
 const razorpay = require('../../config/razorpay');
 const crypto = require('crypto');
 
-
-
 const loadCheckoutPage = async (req, res, next) => {
   try {
       const userId = req.session.user._id;
@@ -59,9 +57,7 @@ const loadOrderPlacedPage = async (req, res) => {
 const placeOrder = async (req, res) => {
     try {
         const userId = req.session.user._id;
-        const { paymentMethod } = req.body;
-        const selectedAddressId = req.body.addressId;
-        const couponCode = req.body.couponCode;
+        const { paymentMethod, addressId, couponCode } = req.body;
 
         // Get the selected address
         const userAddress = await Address.findOne({ userId });
@@ -69,7 +65,7 @@ const placeOrder = async (req, res) => {
             return res.status(400).json({ error: 'No address found for user' });
         }
 
-        const selectedAddress = userAddress.address.find(addr => addr._id.toString() === selectedAddressId);
+        const selectedAddress = userAddress.address.find(addr => addr._id.toString() === addressId);
         if (!selectedAddress) {
             return res.status(400).json({ error: 'Selected address not found' });
         }
@@ -97,8 +93,6 @@ const placeOrder = async (req, res) => {
         
             if (coupon && totalPrice >= coupon.minimumPrice) {
                 discount = Math.min(coupon.offerPrice, totalPrice);
-        
-                // Increment usesCount and update userUses
                 const userUsage = coupon.userUses.find(u => u.userId.toString() === userId.toString());
                 if (userUsage) {
                     userUsage.count += 1;
@@ -106,12 +100,9 @@ const placeOrder = async (req, res) => {
                     coupon.userUses.push({ userId, count: 1 });
                 }
                 coupon.usesCount += 1;
-        
-                // Check if usage limit is reached and update isDeleted
                 if (coupon.usesCount >= coupon.maxUses) {
                     coupon.isDeleted = true;
                 }
-        
                 await coupon.save();
             }
         }
@@ -121,7 +112,6 @@ const placeOrder = async (req, res) => {
         // Handle wallet payment
         if (paymentMethod === 'wallet') {
             const wallet = await Wallet.findOne({ user: userId });
-            
             if (!wallet || wallet.balance < finalAmount) {
                 return res.status(400).json({ 
                     error: 'Insufficient wallet balance',
@@ -129,8 +119,6 @@ const placeOrder = async (req, res) => {
                     required: finalAmount
                 });
             }
-
-            // Deduct amount from wallet
             wallet.balance -= finalAmount;
             wallet.transactions.push({
                 type: 'debit',
@@ -138,19 +126,31 @@ const placeOrder = async (req, res) => {
                 description: `Payment for order #${Date.now()}`
             });
             await wallet.save();
+        } else if (paymentMethod === 'razorpay') {
+            // Initiate Razorpay payment
+            const options = {
+                amount: Math.round(finalAmount * 100), // Convert to paise
+                currency: "INR",
+                receipt: `order_${Date.now()}`
+            };
+            const order = await razorpay.orders.create(options);
+            req.session.razorpayOrder = {
+                orderId: order.id,
+                addressId,
+                totalAmount: totalPrice,
+                discount,
+                finalAmount,
+                couponCode
+            };
+            return res.json({
+                success: true,
+                order,
+                keyId: process.env.RAZORPAY_KEY_ID
+            });
         }
 
         // Verify all products and their combos exist and update quantities
         for (const item of cart.items) {
-            console.log('Processing cart item:', {
-                productId: item.productId._id,
-                productName: item.productId.name,
-                color: item.color,
-                size: item.size,
-                quantity: item.quantity,
-                fullItem: item
-            });
-
             const product = await Product.findById(item.productId._id);
             if (!product) {
                 return res.status(400).json({ 
@@ -159,7 +159,6 @@ const placeOrder = async (req, res) => {
                 });
             }
 
-            // If color and size are not in cart items, try to get the first available combo
             let targetColor = item.color;
             let targetSize = item.size;
 
@@ -168,7 +167,6 @@ const placeOrder = async (req, res) => {
                     const firstCombo = product.combos[0];
                     targetColor = firstCombo.color;
                     targetSize = firstCombo.size;
-                    console.log('Using default combo:', { targetColor, targetSize });
                 } else {
                     return res.status(400).json({ 
                         error: `No combos available for product ${product.name}`,
@@ -176,9 +174,6 @@ const placeOrder = async (req, res) => {
                     });
                 }
             }
-
-            console.log('Product combos:', product.combos);
-            console.log('Looking for combo with:', { targetColor, targetSize });
 
             const combo = product.combos.find(c => 
                 String(c.color).toLowerCase() === String(targetColor).toLowerCase() && 
@@ -199,7 +194,6 @@ const placeOrder = async (req, res) => {
                 });
             }
 
-            // Update quantity
             const result = await Product.updateOne(
                 {
                     _id: item.productId._id,
@@ -251,7 +245,7 @@ const placeOrder = async (req, res) => {
             paymentMethod,
             orderDate: new Date(),
             deliveryDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-            status: paymentMethod === 'cod' ? 'Pending COD' : (paymentMethod === 'wallet' ? 'Processing' : 'Pending'),
+            status: paymentMethod === 'cod' ? 'Pending COD' : 'Processing',
             couponApplied: couponCode ? true : false,
             couponCode: couponCode || null
         });
@@ -269,7 +263,7 @@ const placeOrder = async (req, res) => {
 const initiateRazorpayPayment = async (req, res) => {
     try {
         const userId = req.session.user._id;
-        const { addressId } = req.body;
+        const { addressId, couponCode } = req.body;
         
         // Get cart items
         const cart = await Cart.findOne({ userId }).populate('items.productId');
@@ -283,11 +277,10 @@ const initiateRazorpayPayment = async (req, res) => {
         // Apply coupon if provided
         let finalAmount = totalAmount;
         let discount = 0;
-        let couponCode = null;
         
-        if (req.body.couponCode) {
+        if (couponCode) {
             const coupon = await Coupon.findOne({
-                code: req.body.couponCode.toUpperCase(),
+                code: couponCode.toUpperCase(),
                 isListed: true,
                 isDeleted: false,
                 startOn: { $lte: new Date() },
@@ -297,7 +290,6 @@ const initiateRazorpayPayment = async (req, res) => {
             if (coupon) {
                 discount = Math.min(coupon.offerPrice, totalAmount);
                 finalAmount = totalAmount - discount;
-                couponCode = coupon.code;
             }
         }
         
@@ -309,7 +301,7 @@ const initiateRazorpayPayment = async (req, res) => {
         };
         
         const order = await razorpay.orders.create(options);
-        
+
         // Store temporary order details in session
         req.session.razorpayOrder = {
             orderId: order.id,
@@ -327,11 +319,13 @@ const initiateRazorpayPayment = async (req, res) => {
         });
     } catch (error) {
         console.error('Error initiating Razorpay payment:', error);
-        res.status(500).json({ error: error.message || 'Failed to initiate payment' });
+        res.status(500).json({ 
+            error: error.message || 'Failed to initiate payment',
+            details: error.error ? error.error.description : 'No additional details'
+        });
     }
 };
 
-// Verify Razorpay payment
 const verifyRazorpayPayment = async (req, res) => {
     try {
         const {
@@ -375,22 +369,20 @@ const verifyRazorpayPayment = async (req, res) => {
             return res.status(400).json({ error: 'Cart is empty' });
         }
         
-        // Update product quantities and create order (similar to placeOrder)
+        // Update product quantities
         for (const item of cart.items) {
             const product = await Product.findById(item.productId._id);
             if (!product) {
                 return res.status(400).json({ error: `Product ${item.productId.name} not found` });
             }
             
-            // Similar product quantity logic as in placeOrder
             let targetColor = item.color;
             let targetSize = item.size;
             
             if (!targetColor || !targetSize) {
                 if (product.combos && product.combos.length > 0) {
-                    const firstCombo = product.combos[0];
-                    targetColor = firstCombo.color;
-                    targetSize = firstCombo.size;
+                    targetColor = product.combos[0].color;
+                    targetSize = product.combos[0].size;
                 } else {
                     return res.status(400).json({ error: `No combos available for product ${product.name}` });
                 }
@@ -409,7 +401,6 @@ const verifyRazorpayPayment = async (req, res) => {
                 return res.status(400).json({ error: `Insufficient stock for product ${product.name}` });
             }
             
-            // Update quantity
             const result = await Product.updateOne(
                 {
                     _id: item.productId._id,

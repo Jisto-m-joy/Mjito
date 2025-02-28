@@ -5,6 +5,15 @@
     rel="stylesheet"
     href="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.css"
   />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    .offer-cell {
+      max-width: 150px; /* Adjust as needed */
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  </style>
 </head>
 
 <section class="content-main">
@@ -56,8 +65,11 @@
                   <%= data[i].category ? data[i].category.name : 'No Category' %>
                 </td>
                 <td>
-                  <% if (data[i].offer) { %> <%= ((data[i].combos[0].regularPrice - data[i].combos[0].salesPrice) / data[i].combos[0].regularPrice * 100).toFixed(2) %>%
-                  <% } else { %> 0% <% } %>
+                  <% if (data[i].productOffer && data[i].offerPercentage > 0) { %>
+                    <%= data[i].offerPercentage %>% (Ends: <%= data[i].offerEndDate ? data[i].offerEndDate.toLocaleDateString() : 'No End Date' %>)
+                  <% } else { %>
+                    0%
+                  <% } %>
                 </td>
                 <td><%= data[i].combos.length %></td> <!-- Display number of combos -->
                 <td>
@@ -120,7 +132,103 @@
   </div>
 </section>
 
+
+<!-- Add Offer Modal -->
+<div class="modal fade" id="addOfferModal" tabindex="-1" aria-labelledby="addOfferModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addOfferModalLabel">Add Offer</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="addOfferForm">
+          <input type="hidden" id="productId" name="productId">
+          <div class="mb-3">
+            <label for="offerPercentage" class="form-label">Offer Percentage:</label>
+            <input type="number" class="form-control" id="offerPercentage" name="offerPercentage" min="0" max="100" required>
+            <div id="offerPercentageError" class="text-danger"></div>
+          </div>
+          <div class="mb-3">
+            <label for="offerEndDate" class="form-label">End Date:</label>
+            <input type="date" class="form-control" id="offerEndDate" name="offerEndDate" required>
+            <div id="offerEndDateError" class="text-danger"></div>
+          </div>
+          <button type="submit" class="btn btn-primary">Save Offer</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
 <script src="/assets/js/admin/products.js"></script>
+<script>
+  function addOffer(productId) {
+    $('#productId').val(productId);
+    $('#addOfferModal').modal('show');
+  }
+
+  $('#addOfferForm').on('submit', async function(e) {
+    e.preventDefault();
+    const productId = $('#productId').val();
+    const offerPercentage = $('#offerPercentage').val();
+    const offerEndDate = $('#offerEndDate').val();
+
+    // Reset error messages
+    $('#offerPercentageError').text('');
+    $('#offerEndDateError').text('');
+
+    // Validation
+    let isValid = true;
+    if (!offerPercentage || offerPercentage < 0 || offerPercentage > 100) {
+      $('#offerPercentageError').text('Offer percentage must be between 0 and 100.');
+      isValid = false;
+    }
+    if (!offerEndDate) {
+      $('#offerEndDateError').text('End date is required.');
+      isValid = false;
+    } else {
+      const today = new Date();
+      const endDate = new Date(offerEndDate);
+      if (endDate <= today) {
+        $('#offerEndDateError').text('End date must be in the future.');
+        isValid = false;
+      }
+    }
+
+    if (isValid) {
+      try {
+        const response = await $.ajax({
+          url: '/admin/addOffer',
+          method: 'POST',
+          data: {
+            productId: productId,
+            offerPercentage: offerPercentage,
+            offerEndDate: offerEndDate
+          },
+          dataType: 'json'
+        });
+
+        Swal.fire({
+          icon: 'success',
+          title: 'Success',
+          text: response.message
+        }).then(() => {
+          $('#addOfferModal').modal('hide');
+          location.reload(); // Refresh the page to reflect changes
+        });
+      } catch (error) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: error.responseJSON?.message || 'An error occurred while adding the offer.'
+        });
+      }
+    }
+  });
+</script>
 <%- include("../../views/admin/partials/footer") %>

@@ -80,10 +80,11 @@ const getAllProducts = async (req, res, next) => {
         { name: { $regex: new RegExp(".*" + search + ".*", "i") } },
       ],
     })
-      .populate("brand") // Ensure brand is populated
+      .select('name brand category combos offer productOffer offerPercentage offerEndDate') // Explicitly select these fields
+      .populate("brand")
+      .populate("category")
       .limit(limit * 1)
       .skip((page - 1) * limit)
-      .populate("category") // Ensure category is populated
       .exec();
 
     const count = await Product.find({
@@ -113,19 +114,29 @@ const getAllProducts = async (req, res, next) => {
 
 const addOffer = async (req, res, next) => {
   try {
-    const { productId, offer } = req.body;
-    if (offer === undefined || offer === null) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Offer is required" });
+    const { productId, offerPercentage, offerEndDate } = req.body;
+
+    // Validate input
+    if (!productId) {
+      return res.status(400).json({ success: false, message: "Product ID is required" });
     }
+    if (!offerPercentage || isNaN(offerPercentage) || offerPercentage < 0 || offerPercentage > 100) {
+      return res.status(400).json({ success: false, message: "Offer percentage must be between 0 and 100" });
+    }
+    if (!offerEndDate) {
+      return res.status(400).json({ success: false, message: "End date is required" });
+    }
+
     const product = await Product.findById(productId);
     if (!product) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Product not found" });
+      return res.status(404).json({ success: false, message: "Product not found" });
     }
-    product.offer = offer;
+
+    // Update product with offer details
+    product.offerPercentage = offerPercentage;
+    product.offerEndDate = new Date(offerEndDate);
+    product.productOffer = true; // Set productOffer to true when an offer is added
+
     await product.save();
     res.json({ success: true, message: "Offer added successfully" });
   } catch (error) {
