@@ -3,6 +3,13 @@
 <head>  
   <!-- iziToast CSS -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/izitoast/dist/css/iziToast.min.css">
+  <style>
+    .offer__percentage {
+      color: #ff0000;
+      font-size: 0.8em;
+      margin-left: 10px;
+    }
+  </style>
 </head>
 
 
@@ -165,8 +172,25 @@
                       <i class="fi fi-rs-star"></i>
                     </div>
                     <div class="product__price flex">
-                      <span class="new__price">₹<%=product.combos[0].salesPrice%></span>
-                      <span class="old__price">₹<%=product.combos[0].regularPrice%></span>
+                      <% 
+                        let categoryOffer = product.category && product.category.categoryOffer || 0;
+                        let productOffer = product.productOffer ? product.offerPercentage : 0;
+                        let effectiveOffer = Math.max(categoryOffer, productOffer); // Use higher offer
+                        if (product.productOffer && productOffer > 0) {
+                          effectiveOffer = productOffer; // Always use product offer if it exists
+                        }
+                        let originalPrice = product.combos[0].regularPrice;
+                        let salePriceBeforeDiscount = product.combos[0].salesPrice;
+                        let newSalesPrice = salePriceBeforeDiscount - (salePriceBeforeDiscount * (effectiveOffer / 100));
+                      %>
+                      <% if (effectiveOffer > 0) { %>
+                        <span class="new__price">₹<%= newSalesPrice.toFixed(2) %></span>
+                        <span class="old__price">₹<%= salePriceBeforeDiscount %></span>
+                        <span class="offer__percentage">(-<%= effectiveOffer %>%)</span>
+                      <% } else { %>
+                        <span class="new__price">₹<%= salePriceBeforeDiscount %></span>
+                        <span class="old__price">₹<%= originalPrice %></span>
+                      <% } %>
                     </div>
                     <a
                       href="#"

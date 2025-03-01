@@ -7,31 +7,70 @@ const productDetails = async (req, res, next) => {
   try {
     const productId = req.query.id;
     const product = await Product.findById(productId).populate("category");
-    const reviews = await Review.find({ productId: productId }).populate("userId"); // Fetch reviews for the product
+    const reviews = await Review.find({ productId: productId }).populate("userId");
     const findCategory = product.category;
+    
+    // Calculate effective offer for main product
     const categoryOffer = findCategory?.categoryOffer || 0;
-    const productOffer = product.productOffer || 0;
-    const totalOffer = categoryOffer + productOffer;
+    const productOffer = product.offer || 0;
+    const effectiveOffer = Math.max(categoryOffer, productOffer); // Higher offer takes precedence
 
-    // Fetch related products from the same category
-    const relatedProducts = await Product.find({
+    // Process related products
+    const relatedProductsRaw = await Product.find({
       category: product.category._id,
-      _id: { $ne: product._id }, // Exclude the current product
-    }).limit(4); // Limit the number of related products
+      _id: { $ne: product._id },
+    })
+      .limit(4)
+      .populate("category");
 
-    // Extract values from combos array (assuming you want the first combo)
+    const relatedProducts = relatedProductsRaw.map((relatedProduct) => {
+      const combo = relatedProduct.combos[0] || {};
+      const relCategoryOffer = relatedProduct.category?.categoryOffer || 0;
+      const relProductOffer = relatedProduct.offer || 0;
+      const relEffectiveOffer = Math.max(relCategoryOffer, relProductOffer);
+
+      const originalSalesPrice = combo.salesPrice || 0;
+      const regularPrice = combo.regularPrice || 0;
+      let newSalesPrice = originalSalesPrice;
+
+      if (relEffectiveOffer > 0) {
+        newSalesPrice = originalSalesPrice * (1 - relEffectiveOffer / 100);
+        newSalesPrice = Math.round(newSalesPrice * 100) / 100;
+      }
+
+      return {
+        ...relatedProduct.toObject(),
+        newSalesPrice,
+        originalSalesPrice,
+        regularPrice,
+        offerPercentage: relEffectiveOffer,
+        appliedOfferType: relProductOffer >= relCategoryOffer ? 'product' : 'category'
+      };
+    });
+
+    // Main product pricing
     const combo = product.combos[0] || {};
+    const originalSalesPrice = combo.salesPrice || 0;
+    const regularPrice = combo.regularPrice || 0;
+    let newSalesPrice = originalSalesPrice;
+    
+    if (effectiveOffer > 0) {
+      newSalesPrice = originalSalesPrice * (1 - effectiveOffer / 100);
+      newSalesPrice = Math.round(newSalesPrice * 100) / 100;
+    }
 
     res.render("product-details", {
-      product: product,
+      product,
       quantity: combo.quantity,
       size: combo.size,
-      salesPrice: combo.salesPrice,
-      regularPrice: combo.regularPrice,
-      totalOffer: totalOffer,
+      salesPrice: newSalesPrice,
+      regularPrice: originalSalesPrice,
+      originalRegularPrice: regularPrice,
+      offerPercentage: effectiveOffer,
+      appliedOfferType: productOffer >= categoryOffer ? 'product' : 'category',
       category: findCategory,
-      relatedProducts: relatedProducts, // Pass related products to the view
-      reviews: reviews, // Pass reviews to the view
+      relatedProducts,
+      reviews,
     });
   } catch (error) {
     next(error);

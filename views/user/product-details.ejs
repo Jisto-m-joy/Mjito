@@ -11,6 +11,11 @@
   .rate__product .fi.gold {
     color: gold; /* Selected color */
   }
+  .offer__percentage {
+    color: #ff0000;
+    font-size: 0.8em;
+    margin-left: 10px;
+  }
 </style>
 </head>
 
@@ -70,9 +75,14 @@
           <h3 class="details__title"><%= product.name %></h3>
           <p class="details__brand">Brand: <span><%= product.brand %></span></p>
           <div class="details__price flex">
-            <span class="new__price" id="salesPrice">₹<%= salesPrice %></span>
+            <span class="new__price" id="salesPrice">₹<%= salesPrice.toFixed(2) %></span>
             <span class="old__price" id="regularPrice">₹<%= regularPrice %></span>
-            <span class="save__price"><%= product.offer %></span>
+            <% if (offerPercentage > 0) { %>
+              <span class="save__price">
+                <%= offerPercentage %>% Off 
+                (<%= appliedOfferType === 'product' ? 'Product' : 'Category' %> Offer)
+              </span>
+            <% } %>
           </div>
           <p class="short__description">
             <%= product.description %>
@@ -152,67 +162,6 @@
         </span>
         <span class="detail__tab" data-target="#reviews">Reviews</span>
       </div>
-      <!-- <div class="details__tabs-content">
-        <div class="details__tab-content active-tab" content id="info">
-          <table class="info__table">
-            <tr>
-              <th>Stand Up</th>
-              <td>35" L x 24"W x 37-45"H(front to back wheel)</td>
-            </tr>
-            <tr>
-              <th>Folded (w/o wheels)</th>
-              <td>32.5"L x 18.5"W x 16.5"H</td>
-            </tr>
-            <tr>
-              <th>Folded (w/o wheels)</th>
-              <td>32.5"L x 24"W x 18.5"H</td>
-            </tr>
-            <tr>
-              <th>Door Pass THrough</th>
-              <td>24</td>
-            </tr>
-            <tr>
-              <th>Frame</th>
-              <td>Aluminum</td>
-            </tr>
-            <tr>
-              <th>Weight (w/o wheels)</th>
-              <td>20 LBS</td>
-            </tr>
-            <tr>
-              <th>Weight Capacity</th>
-              <td>60 LBS</td>
-            </tr>
-            <tr>
-              <th>Width</th>
-              <td>24</td>
-            </tr>
-            <tr>
-              <th>Handle Height (ground to handle)</th>
-              <td>37-45</td>
-            </tr>
-            <tr>
-              <th>Wheels</th>
-              <td>12" air / wide track slick tread</td>
-            </tr>
-            <tr>
-              <th>Seat back height</th>
-              <td>21.5</td>
-            </tr>
-            <tr>
-              <th>Head Room(inside canopy)</th>
-              <td>25"</td>
-            </tr>
-            <tr>
-              <th>Color</th>
-              <td>Black, Blue, Red, White</td>
-            </tr>
-            <tr>
-              <th>Size</th>
-              <td>M, S</td>
-            </tr>
-          </table>
-        </div> -->
         <div class="details__tab-content" content id="reviews">
           <div class="reviews__container grid">
             <% if (reviews && reviews.length > 0) { %>
@@ -320,8 +269,17 @@
               <i class="fi fi-rs-star"></i>
             </div>
             <div class="product__price flex">
-              <span class="new__price">₹<%= relatedProduct.combos[0].salesPrice %></span>
-              <span class="old__price">₹<%= relatedProduct.combos[0].regularPrice %></span>
+              <% if (relatedProduct.offerPercentage > 0) { %>
+                <span class="new__price">₹<%= relatedProduct.newSalesPrice.toFixed(2) %></span>
+                <span class="old__price">₹<%= relatedProduct.originalSalesPrice %></span>
+                <span class="offer__percentage">
+                  (-<%= relatedProduct.offerPercentage %>%) 
+                  <%= relatedProduct.appliedOfferType === 'product' ? 'Product' : 'Category' %> Offer
+                </span>
+              <% } else { %>
+                <span class="new__price">₹<%= relatedProduct.combos[0].salesPrice %></span>
+                <span class="old__price">₹<%= relatedProduct.combos[0].regularPrice %></span>
+              <% } %>
             </div>
             <a
             href="#"
@@ -580,30 +538,37 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-  document.addEventListener('DOMContentLoaded', function() {
-    const sizeLinks = document.querySelectorAll('.size__link');
-    const salesPriceElement = document.getElementById('salesPrice');
-    const regularPriceElement = document.getElementById('regularPrice');
-    const quantityInput = document.getElementById('quantityInput');
-    const availabilityElement = document.getElementById('availability');
+document.addEventListener('DOMContentLoaded', function() {
+  const sizeLinks = document.querySelectorAll('.size__link');
+  const salesPriceElement = document.getElementById('salesPrice');
+  const regularPriceElement = document.getElementById('regularPrice');
+  const availabilityElement = document.getElementById('availability');
 
-    sizeLinks.forEach(link => {
-      link.addEventListener('click', function(event) {
-        event.preventDefault();
-        const salesPrice = this.getAttribute('data-salesPrice');
-        const regularPrice = this.getAttribute('data-regularPrice');
-        const quantity = this.getAttribute('data-quantity');
+  sizeLinks.forEach(link => {
+    link.addEventListener('click', function(event) {
+      event.preventDefault();
+      
+      const salesPrice = parseFloat(this.getAttribute('data-salesPrice'));
+      const regularPrice = parseFloat(this.getAttribute('data-regularPrice'));
+      const quantity = this.getAttribute('data-quantity');
+      const offerPercentage = '<%= offerPercentage %>'; // Get from server-side
+      
+      let newSalesPrice = salesPrice;
+      if (offerPercentage > 0) {
+        newSalesPrice = salesPrice * (1 - offerPercentage / 100);
+        newSalesPrice = Math.round(newSalesPrice * 100) / 100;
+      }
 
-        salesPriceElement.textContent = `₹${salesPrice}`;
-        regularPriceElement.textContent = `₹${regularPrice}`;
-        quantityInput.value = quantity;
-        availabilityElement.textContent = `${quantity} Items in Stock`;
+      salesPriceElement.textContent = `₹${newSalesPrice}`;
+      regularPriceElement.textContent = `₹${salesPrice}`; // Show original sales price as regular
+      availabilityElement.textContent = quantity === '0' ? 'Out of stock' : `${quantity} Items in Stock`;
+      availabilityElement.style.color = quantity === '0' ? 'red' : '';
 
-        sizeLinks.forEach(l => l.classList.remove('size-active'));
-        this.classList.add('size-active');
-      });
+      sizeLinks.forEach(l => l.classList.remove('size-active'));
+      this.classList.add('size-active');
     });
   });
+});
 
     document.addEventListener('DOMContentLoaded', function() {
   const minusBtn = document.querySelector('.minus-btn');

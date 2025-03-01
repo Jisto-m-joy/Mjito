@@ -43,14 +43,30 @@ const loadHomepage = async (req, res, next) => {
       category: { $in: categoryIds }
     };
 
-    // Fetch all products first
-    const allProducts = await Product.find(baseQuery).populate('category').lean();
+    // Fetch all products with category populated to get category offer
+    const allProducts = await Product.find(baseQuery)
+      .populate({
+        path: 'category',
+        select: 'categoryOffer'  // Only fetch necessary field
+      })
+      .lean();
+
+    // Process products to ensure offer consistency
+    const processedProducts = allProducts.map(product => {
+      const categoryOffer = product.category?.categoryOffer || 0;
+      const productOffer = product.productOffer ? product.offerPercentage : 0;
+      
+      // Always use product offer if it exists, otherwise use category offer
+      product.effectiveOffer = product.productOffer ? productOffer : categoryOffer;
+      
+      return product;
+    });
 
     // 1. Branded Section: Highest priced product from each brand
-    const brandedProducts = await getBrandedProducts(allProducts);
+    const brandedProducts = await getBrandedProducts(processedProducts);
 
     // 2. Popular Section: Highest priced products overall
-    const popularProducts = [...allProducts]
+    const popularProducts = [...processedProducts]
       .sort((a, b) => {
         const aPrice = Math.max(...a.combos.map(combo => combo.salesPrice));
         const bPrice = Math.max(...b.combos.map(combo => combo.salesPrice));
@@ -59,7 +75,7 @@ const loadHomepage = async (req, res, next) => {
       .slice(0, 4);
 
     // 3. New Added Section: Latest products
-    const newAddedProducts = [...allProducts]
+    const newAddedProducts = [...processedProducts]
       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
       .slice(0, 4);
 
@@ -347,10 +363,51 @@ const loadShopingPage = async (req, res, next) => {
       }
     }
 
+    // Fetch products after defining sortOption
     const products = await Product.find(productQuery)
+      .populate('category')
       .sort(sortOption)
       .limit(limit)
       .skip(skip);
+
+    // Calculate offer prices for each product
+    const productsWithOffers = products.map(product => {
+      const productObj = product.toObject();
+      const categoryOffer = product.category?.categoryOffer || 0;
+      const productOffer = product.offer || 0;
+      const combo = productObj.combos[0];
+      
+      // Determine which offer to apply
+      let effectiveOffer = 0;
+      let offerType = 'none';
+      
+      // If product has an offer, use it regardless of category offer
+      if (productOffer > 0) {
+        effectiveOffer = productOffer;
+        offerType = 'product';
+      } else if (categoryOffer > 0) {
+        // If no product offer but category offer exists
+        effectiveOffer = categoryOffer;
+        offerType = 'category';
+      }
+      
+      // Calculate prices based on effective offer
+      if (effectiveOffer > 0) {
+        const originalSalesPrice = combo.salesPrice;
+        const discountAmount = (originalSalesPrice * effectiveOffer) / 100;
+        combo.newSalesPrice = Math.round(originalSalesPrice - discountAmount);
+        combo.oldSalesPrice = originalSalesPrice;
+        combo.offerPercentage = effectiveOffer;
+        combo.offerType = offerType; // Add offer type for potential future use
+      } else {
+        combo.newSalesPrice = combo.salesPrice;
+        combo.oldSalesPrice = combo.regularPrice;
+        combo.offerPercentage = 0;
+      }
+      
+      productObj.combos[0] = combo;
+      return productObj;
+    });
 
     const totalProducts = await Product.countDocuments(productQuery);
     const totalPages = Math.ceil(totalProducts / limit);
@@ -359,7 +416,7 @@ const loadShopingPage = async (req, res, next) => {
       user: userData,
       categories: categories,
       brands: brands,
-      products: products,
+      products: productsWithOffers,
       totalPages: totalPages,
       currentPage: page,
       sizes: sizes,
@@ -371,9 +428,6 @@ const loadShopingPage = async (req, res, next) => {
     next(error);
   }
 };
-
-
-
 
 module.exports = {
   loadHomepage,
