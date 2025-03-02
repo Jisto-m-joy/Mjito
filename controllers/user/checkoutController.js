@@ -109,123 +109,7 @@ const placeOrder = async (req, res) => {
   
       const finalAmount = totalPrice + shippingCharge - discount;
   
-      // Handle wallet payment
-      if (paymentMethod === 'wallet') {
-        const wallet = await Wallet.findOne({ user: userId });
-        if (!wallet || wallet.balance < finalAmount) {
-          return res.status(400).json({ 
-            error: 'Insufficient wallet balance',
-            walletBalance: wallet ? wallet.balance : 0,
-            required: finalAmount
-          });
-        }
-        wallet.balance -= finalAmount;
-        wallet.transactions.push({
-          type: 'debit',
-          amount: finalAmount,
-          description: `Payment for order #${Date.now()}`
-        });
-        await wallet.save();
-      } 
-      // Handle Razorpay payment
-      else if (paymentMethod === 'razorpay') {
-        // Verify stock before initiating payment
-        for (const item of cart.items) {
-          const product = await Product.findById(item.productId._id);
-          if (!product) {
-            return res.status(400).json({ 
-              error: `Product ${item.productId.name} not found`,
-              productName: item.productId.name
-            });
-          }
-  
-          let targetColor = item.color;
-          let targetSize = item.size;
-  
-          if (!targetColor || !targetSize) {
-            if (product.combos && product.combos.length > 0) {
-              const firstCombo = product.combos[0];
-              targetColor = firstCombo.color;
-              targetSize = firstCombo.size;
-            } else {
-              return res.status(400).json({ 
-                error: `No combos available for product ${product.name}`,
-                productName: product.name
-              });
-            }
-          }
-  
-          const combo = product.combos.find(c => 
-            String(c.color).toLowerCase() === String(targetColor).toLowerCase() && 
-            Number(c.size) === Number(targetSize)
-          );
-  
-          if (!combo) {
-            return res.status(400).json({ 
-              error: `Product ${product.name} combo not found for color: ${targetColor}, size: ${targetSize}`,
-              productName: product.name
-            });
-          }
-  
-          if (combo.quantity < item.quantity) {
-            return res.status(400).json({ 
-              error: `Insufficient stock for product ${product.name}`,
-              productName: product.name
-            });
-          }
-        }
-  
-        // Create Razorpay order
-        const options = {
-          amount: Math.round(finalAmount * 100), // Convert to paise
-          currency: "INR",
-          receipt: `order_${Date.now()}`
-        };
-  
-        const razorpayOrder = await razorpay.orders.create(options);
-  
-        return res.json({
-          success: true,
-          order: razorpayOrder,
-          keyId: process.env.RAZORPAY_KEY_ID,
-          amount: finalAmount * 100,
-          addressId,
-          couponCode: couponCode || null
-        });
-      }
-  
-      // For non-Razorpay methods (COD), proceed with order creation
-      for (const item of cart.items) {
-        const product = await Product.findById(item.productId._id);
-        const combo = product.combos.find(c => 
-          String(c.color).toLowerCase() === String(item.color).toLowerCase() && 
-          Number(c.size) === Number(item.size)
-        );
-  
-        if (!combo || combo.quantity < item.quantity) {
-          return res.status(400).json({ 
-            error: `Insufficient stock for ${product.name}`,
-            productName: product.name
-          });
-        }
-  
-        await Product.updateOne(
-          {
-            _id: item.productId._id,
-            'combos': {
-              $elemMatch: {
-                color: item.color,
-                size: Number(item.size),
-                quantity: { $gte: item.quantity }
-              }
-            }
-          },
-          {
-            $inc: { 'combos.$.quantity': -item.quantity }
-          }
-        );
-      }
-  
+      // Create order object (to be used by all payment methods)
       const order = new Order({
         userId,
         orderedItems: cart.items.map(item => ({
@@ -255,9 +139,249 @@ const placeOrder = async (req, res) => {
         couponCode: couponCode || null
       });
   
-      await order.save();
-      await Cart.findOneAndDelete({ userId });
-      res.redirect('/order-placed');
+      // Handle different payment methods
+      if (paymentMethod === 'wallet') {
+        const wallet = await Wallet.findOne({ user: userId });
+        if (!wallet || wallet.balance < finalAmount) {
+          return res.status(400).json({ 
+            error: 'Insufficient wallet balance',
+            walletBalance: wallet ? wallet.balance : 0,
+            required: finalAmount
+          });
+        }
+      
+        // Enhanced stock check
+        for (const item of cart.items) {
+          const product = await Product.findById(item.productId._id);
+          if (!product) {
+            return res.status(400).json({ 
+              error: `Product not found: ${item.productId.name}`,
+              productName: item.productId.name 
+            });
+          }
+      
+          let targetColor = item.color;
+          let targetSize = item.size;
+      
+          if (!targetColor || !targetSize) {
+            if (product.combos && product.combos.length > 0) {
+              targetColor = product.combos[0].color;
+              targetSize = product.combos[0].size;
+            } else {
+              return res.status(400).json({ 
+                error: `No combos available for product ${product.name}`,
+                productName: product.name
+              });
+            }
+          }
+      
+          const combo = product.combos.find(c => 
+            String(c.color).toLowerCase() === String(targetColor).toLowerCase() && 
+            Number(c.size) === Number(targetSize)
+          );
+      
+          if (!combo) {
+            return res.status(400).json({ 
+              error: `No matching combo found for ${product.name} (Color: ${targetColor}, Size: ${targetSize})`,
+              productName: product.name 
+            });
+          }
+      
+          if (combo.quantity < item.quantity) {
+            return res.status(400).json({ 
+              error: `Insufficient stock for ${product.name} (Available: ${combo.quantity}, Requested: ${item.quantity})`,
+              productName: product.name 
+            });
+          }
+      
+          await Product.updateOne(
+            {
+              _id: item.productId._id,
+              'combos': {
+                $elemMatch: {
+                  color: targetColor,
+                  size: Number(targetSize),
+                  quantity: { $gte: item.quantity }
+                }
+              }
+            },
+            {
+              $inc: { 'combos.$.quantity': -item.quantity }
+            }
+          );
+        }
+      
+        wallet.balance -= finalAmount;
+        wallet.transactions.push({
+          type: 'debit',
+          amount: finalAmount,
+          description: `Payment for order #${Date.now()}`
+        });
+        await wallet.save();
+        
+        await order.save();
+        await Cart.findOneAndDelete({ userId });
+        return res.json({ success: true });
+      }
+      else if (paymentMethod === 'razorpay') {
+        console.log('Starting Razorpay order processing');
+        
+        // Verify stock before initiating payment
+        for (const item of cart.items) {
+          console.log('Checking item:', {
+            productId: item.productId._id,
+            color: item.color,
+            size: item.size,
+            quantity: item.quantity
+          });
+          
+          const product = await Product.findById(item.productId._id);
+          if (!product) {
+            console.log('Product not found:', item.productId.name);
+            return res.status(400).json({ 
+              error: `Product ${item.productId.name} not found`,
+              productName: item.productId.name
+            });
+          }
+      
+          console.log('Product combos:', product.combos);
+      
+          let targetColor = item.color;
+          let targetSize = item.size;
+      
+          if (!targetColor || !targetSize) {
+            console.log('Missing color or size, checking combos');
+            if (product.combos && product.combos.length > 0) {
+              const firstCombo = product.combos[0];
+              targetColor = firstCombo.color;
+              targetSize = firstCombo.size;
+              console.log('Using default combo:', { color: targetColor, size: targetSize });
+            } else {
+              console.log('No combos available');
+              return res.status(400).json({ 
+                error: `No combos available for product ${product.name}`,
+                productName: product.name
+              });
+            }
+          }
+      
+          const combo = product.combos.find(c => {
+            const colorMatch = String(c.color).toLowerCase() === String(targetColor).toLowerCase();
+            const sizeMatch = Number(c.size) === Number(targetSize);
+            console.log(`Checking combo: color ${c.color} vs ${targetColor} (${colorMatch}), size ${c.size} vs ${targetSize} (${sizeMatch})`);
+            return colorMatch && sizeMatch;
+          });
+      
+          if (!combo) {
+            console.log('No matching combo found');
+            return res.status(400).json({ 
+              error: `No matching combo found for ${product.name} (Color: ${targetColor}, Size: ${targetSize})`,
+              productName: product.name
+            });
+          }
+      
+          console.log('Combo found:', combo);
+      
+          if (combo.quantity < item.quantity) {
+            console.log('Insufficient stock');
+            return res.status(400).json({ 
+              error: `Insufficient stock for ${product.name} (Available: ${combo.quantity}, Requested: ${item.quantity})`,
+              productName: product.name
+            });
+          }
+        }
+      
+        console.log('Stock check passed, creating Razorpay order');
+        
+        const options = {
+          amount: Math.round(finalAmount * 100),
+          currency: "INR",
+          receipt: `order_${Date.now()}`
+        };
+      
+        try {
+          const razorpayOrder = await razorpay.orders.create(options);
+          console.log('Razorpay order created:', razorpayOrder);
+      
+          return res.json({
+            success: true,
+            order: razorpayOrder,
+            keyId: process.env.RAZORPAY_KEY_ID,
+            amount: finalAmount * 100,
+            addressId,
+            couponCode: couponCode || null
+          });
+        } catch (razorpayError) {
+          console.error('Razorpay order creation failed:', razorpayError);
+          return res.status(500).json({ error: 'Failed to create payment order' });
+        }
+      }
+      else if (paymentMethod === 'cod') {
+        // Enhanced stock check
+        for (const item of cart.items) {
+          const product = await Product.findById(item.productId._id);
+          if (!product) {
+            return res.status(400).json({ 
+              error: `Product not found: ${item.productId.name}`,
+              productName: item.productId.name 
+            });
+          }
+      
+          let targetColor = item.color;
+          let targetSize = item.size;
+      
+          if (!targetColor || !targetSize) {
+            if (product.combos && product.combos.length > 0) {
+              targetColor = product.combos[0].color;
+              targetSize = product.combos[0].size;
+            } else {
+              return res.status(400).json({ 
+                error: `No combos available for product ${product.name}`,
+                productName: product.name
+              });
+            }
+          }
+      
+          const combo = product.combos.find(c => 
+            String(c.color).toLowerCase() === String(targetColor).toLowerCase() && 
+            Number(c.size) === Number(targetSize)
+          );
+      
+          if (!combo) {
+            return res.status(400).json({ 
+              error: `No matching combo found for ${product.name} (Color: ${targetColor}, Size: ${targetSize})`,
+              productName: product.name 
+            });
+          }
+      
+          if (combo.quantity < item.quantity) {
+            return res.status(400).json({ 
+              error: `Insufficient stock for ${product.name} (Available: ${combo.quantity}, Requested: ${item.quantity})`,
+              productName: product.name 
+            });
+          }
+      
+          await Product.updateOne(
+            {
+              _id: item.productId._id,
+              'combos': {
+                $elemMatch: {
+                  color: targetColor,
+                  size: Number(targetSize),
+                  quantity: { $gte: item.quantity }
+                }
+              }
+            },
+            {
+              $inc: { 'combos.$.quantity': -item.quantity }
+            }
+          );
+        }
+      
+        await order.save();
+        await Cart.findOneAndDelete({ userId });
+        return res.json({ success: true });
+      }
   
     } catch (error) {
       console.error('Error placing order:', error);
@@ -336,33 +460,85 @@ const verifyRazorpayPayment = async (req, res) => {
 
     // Update product quantities
     for (const item of cart.items) {
-      const product = await Product.findById(item.productId._id);
-      const combo = product.combos.find(c => 
-        String(c.color).toLowerCase() === String(item.color).toLowerCase() && 
-        Number(c.size) === Number(item.size)
-      );
-
-      if (!combo || combo.quantity < item.quantity) {
-        return res.status(400).json({ success: false, error: `Insufficient stock for ${product.name}` });
-      }
-
-      await Product.updateOne(
-        {
-          _id: item.productId._id,
-          'combos': {
-            $elemMatch: {
-              color: item.color,
-              size: Number(item.size),
-              quantity: { $gte: item.quantity }
-            }
-          }
-        },
-        {
-          $inc: { 'combos.$.quantity': -item.quantity }
+        const product = await Product.findById(item.productId._id);
+        if (!product) {
+          return res.status(400).json({ 
+            success: false, 
+            error: `Product not found: ${item.productId.name}`,
+            productName: item.productId.name 
+          });
         }
-      );
-    }
-
+      
+        // Log the values for debugging
+        console.log('Cart Item:', {
+          productId: item.productId._id,
+          color: item.color,
+          size: item.size,
+          quantity: item.quantity
+        });
+        console.log('Product Combos:', product.combos);
+      
+        // Use default values if color or size are missing
+        let targetColor = item.color;
+        let targetSize = item.size;
+      
+        if (!targetColor || !targetSize) {
+          console.log('Missing color or size in verification, using default');
+          if (product.combos && product.combos.length > 0) {
+            const firstCombo = product.combos[0];
+            targetColor = firstCombo.color;
+            targetSize = firstCombo.size;
+            console.log('Using default combo:', { color: targetColor, size: targetSize });
+          } else {
+            return res.status(400).json({ 
+              success: false, 
+              error: `No combos available for product ${product.name}`,
+              productName: product.name
+            });
+          }
+        }
+      
+        const combo = product.combos.find(c => {
+          const colorMatch = String(c.color).toLowerCase() === String(targetColor).toLowerCase();
+          const sizeMatch = Number(c.size) === Number(targetSize);
+          console.log(`Checking combo: color ${c.color} vs ${targetColor} (${colorMatch}), size ${c.size} vs ${targetSize} (${sizeMatch})`);
+          return colorMatch && sizeMatch;
+        });
+      
+        if (!combo) {
+          return res.status(400).json({ 
+            success: false, 
+            error: `No matching combo found for ${product.name} (Color: ${targetColor}, Size: ${targetSize})`,
+            productName: product.name 
+          });
+        }
+      
+        if (combo.quantity < item.quantity) {
+          return res.status(400).json({ 
+            success: false, 
+            error: `Insufficient stock for ${product.name} (Available: ${combo.quantity}, Requested: ${item.quantity})`,
+            productName: product.name 
+          });
+        }
+      
+        // Update stock
+        await Product.updateOne(
+          {
+            _id: item.productId._id,
+            'combos': {
+              $elemMatch: {
+                color: targetColor,
+                size: Number(targetSize),
+                quantity: { $gte: item.quantity }
+              }
+            }
+          },
+          {
+            $inc: { 'combos.$.quantity': -item.quantity }
+          }
+        );
+      }
+      
     // Calculate totals
     let totalPrice = cart.items.reduce((sum, item) => sum + item.totalPrice, 0);
     let discount = 0;
