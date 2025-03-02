@@ -153,7 +153,10 @@ const removeOffer = async (req, res, next) => {
         .status(404)
         .json({ success: false, message: "Product not found" });
     }
-    product.offer = 0;
+    // Reset all offer-related fields
+    product.offerPercentage = 0;
+    product.offerEndDate = null;
+    product.productOffer = false;
     await product.save();
     res.json({ success: true, message: "Offer removed successfully" });
   } catch (error) {

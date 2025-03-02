@@ -334,216 +334,252 @@
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
   document.addEventListener("DOMContentLoaded", function () {
-      const form = document.querySelector('form');
-      const placeOrderBtn = document.querySelector('.place-order__btn');
-      let walletError = document.createElement('div');
-      walletError.className = 'error-message wallet-error';
-      walletError.style.color = 'red';
-      walletError.style.marginTop = '5px';
+    // Log to confirm script execution
+    console.log("DOM fully loaded, script running");
 
-      // Add the error element after the wallet payment option
-      const walletPaymentOption = document.querySelector('label[for="l1"]').parentNode;
-      walletPaymentOption.appendChild(walletError);
+    const form = document.querySelector('form[action="/place-order"]');
+    if (!form) {
+      console.error("Form not found!");
+      return;
+    }
+    console.log("Form found:", form);
 
-      // Set initial selected address
-      const firstAddressRadio = document.querySelector('input[name="address"]');
-      if (firstAddressRadio) {
-          document.getElementById("selectedAddressId").value = firstAddressRadio.value;
-      }
+    const placeOrderBtn = document.querySelector('.place-order__btn');
+    if (!placeOrderBtn) {
+      console.error("Place Order button not found!");
+      return;
+    }
 
-      // Update selected address when radio changes
-      document.querySelectorAll('input[name="address"]').forEach((radio) => {
-          radio.addEventListener("change", function () {
-              document.getElementById("selectedAddressId").value = this.value;
-          });
+    // Create wallet error element
+    let walletError = document.createElement('div');
+    walletError.className = 'error-message wallet-error';
+    walletError.style.color = 'red';
+    walletError.style.marginTop = '5px';
+    const walletPaymentOption = document.querySelector('label[for="l1"]').parentNode;
+    walletPaymentOption.appendChild(walletError);
+
+    // Set initial selected address
+    const firstAddressRadio = document.querySelector('input[name="address"]');
+    if (firstAddressRadio) {
+      document.getElementById("selectedAddressId").value = firstAddressRadio.value;
+    }
+
+    // Update selected address when radio changes
+    document.querySelectorAll('input[name="address"]').forEach((radio) => {
+      radio.addEventListener("change", function () {
+        document.getElementById("selectedAddressId").value = this.value;
       });
+    });
 
-      // Handle wallet radio selection
-      const walletRadio = document.querySelector('input[value="wallet"]');
-      walletRadio.addEventListener('change', async function() {
-          if (this.checked) {
-              await checkWalletBalance();
-          } else {
-              walletError.textContent = '';
-              placeOrderBtn.disabled = false;
-          }
-      });
+    // Handle form submission
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      console.log("Form submission intercepted"); // Debug log
 
-      // Check wallet balance on page load if wallet is selected by default
-      if (walletRadio.checked) {
-          checkWalletBalance();
-      }
-
-      // Form submission handler
-      form.addEventListener('submit', function (e) {
-          e.preventDefault(); // Prevent default form submission
-
-          const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
-          const addressId = document.getElementById('selectedAddressId').value;
-
-          if (!addressId) {
-              alert('Please select a delivery address');
-              return;
-          }
-
-          if (paymentMethod === 'razorpay') {
-              const couponCode = document.getElementById('couponInput')?.value || null;
-
-              fetch('/initiate-razorpay', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ addressId, couponCode })
-              })
-              .then(response => response.json())
-              .then(data => {
-                  if (data.success) {
-                      const options = {
-                          key: data.keyId,
-                          amount: data.order.amount,
-                          currency: data.order.currency,
-                          name: "GoalZone",
-                          description: "Payment for your order",
-                          order_id: data.order.id,
-                          handler: function (response) {
-                              verifyPayment(response);
-                          },
-                          prefill: {
-                              name: "",
-                              email: "",
-                              contact: ""
-                          },
-                          theme: {
-                              color: "#3399cc"
-                          }
-                      };
-                      const rzp = new Razorpay(options);
-                      rzp.on('payment.failed', function (response) {
-                          alert('Payment failed. Please try again.');
-                      });
-                      rzp.open();
-                  } else {
-                      alert(data.error || 'Failed to initiate payment');
-                  }
-              })
-              .catch(error => {
-                  console.error('Error:', error);
-                  alert('Something went wrong. Please try again.');
-              });
-          } else {
-              // For wallet or COD payments, submit the form directly
-              form.submit();
-          }
-      });
-
-      async function checkWalletBalance() {
-          try {
-              const totalAmount = parseFloat(document.querySelector('.order__grand-total').textContent.replace('₹', ''));
-              const response = await fetch('/wallet-balance');
-              const data = await response.json();
-              
-              if (data.success && data.balance < totalAmount) {
-                  walletError.textContent = `Insufficient balance: ₹${data.balance.toFixed(2)}. You need ₹${totalAmount.toFixed(2)}.`;
-                  placeOrderBtn.disabled = true;
-              } else {
-                  walletError.textContent = '';
-                  placeOrderBtn.disabled = false;
-              }
-          } catch (error) {
-              console.error('Error checking wallet balance:', error);
-          }
-      }
-  });
-
-  // Validate wallet balance before form submission
-  document.querySelector('form').addEventListener('submit', async function(e) {
       const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
-      
-      if (paymentMethod === 'wallet') {
-          e.preventDefault();
-          const response = await fetch('/wallet-balance');
-          const data = await response.json();
-          const totalAmount = parseFloat(document.querySelector('.order__grand-total').textContent.replace('₹', ''));
-          
-          if (data.success && data.balance >= totalAmount) {
-              this.submit();
-          } else {
-              walletError.textContent = `Insufficient balance: ₹${data.balance.toFixed(2)}. You need ₹${totalAmount.toFixed(2)}.`;
-              placeOrderBtn.disabled = true;
-          }
-      }
-  });
+      const addressId = document.getElementById('selectedAddressId').value;
+      const couponCode = document.querySelector('input[name="couponCode"]')?.value || '';
 
-  // Coupon Code Logic
-  document.getElementById("applyCouponBtn").addEventListener("click", async function () {
+      if (!addressId) {
+        alert('Please select a delivery address');
+        return;
+      }
+
+      if (paymentMethod === 'wallet') {
+        checkWalletBalance().then(() => {
+          if (!placeOrderBtn.disabled) {
+            submitOrder(paymentMethod, addressId, couponCode);
+          }
+        });
+      } else {
+        submitOrder(paymentMethod, addressId, couponCode);
+      }
+    });
+
+    function submitOrder(paymentMethod, addressId, couponCode) {
+      const formData = { paymentMethod, addressId, couponCode };
+      console.log("Submitting order:", formData); // Debug log
+
+      fetch('/place-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then(data => {
+        console.log('Response from /place-order:', data);
+        if (data.success) {
+          if (paymentMethod === 'razorpay') {
+            openRazorpayModal(data, addressId, couponCode);
+          } else {
+            window.location.href = '/order-placed';
+          }
+        } else {
+          alert(data.error || 'Failed to place order');
+        }
+      })
+      .catch(error => {
+        console.error('Fetch error:', error);
+        alert('Something went wrong. Please try again.');
+      });
+    }
+
+    function openRazorpayModal(data, addressId, couponCode) {
+      const options = {
+        key: data.keyId,
+        amount: data.amount,
+        currency: "INR",
+        name: "Your Store Name",
+        description: "Order Payment",
+        order_id: data.order.id,
+        handler: function (response) {
+          console.log('Payment successful:', response);
+          verifyPayment(response, addressId, couponCode);
+        },
+        prefill: {
+          name: "",
+          email: "",
+          contact: ""
+        },
+        theme: {
+          color: "#3399cc"
+        }
+      };
+
+      console.log('Opening Razorpay with options:', options);
+      const rzp = new Razorpay(options);
+      rzp.on('payment.failed', function (response) {
+        console.error('Payment failed:', response.error);
+        alert('Payment failed: ' + response.error.description);
+      });
+      rzp.open();
+    }
+
+    function verifyPayment(response, addressId, couponCode) {
+      fetch('/verify-razorpay', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          razorpay_payment_id: response.razorpay_payment_id,
+          razorpay_order_id: response.razorpay_order_id,
+          razorpay_signature: response.razorpay_signature,
+          addressId,
+          couponCode
+        })
+      })
+      .then(resp => resp.json())
+      .then(result => {
+        console.log('Verification response:', result);
+        if (result.success) {
+          window.location.href = result.redirect;
+        } else {
+          alert('Payment verification failed: ' + (result.error || 'Unknown error'));
+        }
+      })
+      .catch(error => {
+        console.error('Verification error:', error);
+        alert('Error verifying payment. Please contact support.');
+      });
+    }
+
+    async function checkWalletBalance() {
+      try {
+        const totalAmount = parseFloat(document.querySelector('.order__grand-total').textContent.replace('₹', ''));
+        const response = await fetch('/wallet-balance');
+        const data = await response.json();
+        
+        if (data.success && data.balance < totalAmount) {
+          walletError.textContent = `Insufficient balance: ₹${data.balance.toFixed(2)}. You need ₹${totalAmount.toFixed(2)}.`;
+          placeOrderBtn.disabled = true;
+        } else {
+          walletError.textContent = '';
+          placeOrderBtn.disabled = false;
+        }
+      } catch (error) {
+        console.error('Error checking wallet balance:', error);
+      }
+    }
+
+    const walletRadio = document.querySelector('input[value="wallet"]');
+    if (walletRadio.checked) {
+      checkWalletBalance();
+    }
+
+    walletRadio.addEventListener('change', async function() {
+      if (this.checked) {
+        await checkWalletBalance();
+      } else {
+        walletError.textContent = '';
+        placeOrderBtn.disabled = false;
+      }
+    });
+
+    document.getElementById("applyCouponBtn").addEventListener("click", async function () {
       const couponCode = document.getElementById("couponInput").value;
       const messageContainer = document.getElementById("couponMessage");
 
       try {
-          const response = await fetch("/apply-coupon", {
-              method: "POST",
-              headers: {
-                  "Content-Type": "application/json",
-              },
-              body: JSON.stringify({ couponCode }),
-          });
+        const response = await fetch("/apply-coupon", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ couponCode })
+        });
 
-          const data = await response.json();
+        const data = await response.json();
 
-          if (data.success) {
-              messageContainer.innerHTML = `<div class="success-message">Coupon applied! Discount: ₹${data.discount}</div>`;
+        if (data.success) {
+          messageContainer.innerHTML = `<div class="success-message">Coupon applied! Discount: ₹${data.discount}</div>`;
+          const discountRow = document.getElementById("coupon-discount-row");
+          discountRow.style.display = "table-row";
+          document.querySelector(".coupon-discount").textContent = `-₹${data.discount}`;
+          document.querySelector(".order__grand-total").textContent = `₹${data.finalAmount}`;
 
-              // Show and update the discount row
-              const discountRow = document.getElementById("coupon-discount-row");
-              discountRow.style.display = "table-row";
-              document.querySelector(".coupon-discount").textContent = `-₹${data.discount}`;
-
-              // Update the total
-              document.querySelector(".order__grand-total").textContent = `₹${data.finalAmount}`;
-
-              // Add hidden input for order placement
-              let hiddenInput = document.createElement("input");
-              hiddenInput.type = "hidden";
-              hiddenInput.name = "couponCode";
-              hiddenInput.value = couponCode;
-              document.querySelector("form").appendChild(hiddenInput);
-          } else {
-              messageContainer.innerHTML = `<div class="error-message">${data.error}</div>`;
-          }
+          let hiddenInput = document.createElement("input");
+          hiddenInput.type = "hidden";
+          hiddenInput.name = "couponCode";
+          hiddenInput.value = couponCode;
+          form.appendChild(hiddenInput);
+        } else {
+          messageContainer.innerHTML = `<div class="error-message">${data.error}</div>`;
+        }
       } catch (error) {
-          messageContainer.innerHTML = '<div class="error-message">Failed to apply coupon</div>';
+        messageContainer.innerHTML = '<div class="error-message">Failed to apply coupon</div>';
       }
-  });
+    });
 
-  // Coupon Modal Logic
-  document.addEventListener("DOMContentLoaded", function () {
-      const modal = document.getElementById("couponModal");
-      const showMoreBtn = document.getElementById("showMoreCoupons");
-      const closeBtn = document.querySelector(".close");
+    const modal = document.getElementById("couponModal");
+    const showMoreBtn = document.getElementById("showMoreCoupons");
+    const closeBtn = document.querySelector(".close");
 
-      if (showMoreBtn) {
-          showMoreBtn.addEventListener("click", function () {
-              modal.style.display = "block";
-          });
-      }
-
-      if (closeBtn) {
-          closeBtn.addEventListener("click", function () {
-              modal.style.display = "none";
-          });
-      }
-
-      window.addEventListener("click", function (event) {
-          if (event.target == modal) {
-              modal.style.display = "none";
-          }
+    if (showMoreBtn) {
+      showMoreBtn.addEventListener("click", function () {
+        modal.style.display = "block";
       });
-  });
+    }
 
-  function applyCouponCode(code) {
+    if (closeBtn) {
+      closeBtn.addEventListener("click", function () {
+        modal.style.display = "none";
+      });
+    }
+
+    window.addEventListener("click", function (event) {
+      if (event.target == modal) {
+        modal.style.display = "none";
+      }
+    });
+
+    function applyCouponCode(code) {
       document.getElementById("couponInput").value = code;
       document.getElementById("applyCouponBtn").click();
       if (document.getElementById("couponModal").style.display === "block") {
-          document.getElementById("couponModal").style.display = "none";
+        document.getElementById("couponModal").style.display = "none";
       }
-  }
+    }
+  });
 </script>
