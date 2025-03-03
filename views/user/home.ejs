@@ -193,13 +193,14 @@
                       <% } %>
                     </div>
                     <a
-                      href="#"
-                      class="action__btn cart__btn"
-                      aria-label="Add To Cart"
-                      data-combo-size="<%= product.combos[0].size %>"
-                    >
-                      <i class="fi fi-rs-shopping-bag-add"></i>
-                    </a>
+                    href="#"
+                    class="action__btn cart__btn"
+                    aria-label="Add To Cart"
+                    data-product-id="<%= product._id %>"
+                    data-combo-size="<%= product.combos[0].size %>"
+                  >
+                    <i class="fi fi-rs-shopping-bag-add"></i>
+                  </a>
                   </div>
                 </div>
               <% }); %>
@@ -381,7 +382,6 @@ document.addEventListener('DOMContentLoaded', function() {
       event.preventDefault();
       const productItem = this.closest('.product__item');
       
-      // Find the product details link
       const productLink = productItem.querySelector('a[href^="/productDetails"]');
       
       if (!productLink) {
@@ -394,7 +394,6 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
       }
 
-      // Extract product ID from the link
       const productId = new URL(productLink.href, window.location.origin).searchParams.get('id');
       
       if (!productId) {
@@ -411,6 +410,8 @@ document.addEventListener('DOMContentLoaded', function() {
         size: this.getAttribute('data-combo-size')
       };
 
+      console.log('Adding to cart - Product ID:', productId, 'Size:', selectedCombo.size);
+
       fetch('/add-to-cart', {
         method: 'POST',
         credentials: 'same-origin',
@@ -425,15 +426,11 @@ document.addEventListener('DOMContentLoaded', function() {
         })
       })
       .then(response => {
-        console.log('Response status:', response.status);
-        
         if (!response.ok) {
           return response.json().then(errorData => {
-            console.error('Error response:', errorData);
             throw new Error(errorData.message || 'Network response was not ok');
           });
         }
-        
         return response.json();
       })
       .then(data => {
@@ -444,11 +441,10 @@ document.addEventListener('DOMContentLoaded', function() {
             position: 'topRight'
           });
         } else {
-          // Check for limit exceeded error
           if (data.limitExceeded) {
             iziToast.warning({
               title: 'Cart Limit',
-              message: 'You can only add up to 10 unique items to the cart.',
+              message: data.message || 'You can only add up to 10 units per product or 50 items total.',
               position: 'topRight'
             });
           } else {
@@ -461,10 +457,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
       })
       .catch(error => {
-        console.error('Full error:', error);
+        console.error('Fetch error:', error);
         iziToast.error({
           title: 'Error',
-          message: error.message || 'An error occurred while adding the product to the cart',
+          message: error.message || 'An error occurred while adding to cart',
           position: 'topRight'
         });
       });

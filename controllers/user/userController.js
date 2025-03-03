@@ -313,116 +313,56 @@ const loadShopingPage = async (req, res, next) => {
       category: { $in: categoryIds },
     };
 
-    if (category) {
-      productQuery.category = category;
-    }
-    if (brand) {
-      productQuery.brand = brand;
-    }
+    if (category) productQuery.category = category;
+    if (brand) productQuery.brand = brand;
     if (price) {
       const [minPrice, maxPrice] = price.split('-').map(Number);
       productQuery['combos.salesPrice'] = { $gte: minPrice, $lte: maxPrice };
     }
-    if (size) {
-      productQuery['combos.size'] = size;
-    }
-    if (color) {
-      productQuery['combos.color'] = color;
-    }
+    if (size) productQuery['combos.size'] = size;
+    if (color) productQuery['combos.color'] = color;
     if (search) {
       productQuery.$or = [
         { name: { $regex: search, $options: 'i' } },
         { brand: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } }
+        { description: { $regex: search, $options: 'i' } },
       ];
     }
 
-    let sortOption = { createdAt: -1 }; // Default sort by newest first
+    let sortOption = { createdAt: -1 };
     if (sort) {
-      switch(sort) {
-        case 'price-asc':
-          sortOption = { 'combos.0.salesPrice': 1 };
-          break;
-        case 'price-desc':
-          sortOption = { 'combos.0.salesPrice': -1 };
-          break;
-        case 'name-asc':
-          sortOption = { name: 1 };
-          break;
-        case 'name-desc':
-          sortOption = { name: -1 };
-          break;
-        case 'new-arrivals':
-          sortOption = { createdAt: -1 };
-          break;
-        case 'old-arrivals':
-          sortOption = { createdAt: 1 };
-          break;
-        default:
-          sortOption = { createdAt: -1 };
+      switch (sort) {
+        case 'price-asc': sortOption = { 'combos.0.salesPrice': 1 }; break;
+        case 'price-desc': sortOption = { 'combos.0.salesPrice': -1 }; break;
+        case 'name-asc': sortOption = { name: 1 }; break;
+        case 'name-desc': sortOption = { name: -1 }; break;
+        case 'new-arrivals': sortOption = { createdAt: -1 }; break;
+        case 'old-arrivals': sortOption = { createdAt: 1 }; break;
+        default: sortOption = { createdAt: -1 };
       }
     }
 
-    // Fetch products after defining sortOption
     const products = await Product.find(productQuery)
-      .populate('category')
+      .populate('category') // Populate category to get categoryOffer
       .sort(sortOption)
       .limit(limit)
-      .skip(skip);
-
-    // Calculate offer prices for each product
-    const productsWithOffers = products.map(product => {
-      const productObj = product.toObject();
-      const categoryOffer = product.category?.categoryOffer || 0;
-      const productOffer = product.offer || 0;
-      const combo = productObj.combos[0];
-      
-      // Determine which offer to apply
-      let effectiveOffer = 0;
-      let offerType = 'none';
-      
-      // If product has an offer, use it regardless of category offer
-      if (productOffer > 0) {
-        effectiveOffer = productOffer;
-        offerType = 'product';
-      } else if (categoryOffer > 0) {
-        // If no product offer but category offer exists
-        effectiveOffer = categoryOffer;
-        offerType = 'category';
-      }
-      
-      // Calculate prices based on effective offer
-      if (effectiveOffer > 0) {
-        const originalSalesPrice = combo.salesPrice;
-        const discountAmount = (originalSalesPrice * effectiveOffer) / 100;
-        combo.newSalesPrice = Math.round(originalSalesPrice - discountAmount);
-        combo.oldSalesPrice = originalSalesPrice;
-        combo.offerPercentage = effectiveOffer;
-        combo.offerType = offerType; // Add offer type for potential future use
-      } else {
-        combo.newSalesPrice = combo.salesPrice;
-        combo.oldSalesPrice = combo.regularPrice;
-        combo.offerPercentage = 0;
-      }
-      
-      productObj.combos[0] = combo;
-      return productObj;
-    });
+      .skip(skip)
+      .lean(); // Convert to plain JS object
 
     const totalProducts = await Product.countDocuments(productQuery);
     const totalPages = Math.ceil(totalProducts / limit);
 
     res.render("shop", {
       user: userData,
-      categories: categories,
-      brands: brands,
-      products: productsWithOffers,
-      totalPages: totalPages,
+      categories,
+      brands,
+      products, // Pass raw products directly
+      totalPages,
       currentPage: page,
-      sizes: sizes,
-      colors: colors,
-      search: search,
-      query: req.query
+      sizes,
+      colors,
+      search,
+      query: req.query,
     });
   } catch (error) {
     next(error);

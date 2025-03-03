@@ -75,12 +75,21 @@
           <h3 class="details__title"><%= product.name %></h3>
           <p class="details__brand">Brand: <span><%= product.brand %></span></p>
           <div class="details__price flex">
-            <span class="new__price" id="salesPrice">₹<%= salesPrice.toFixed(2) %></span>
-            <span class="old__price" id="regularPrice">₹<%= regularPrice %></span>
-            <% if (offerPercentage > 0) { %>
+            <% 
+              let categoryOffer = category && category.categoryOffer || 0;
+              let productOffer = product.productOffer ? product.offerPercentage : 0;
+              let effectiveOffer = product.productOffer ? productOffer : categoryOffer;
+              let originalSalesPrice = product.combos[0].salesPrice;
+              let regularPrice = product.combos[0].regularPrice;
+              let newSalesPrice = effectiveOffer > 0 ? originalSalesPrice * (1 - effectiveOffer / 100) : originalSalesPrice;
+              newSalesPrice = Math.round(newSalesPrice * 100) / 100;
+            %>
+            <span class="new__price" id="salesPrice">₹<%= newSalesPrice.toFixed(2) %></span>
+            <span class="old__price" id="regularPrice">₹<%= originalSalesPrice %></span>
+            <% if (effectiveOffer > 0) { %>
               <span class="save__price">
-                <%= offerPercentage %>% Off 
-                (<%= appliedOfferType === 'product' ? 'Product' : 'Category' %> Offer)
+                <%= effectiveOffer %>% Off 
+                (<%= productOffer > 0 ? 'Product' : 'Category' %> Offer)
               </span>
             <% } %>
           </div>
@@ -595,38 +604,39 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 document.addEventListener('DOMContentLoaded', function() {
-    const sizeLinks = document.querySelectorAll('.size__link');
-    const salesPriceElement = document.getElementById('salesPrice');
-    const regularPriceElement = document.getElementById('regularPrice');
-    const availabilityElement = document.getElementById('availability');
+  const sizeLinks = document.querySelectorAll('.size__link');
+  const salesPriceElement = document.getElementById('salesPrice');
+  const regularPriceElement = document.getElementById('regularPrice');
+  const availabilityElement = document.getElementById('availability');
 
-    sizeLinks.forEach(link => {
-        link.addEventListener('click', function(event) {
-            event.preventDefault();
-            
-            // Get values from data attributes
-            const salesPrice = this.getAttribute('data-salesPrice');
-            const regularPrice = this.getAttribute('data-regularPrice');
-            const quantity = this.getAttribute('data-quantity');
+  // Get offer details from server-side
+  const categoryOffer = <%= category && category.categoryOffer || 0 %>;
+  const productOffer = <%= product.productOffer ? product.offerPercentage : 0 %>;
+  const effectiveOffer = productOffer > 0 ? productOffer : categoryOffer;
 
-            // Update displayed values
-            salesPriceElement.textContent = `₹${salesPrice}`;
-            regularPriceElement.textContent = `₹${regularPrice}`;
-            
-            // Update availability text and style based on quantity
-            if (parseInt(quantity) === 0) {
-                availabilityElement.textContent = 'Out of stock';
-                availabilityElement.style.color = 'red';
-            } else {
-                availabilityElement.textContent = `${quantity} Items in Stock`;
-                availabilityElement.style.color = ''; // Reset to default color
-            }
+  sizeLinks.forEach(link => {
+    link.addEventListener('click', function(event) {
+      event.preventDefault();
+      
+      const salesPrice = parseFloat(this.getAttribute('data-salesPrice'));
+      const regularPrice = parseFloat(this.getAttribute('data-regularPrice'));
+      const quantity = this.getAttribute('data-quantity');
 
-            // Update active size selection
-            sizeLinks.forEach(l => l.classList.remove('size-active'));
-            this.classList.add('size-active');
-        });
+      let newSalesPrice = salesPrice;
+      if (effectiveOffer > 0) {
+        newSalesPrice = salesPrice * (1 - effectiveOffer / 100);
+        newSalesPrice = Math.round(newSalesPrice * 100) / 100;
+      }
+
+      salesPriceElement.textContent = `₹${newSalesPrice.toFixed(2)}`;
+      regularPriceElement.textContent = `₹${salesPrice}`; // Show original sales price as regular
+      availabilityElement.textContent = quantity === '0' ? 'Out of stock' : `${quantity} Items in Stock`;
+      availabilityElement.style.color = quantity === '0' ? 'red' : '';
+
+      sizeLinks.forEach(l => l.classList.remove('size-active'));
+      this.classList.add('size-active');
     });
+  });
 });
 
 //Wishlist functionality

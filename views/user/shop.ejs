@@ -180,12 +180,21 @@
                 <a href="#" class="action__btn cart__btn" aria-label="Add To Cart" data-combo-size="<%= products[i].combos[0].size %>">
                   <i class="fi fi-rs-shopping-bag-add"></i>
                 </a>
-                <span class="new__price">₹<%= products[i].combos[0].newSalesPrice %></span>
-                <span class="old__price">₹<%= products[i].combos[0].oldSalesPrice %></span>
-                <% if (products[i].combos[0].offerPercentage > 0) { %>
-                  <span class="offer__percentage">
-                    <%= products[i].combos[0].offerPercentage %>% OFF
-                  </span>
+                <% 
+                  let categoryOffer = products[i].category && products[i].category.categoryOffer || 0;
+                  let productOffer = products[i].offer || 0; // Use 'offer' field from productSchema
+                  let effectiveOffer = productOffer > 0 ? productOffer : categoryOffer; // Product offer takes priority
+                  let originalPrice = products[i].combos[0].regularPrice;
+                  let salePriceBeforeDiscount = products[i].combos[0].salesPrice;
+                  let newSalesPrice = salePriceBeforeDiscount - (salePriceBeforeDiscount * (effectiveOffer / 100));
+                %>
+                <% if (effectiveOffer > 0) { %>
+                  <span class="new__price">₹<%= newSalesPrice.toFixed(2) %></span>
+                  <span class="old__price">₹<%= salePriceBeforeDiscount %></span>
+                  <span class="offer__percentage"><%= effectiveOffer %>% OFF</span>
+                <% } else { %>
+                  <span class="new__price">₹<%= salePriceBeforeDiscount %></span>
+                  <span class="old__price">₹<%= originalPrice %></span>
                 <% } %>
               </div>
             </div>

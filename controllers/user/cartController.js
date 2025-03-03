@@ -47,9 +47,12 @@ const addToCart = async (req, res, next) => {
     const { productId, quantity = 1, selectedCombo } = req.body;
     const userId = req.session.user._id;
 
+    console.log('Request body:', { productId, quantity, selectedCombo });
+
     // Find the product
     const product = await Product.findById(productId);
     if (!product) {
+      console.log('Product not found for ID:', productId);
       return res.status(404).json({ 
         success: false, 
         message: "Product not found" 
@@ -58,37 +61,66 @@ const addToCart = async (req, res, next) => {
 
     // Validate combo selection
     if (!selectedCombo?.size) {
+      console.log('No size provided in selectedCombo');
       return res.status(400).json({ 
         success: false, 
         message: "Product size is required" 
       });
     }
 
+    console.log('Product found:', product.name, 'Combos:', product.combos);
+    console.log('Selected size:', selectedCombo.size);
+
     const matchingCombo = product.combos.find(
       combo => combo.size.toString().trim() === selectedCombo.size.toString().trim()
     );
     
     if (!matchingCombo) {
+      console.log('No matching combo found for size:', selectedCombo.size);
       return res.status(400).json({ 
         success: false, 
         message: "Invalid product size selected" 
       });
     }
 
+    console.log('Matching combo:', matchingCombo);
+    console.log('Stock check - Requested:', quantity, 'Available:', matchingCombo.quantity);
+
+    // Initial stock check
     if (matchingCombo.quantity < quantity) {
+      console.log('Insufficient stock for initial request');
       return res.status(400).json({ 
         success: false, 
-        message: "Out of stock" 
+        message: `Only ${matchingCombo.quantity} units available in stock`,
+        limitExceeded: false
       });
     }
-
+    
     // Find or create cart
     let cart = await Cart.findOne({ userId });
     if (!cart) {
       cart = new Cart({ userId, items: [] });
     }
+    
+    // Check existing quantity in cart for this product
+    const existingItem = cart.items.find(
+      item => item.productId.toString() === productId.toString()
+    );
+    const currentCartQuantity = existingItem ? existingItem.quantity : 0;
+    const totalRequestedQuantity = currentCartQuantity + quantity;
+    
+    console.log('Cart check - Existing qty:', currentCartQuantity, 'Total requested:', totalRequestedQuantity);
 
-    // Find existing item in cart
+    if (matchingCombo.quantity < totalRequestedQuantity) {
+      console.log('Insufficient stock for total request');
+      return res.status(400).json({ 
+        success: false, 
+        message: `Only ${matchingCombo.quantity} units available in stock`,
+        limitExceeded: false
+      });
+    }
+
+    // Find existing item index in cart
     const existingItemIndex = cart.items.findIndex(
       item => item.productId.toString() === productId.toString()
     );
@@ -100,6 +132,7 @@ const addToCart = async (req, res, next) => {
 
     // Check individual product quantity limit
     if (newQuantity > 10) {
+      console.log('Product quantity limit exceeded');
       return res.status(400).json({
         success: false,
         message: 'Maximum quantity limit is 10 per product',
@@ -117,6 +150,7 @@ const addToCart = async (req, res, next) => {
 
     // Check total items limit
     if (totalItems > 50) {
+      console.log('Total items limit exceeded');
       return res.status(400).json({
         success: false,
         message: 'Cart limit exceeded. Maximum 50 items allowed across all products.',
@@ -126,6 +160,7 @@ const addToCart = async (req, res, next) => {
 
     // Check unique products limit
     if (existingItemIndex === -1 && cart.items.length >= 50) {
+      console.log('Unique products limit exceeded');
       return res.status(400).json({
         success: false,
         message: 'Cart limit exceeded. Maximum 50 unique products allowed.',
@@ -149,6 +184,7 @@ const addToCart = async (req, res, next) => {
     }
 
     await cart.save();
+    console.log('Cart updated successfully');
     res.json({ 
       success: true, 
       message: "Product added to cart successfully" 

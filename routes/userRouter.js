@@ -107,6 +107,4 @@ router.delete('/wishlist/remove/:productId', userAuth, wishlistController.remove
 router.get('/wishlist/check-status', userAuth, wishlistController.checkWishlistStatus);
 
 
-
-
 module.exports = router;
