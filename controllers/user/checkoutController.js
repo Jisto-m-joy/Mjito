@@ -23,27 +23,48 @@ const loadCheckoutPage = async (req, res, next) => {
       });
 
       const activeCoupons = await Coupon.find({
-        isListed: true,
-        isDeleted: false,
-        startOn: { $lte: new Date() },
-        expireOn: { $gte: new Date() }
-    });
+          isListed: true,
+          isDeleted: false,
+          startOn: { $lte: new Date() },
+          expireOn: { $gte: new Date() }
+      });
 
       // Calculate totals
-      const subtotal = cart ? cart.items.reduce((total, item) => total + item.totalPrice, 0) : 0;
+      let subtotal = cart ? cart.items.reduce((total, item) => total + item.totalPrice, 0) : 0;
+      let discount = 0;
+      let appliedCoupon = null;
+
+      // Check if there's a session-stored coupon from a previous application
+      if (req.session.appliedCoupon) {
+          const coupon = await Coupon.findOne({
+              code: req.session.appliedCoupon.toUpperCase(),
+              isListed: true,
+              isDeleted: false,
+              startOn: { $lte: new Date() },
+              expireOn: { $gte: new Date() }
+          });
+          if (coupon && subtotal >= coupon.minimumPrice) {
+              discount = Math.min(coupon.offerPrice, subtotal);
+              appliedCoupon = coupon.code;
+          }
+      }
+
+      const finalAmount = subtotal - discount;
       
       res.render('checkout', {
-        addresses: userAddresses ? userAddresses.address : [],
-        cartItems: cart ? cart.items : [],
-        subtotal: subtotal.toFixed(2),
-        coupons: activeCoupons  
-    });
+          addresses: userAddresses ? userAddresses.address : [],
+          cartItems: cart ? cart.items : [],
+          subtotal: subtotal.toFixed(2),
+          discount: discount.toFixed(2),
+          finalAmount: finalAmount.toFixed(2),
+          coupons: activeCoupons,
+          appliedCoupon // Pass the applied coupon to the view
+      });
       
   } catch (error) {
       next(error);
   }
 }
-
 
 const loadOrderPlacedPage = async (req, res) => {
     try {
@@ -622,60 +643,63 @@ const getWalletBalance = async (req, res) => {
 };
 
 const applyCoupon = async (req, res) => {
-    try {
-        const { couponCode } = req.body;
-        const userId = req.session.user._id;
+  try {
+      const { couponCode } = req.body;
+      const userId = req.session.user._id;
 
-        // Find the coupon
-        const coupon = await Coupon.findOne({
-            code: couponCode.toUpperCase(),
-            isListed: true,
-            isDeleted: false,
-            startOn: { $lte: new Date() },
-            expireOn: { $gte: new Date() }
-        });
+      // Find the coupon
+      const coupon = await Coupon.findOne({
+          code: couponCode.toUpperCase(),
+          isListed: true,
+          isDeleted: false,
+          startOn: { $lte: new Date() },
+          expireOn: { $gte: new Date() }
+      });
 
-        if (!coupon) {
-            return res.status(400).json({ error: 'Invalid coupon code' });
-        }
+      if (!coupon) {
+          return res.status(400).json({ error: 'Invalid coupon code' });
+      }
 
-        // Get cart total
-        const cart = await Cart.findOne({ userId }).populate('items.productId');
-        const cartTotal = cart.items.reduce((sum, item) => sum + item.totalPrice, 0);
+      // Get cart total
+      const cart = await Cart.findOne({ userId }).populate('items.productId');
+      const cartTotal = cart.items.reduce((sum, item) => sum + item.totalPrice, 0);
 
-        if (cartTotal < coupon.minimumPrice) {
-            return res.status(400).json({
-                error: `Minimum purchase amount of ₹${coupon.minimumPrice} required`
-            });
-        }
+      if (cartTotal < coupon.minimumPrice) {
+          return res.status(400).json({
+              error: `Minimum purchase amount of ₹${coupon.minimumPrice} required`
+          });
+      }
 
-        // Check if user has already used this coupon
-        const userOrders = await Order.find({
-            userId,
-            couponCode: couponCode
-        });
+      // Check if user has already used this coupon
+      const userOrders = await Order.find({
+          userId,
+          couponCode: couponCode
+      });
 
-        if (userOrders.length >= coupon.maxUsesPerUser) {
-            return res.status(400).json({ error: 'You have already used this coupon' });
-        }
+      if (userOrders.length >= coupon.maxUsesPerUser) {
+          return res.status(400).json({ error: 'You have already used this coupon' });
+      }
 
-        // Check total usage limit
-        if (coupon.usesCount >= coupon.maxUses) {
-            return res.status(400).json({ error: 'Coupon usage limit exceeded' });
-        }
+      // Check total usage limit
+      if (coupon.usesCount >= coupon.maxUses) {
+          return res.status(400).json({ error: 'Coupon usage limit exceeded' });
+      }
 
-        // Calculate discount
-        const discount = Math.min(coupon.offerPrice, cartTotal);
+      // Calculate discount
+      const discount = Math.min(coupon.offerPrice, cartTotal);
+      
+      // Store the applied coupon in session
+      req.session.appliedCoupon = couponCode;
 
-        res.json({
-            success: true,
-            discount,
-            finalAmount: cartTotal - discount
-        });
+      res.json({
+          success: true,
+          discount,
+          finalAmount: cartTotal - discount
+      });
 
-    } catch (error) {
-        res.status(500).json({ error: 'Failed to apply coupon' });
-    }
+  } catch (error) {
+      res.status(500).json({ error: 'Failed to apply coupon' });
+  }
 };
 
 module.exports = {

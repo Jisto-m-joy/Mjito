@@ -203,27 +203,36 @@
             <tr>
               <td><span class="order__subtitle">Subtotal</span></td>
               <td colspan="2">
-                <span class="table__price">₹<%= subtotal %></span>
+                  <span class="table__price">₹<%= subtotal %></span>
               </td>
-            </tr>
-            <tr>
+          </tr>
+          <tr>
               <td><span class="order__subtitle">Shipping</span></td>
               <td colspan="2">
-                <span class="table__price">Free Shipping</span>
+                  <span class="table__price">Free Shipping</span>
               </td>
-            </tr>
-            <tr id="coupon-discount-row" style="display: none">
+          </tr>
+          <% if (discount && discount > 0) { %>
+          <tr id="coupon-discount-row">
               <td><span class="order__subtitle">Coupon Discount</span></td>
               <td colspan="2">
-                <span class="table__price coupon-discount">-₹0</span>
+                  <span class="table__price coupon-discount">-₹<%= discount %></span>
               </td>
-            </tr>
-            <tr>
+          </tr>
+          <% } else { %>
+          <tr id="coupon-discount-row" style="display: none">
+              <td><span class="order__subtitle">Coupon Discount</span></td>
+              <td colspan="2">
+                  <span class="table__price coupon-discount">-₹0</span>
+              </td>
+          </tr>
+          <% } %>
+          <tr>
               <td><span class="order__subtitle">Total</span></td>
               <td colspan="2">
-                <span class="order__grand-total">₹<%= subtotal %></span>
+                  <span class="order__grand-total">₹<%= finalAmount || subtotal %></span>
               </td>
-            </tr>
+          </tr>
           </tbody>
         </table>
         <form action="/place-order" method="POST">
@@ -396,9 +405,9 @@
       }
     });
 
-    function submitOrder(paymentMethod, addressId, couponCode) {
-      const formData = { paymentMethod, addressId, couponCode };
-      console.log("Submitting order:", formData);
+    function submitOrder(paymentMethod, addressId, couponCode = appliedCoupon) {
+    const formData = { paymentMethod, addressId, couponCode: couponCode || '' };
+    console.log("Submitting order:", formData);
 
       fetch('/place-order', {
         method: 'POST',
@@ -528,37 +537,48 @@
       }
     });
 
+    let appliedCoupon = null;
+
     document.getElementById("applyCouponBtn").addEventListener("click", async function () {
-      const couponCode = document.getElementById("couponInput").value;
-      const messageContainer = document.getElementById("couponMessage");
+        const couponCode = document.getElementById("couponInput").value;
+        const messageContainer = document.getElementById("couponMessage");
 
-      try {
-        const response = await fetch("/apply-coupon", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ couponCode })
-        });
+        try {
+            const response = await fetch("/apply-coupon", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ couponCode })
+            });
 
-        const data = await response.json();
+            const data = await response.json();
 
-        if (data.success) {
-          messageContainer.innerHTML = `<div class="success-message">Coupon applied! Discount: ₹${data.discount}</div>`;
-          const discountRow = document.getElementById("coupon-discount-row");
-          discountRow.style.display = "table-row";
-          document.querySelector(".coupon-discount").textContent = `-₹${data.discount}`;
-          document.querySelector(".order__grand-total").textContent = `₹${data.finalAmount}`;
+            if (data.success) {
+                messageContainer.innerHTML = `<div class="success-message">Coupon applied! Discount: ₹${data.discount}</div>`;
+                const discountRow = document.getElementById("coupon-discount-row");
+                discountRow.style.display = "table-row";
+                document.querySelector(".coupon-discount").textContent = `-₹${data.discount}`;
+                document.querySelector(".order__grand-total").textContent = `₹${data.finalAmount}`;
 
-          let hiddenInput = document.createElement("input");
-          hiddenInput.type = "hidden";
-          hiddenInput.name = "couponCode";
-          hiddenInput.value = couponCode;
-          form.appendChild(hiddenInput);
-        } else {
-          messageContainer.innerHTML = `<div class="error-message">${data.error}</div>`;
+                // Remove any existing hidden input
+                const existingInput = form.querySelector('input[name="couponCode"]');
+                if (existingInput) existingInput.remove();
+                
+                // Add new hidden input
+                let hiddenInput = document.createElement("input");
+                hiddenInput.type = "hidden";
+                hiddenInput.name = "couponCode";
+                hiddenInput.value = couponCode;
+                form.appendChild(hiddenInput);
+
+                appliedCoupon = couponCode; // Update the stored coupon
+            } else {
+                messageContainer.innerHTML = `<div class="error-message">${data.error}</div>`;
+                appliedCoupon = null; // Reset if coupon fails
+            }
+        } catch (error) {
+            messageContainer.innerHTML = '<div class="error-message">Failed to apply coupon</div>';
+            appliedCoupon = null;
         }
-      } catch (error) {
-        messageContainer.innerHTML = '<div class="error-message">Failed to apply coupon</div>';
-      }
     });
 
     const modal = document.getElementById("couponModal");
@@ -584,11 +604,12 @@
     });
 
     function applyCouponCode(code) {
-      document.getElementById("couponInput").value = code;
-      document.getElementById("applyCouponBtn").click();
-      if (document.getElementById("couponModal").style.display === "block") {
-        document.getElementById("couponModal").style.display = "none";
+          document.getElementById("couponInput").value = code;
+          appliedCoupon = code; // Store the applied coupon
+          document.getElementById("applyCouponBtn").click();
+          if (document.getElementById("couponModal").style.display === "block") {
+              document.getElementById("couponModal").style.display = "none";
+          }
       }
-    }
   });
 </script>

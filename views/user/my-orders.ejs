@@ -208,7 +208,7 @@
         </div>
 
         <div class="action-buttons">
-          <button class="btn btn-primary">Buy Again</button>
+          <button class="btn btn-primary buy-again-btn" data-product-id="<%= order.product._id %>">Buy Again</button>
         </div>
       </div>
     <% }) %>
@@ -350,6 +350,18 @@ document.querySelectorAll('.return-order-btn').forEach(button => {
         Swal.fire('Error', 'Something went wrong', 'error');
       }
     };
+  });
+});
+
+// Buy Again Handler
+document.querySelectorAll('.buy-again-btn').forEach(button => {
+  button.addEventListener('click', (e) => {
+    const productId = e.target.getAttribute('data-product-id');
+    if (productId) {
+      window.location.href = `/productDetails?id=${productId}`;
+    } else {
+      Swal.fire('Error', 'Product ID not found', 'error');
+    }
   });
 });
 </script>

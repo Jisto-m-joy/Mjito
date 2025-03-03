@@ -30,11 +30,12 @@ const loadMyOrders = async (req, res, next) => {
       totalAmount: order.finalAmount,
       quantity: order.orderedItems.reduce((sum, item) => sum + item.quantity, 0),
       product: {
+        _id: order.orderedItems[0]?.product?._id || null, // Add product ID
         name: order.orderedItems[0]?.product?.name || 'Product Not Found',
         image: order.orderedItems[0]?.product?.images?.[0] || '/placeholder-image.jpg'
       },
       cancellation_reason: order.cancellation_reason,
-      return_reason: order.return_reason  // Add this line
+      return_reason: order.return_reason
     }));
 
     res.render('my-orders', {
