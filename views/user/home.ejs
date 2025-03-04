@@ -1,372 +1,520 @@
-
-<%-include("../../views/user/partials/header")%>
+<%- include("../../views/user/partials/header") %>
 <head>  
   <!-- iziToast CSS -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/izitoast/dist/css/iziToast.min.css">
+  <!-- Swiper CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@8/swiper-bundle.min.css">
   <style>
-    .offer__percentage {
-      color: #ff0000;
-      font-size: 0.8em;
-      margin-left: 10px;
+    /* Banner Carousel Styles */
+    .banner-carousel {
+      position: relative;
+      overflow: hidden;
+      height: 600px;
+      background: url('<%= banners[0].images[0] %>') no-repeat center center;
+      background-size: cover;
+      background-color: #1a1a1a;
+      background-blend-mode: overlay;
+      display: flex;
+      align-items: flex-end;
+      justify-content: flex-start;
+      padding-bottom: 3rem;
+    }
+
+    .banner__container {
+      height: 100%;
+      display: flex;
+      align-items: flex-end;
+      justify-content: flex-start;
+      padding: 0 4rem;
+      gap: 2rem;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .banner__content {
+      flex: 1;
+      max-width: 900px;
+      text-align: left;
+      position: relative;
+      margin-bottom: 2rem;
+    }
+
+    .banner__subtitle {
+      color: hsl(176, 88%, 27%);
+      font-size: 0.700rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 0.75rem;
+      display: block;
+    }
+
+    .banner__title {
+      color: #fff;
+      font-size: 1.7rem;
+      font-weight: 800;
+      line-height: 1.1;
+      margin-bottom: 1rem;
+      text-transform: uppercase;
+    }
+
+    .banner__description {
+      color: rgba(255,255,255,0.7);
+      font-size: 1rem;
+      line-height: 1.5;
+      margin-bottom: 1.5rem;
+    }
+
+    .banner__img-wrap {
+      flex: 1.2;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .banner__img {
+      width: 140%;
+      max-width: none;
+      transform: rotate(0deg);
+      filter: drop-shadow(0 20px 40px rgba(0,0,0,0.4));
+      transition: transform 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
+    }
+
+    .banner__img:hover {
+      transform: scale(1.02);
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(125, 255, 42, 0.3);
+    }
+
+    .swiper-button-next,
+    .swiper-button-prev {
+      color: #000;
+      background-color: rgba(255, 255, 255, 0.7);
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      transition: all 0.3s ease;
+    }
+
+    .swiper-button-next:hover,
+    .swiper-button-prev:hover {
+      background-color: rgba(255, 255, 255, 0.9);
+      transform: scale(1.1);
+    }
+
+    .swiper-button-next::after,
+    .swiper-button-prev::after {
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    @media screen and (max-width: 992px) {
+      .banner-carousel {
+        height: 500px;
+        padding-bottom: 2rem;
+      }
+
+      .banner__container {
+        padding: 0 2rem;
+      }
+
+      .banner__title {
+        font-size: 2rem;
+      }
+    }
+
+    @media screen and (max-width: 768px) {
+      .banner-carousel {
+        height: auto;
+        padding: 3rem 0;
+      }
+
+      .banner__container {
+        flex-direction: column-reverse;
+        text-align: left;
+        padding: 0 1.5rem;
+      }
+
+      .banner__content {
+        margin-bottom: 1rem;
+      }
+
+      .banner__img {
+        width: 100%;
+        margin-bottom: 1.5rem;
+      }
     }
   </style>
 </head>
 
-
-    <!--=============== MAIN ===============-->
-    <main class="main">
-      <!--=============== HOME ===============-->
-      <section class="home section--lg">
-        <div class="home__container container grid">
-          <div class="home__content">
-            <span class="home__subtitle">Deal of the day</span>
-            <h1 class="home__title">
-              Legendary <span>adidas Predator</span>
-            </h1>
-            <p class="home__description">
-              Save more with coupons & up tp 20% off
-            </p>
-            <a href="/shop" class="btn">Shop Now</a>
-          </div>
-          <img src="/assets/img/Boots/Adidas/AdidasBoots2.10.webp" class="home__img" alt="hats" />
-        </div>
-      </section>
-
-      <!--=============== CATEGORIES ===============-->
-      <section class="categories container section">
-        <h3 class="section__title"><span>Popular</span> Categories</h3>
-        <div class="categories__container swiper">
-          <div class="swiper-wrapper">
-            <a href="/shop" class="category__item swiper-slide">
-              <img
-                src="/assets/img/Home page/HomePage7.webp"
-                alt=""
-                class="category__img"
-              />
-              <h3 class="category__title">Jerseys</h3>
-            </a>
-            <a href="/shop" class="category__item swiper-slide">
-              <img
-                src="/assets/img/Home page/HomePage8.webp"
-                alt=""
-                class="category__img"
-              />
-              <h3 class="category__title">Gloves</h3>
-            </a>
-            <a href="/shop" class="category__item swiper-slide">
-              <img
-                src="/assets/img/Home page/HomePage9.webp"
-                alt=""
-                class="category__img"
-              />
-              <h3 class="category__title">Boots</h3>
-            </a>
-            <a href="/shop" class="category__item swiper-slide">
-              <img
-                src="/assets/img/Category Page/Category3.webp"
-                alt=""
-                class="category__img"
-              />
-              <h3 class="category__title">Footballs</h3>
-            </a>
-            <a href="/shop" class="category__item swiper-slide">
-              <img
-                src="/assets/img/Home page/ShinGuard2.1.webp"
-                alt=""
-                class="category__img"
-              />
-              <h3 class="category__title">Shin Guards</h3>
-            </a>
-            <a href="/shop" class="category__item swiper-slide">
-              <img
-                src="/assets/img/Home page/HomePage4.webp"
-                alt=""
-                class="category__img"
-              />
-              <h3 class="category__title">Boots</h3>
-            </a>
-            <a href="/shop" class="category__item swiper-slide">
-              <img
-                src="/assets/img/Home page/HomePage3.webp"
-                alt=""
-                class="category__img"
-              />
-              <h3 class="category__title">Gloves</h3>
-            </a>
-            <a href="/shop" class="category__item swiper-slide">
-              <img
-                src="/assets/img/Category Page/Category3.webp"
-                alt=""
-                class="category__img"
-              />
-              <h3 class="category__title">Footballs</h3>
-            </a>
-          </div>
-
-          <div class="swiper-button-prev">
-            <i class="fi fi-rs-angle-left"></i>
-          </div>
-          <div class="swiper-button-next">
-            <i class="fi fi-rs-angle-right"></i>
-          </div>
-        </div>
-      </section>
-
-      <!--=============== PRODUCTS ===============-->
-      <section class="products container section">
-        <div class="tab__btns">
-          <span class="tab__btn active-tab" data-target="#featured"
-            >Branded</span
-          >
-          <span class="tab__btn" data-target="#popular">Popular</span>
-          <span class="tab__btn" data-target="#new-added">New Added</span>
-        </div>
-
-      <div class="tab__items">
-          <!-- Branded section  -->
-          <div class="tab__item active-tab" content id="featured">
-            <div class="products__container grid">
-              <% products.branded.forEach(function(product) { %>
-                <div class="product__item">
-                  <div class="product__banner">
-                    <a href="/productDetails?id=<%=product._id%>" class="product__images">
-                      <img
-                        src="<%=product.images[0]%>"
-                        alt="<%=product.name%>"
-                        class="product__img default"
-                      />
-                      <img
-                        src="<%=product.images[1]%>"
-                        alt="<%=product.name%>"
-                        class="product__img hover"
-                      />
-                    </a>
-                    <div class="product__actions">
-                      <a href="/productDetails?id=<%=product._id%>" class="action__btn" aria-label="Quick View">
-                        <i class="fi fi-rs-eye"></i>
-                      </a>
-                      <a
-                        href="#"
-                        class="action__btn wishlist-btn"
-                        aria-label="Add to Wishlist"
-                        data-product-id="<%=product._id%>"
-                      >
-                        <i class="fi fi-rs-heart"></i>
-                      </a>
-                      <a href="#" class="action__btn" aria-label="Compare">
-                        <i class="fi fi-rs-shuffle"></i>
-                      </a>
-                    </div>
-                    <div class="product__badge light-orange">Hot</div>
-                  </div>
-                  <div class="product__content">
-                    <span class="product__category"><%=product.brand%></span>
-                    <a href="details.html">
-                      <h3 class="product__title"><%=product.name%></h3>
-                    </a>
-                    <div class="product__rating">
-                      <i class="fi fi-rs-star"></i>
-                      <i class="fi fi-rs-star"></i>
-                      <i class="fi fi-rs-star"></i>
-                      <i class="fi fi-rs-star"></i>
-                      <i class="fi fi-rs-star"></i>
-                    </div>
-                    <div class="product__price flex">
-                      <% 
-                        let categoryOffer = product.category && product.category.categoryOffer || 0;
-                        let productOffer = product.productOffer ? product.offerPercentage : 0;
-                        let effectiveOffer = Math.max(categoryOffer, productOffer); // Use higher offer
-                        if (product.productOffer && productOffer > 0) {
-                          effectiveOffer = productOffer; // Always use product offer if it exists
-                        }
-                        let originalPrice = product.combos[0].regularPrice;
-                        let salePriceBeforeDiscount = product.combos[0].salesPrice;
-                        let newSalesPrice = salePriceBeforeDiscount - (salePriceBeforeDiscount * (effectiveOffer / 100));
-                      %>
-                      <% if (effectiveOffer > 0) { %>
-                        <span class="new__price">₹<%= newSalesPrice.toFixed(2) %></span>
-                        <span class="old__price">₹<%= salePriceBeforeDiscount %></span>
-                        <span class="offer__percentage">(-<%= effectiveOffer %>%)</span>
-                      <% } else { %>
-                        <span class="new__price">₹<%= salePriceBeforeDiscount %></span>
-                        <span class="old__price">₹<%= originalPrice %></span>
-                      <% } %>
-                    </div>
-                    <a
-                    href="#"
-                    class="action__btn cart__btn"
-                    aria-label="Add To Cart"
-                    data-product-id="<%= product._id %>"
-                    data-combo-size="<%= product.combos[0].size %>"
-                  >
-                    <i class="fi fi-rs-shopping-bag-add"></i>
-                  </a>
-                  </div>
-                </div>
-              <% }); %>
+<!--=============== MAIN ===============-->
+<main class="main">
+<!--=============== BANNER CAROUSEL ===============-->
+<section class="banner-carousel">
+  <div class="swiper swiper-banner">
+    <div class="swiper-wrapper">
+      <% banners.forEach(function(banner) { %>
+        <div class="swiper-slide">
+          <div class="banner__container">
+            <div class="banner__content">
+              <span class="banner__subtitle"><%= banner.subtitle %></span>
+              <h1 class="banner__title"><%= banner.title %></h1>
+              <a href="/shop" class="btn">SHOP NOW</a>
+            </div>
+            <div class="banner__img-wrap">
+              <img src="<%= banner.images[0] %>" alt="<%= banner.title %>" class="banner__img">
             </div>
           </div>
+        </div>
+      <% }); %>
+    </div>
+    <!-- Add Navigation -->
+    <div class="swiper-button-next"></div>
+    <div class="swiper-button-prev"></div>
+    <!-- Add Pagination -->
+    <div class="swiper-pagination"></div>
+  </div>
+</section>
 
-          <!-- Popular section  -->
-          <div class="tab__item" content id="popular">
-            <div class="products__container grid">
-              <% products.popular.forEach(function(product) { %>
-                <div class="product__item">
-                  <div class="product__banner">
-                    <a href="/productDetails?id=<%=product._id%>" class="product__images">
-                      <img
-                        src="<%=product.images[0]%>"
-                        alt="<%=product.name%>"
-                        class="product__img default"
-                      />
-                      <img
-                        src="<%=product.images[1]%>"
-                        alt="<%=product.name%>"
-                        class="product__img hover"
-                      />
-                    </a>
-                    <div class="product__actions">
-                      <a href="/productDetails?id=<%=product._id%>" class="action__btn" aria-label="Quick View">
-                        <i class="fi fi-rs-eye"></i>
-                      </a>
-                      <a
-                        href="#"
-                        class="action__btn wishlist-btn"
-                        aria-label="Add to Wishlist"
-                        data-product-id="<%=product._id%>"
-                      >
-                        <i class="fi fi-rs-heart"></i>
-                      </a>
-                      <a href="#" class="action__btn" aria-label="Compare">
-                        <i class="fi fi-rs-shuffle"></i>
-                      </a>
-                    </div>
-                    <div class="product__badge light-orange">Hot</div>
-                  </div>
-                  <div class="product__content">
-                    <span class="product__category"><%=product.brand%></span>
-                    <a href="details.html">
-                      <h3 class="product__title"><%=product.name%></h3>
-                    </a>
-                    <div class="product__rating">
-                      <i class="fi fi-rs-star"></i>
-                      <i class="fi fi-rs-star"></i>
-                      <i class="fi fi-rs-star"></i>
-                      <i class="fi fi-rs-star"></i>
-                      <i class="fi fi-rs-star"></i>
-                    </div>
-                    <div class="product__price flex">
-                      <span class="new__price">₹<%=product.combos[0].salesPrice%></span>
-                      <span class="old__price">₹<%=product.combos[0].regularPrice%></span>
-                    </div>
-                    <a
-                      href="#"
-                      class="action__btn cart__btn"
-                      aria-label="Add To Cart"
-                      data-combo-size="<%= product.combos[0].size %>"
-                    >
-                      <i class="fi fi-rs-shopping-bag-add"></i>
-                    </a>
-                  </div>
-                </div>
-              <% }); %>
-            </div>
-          </div>
+  <!--=============== CATEGORIES ===============-->
+  <section class="categories container section">
+    <h3 class="section__title"><span>Popular</span> Categories</h3>
+    <div class="categories__container swiper">
+      <div class="swiper-wrapper">
+        <a href="/shop" class="category__item swiper-slide">
+          <img
+            src="/assets/img/Home page/HomePage7.webp"
+            alt=""
+            class="category__img"
+          />
+          <h3 class="category__title">Jerseys</h3>
+        </a>
+        <a href="/shop" class="category__item swiper-slide">
+          <img
+            src="/assets/img/Home page/HomePage8.webp"
+            alt=""
+            class="category__img"
+          />
+          <h3 class="category__title">Gloves</h3>
+        </a>
+        <a href="/shop" class="category__item swiper-slide">
+          <img
+            src="/assets/img/Home page/HomePage9.webp"
+            alt=""
+            class="category__img"
+          />
+          <h3 class="category__title">Boots</h3>
+        </a>
+        <a href="/shop" class="category__item swiper-slide">
+          <img
+            src="/assets/img/Category Page/Category3.webp"
+            alt=""
+            class="category__img"
+          />
+          <h3 class="category__title">Footballs</h3>
+        </a>
+        <a href="/shop" class="category__item swiper-slide">
+          <img
+            src="/assets/img/Home page/ShinGuard2.1.webp"
+            alt=""
+            class="category__img"
+          />
+          <h3 class="category__title">Shin Guards</h3>
+        </a>
+        <a href="/shop" class="category__item swiper-slide">
+          <img
+            src="/assets/img/Home page/HomePage4.webp"
+            alt=""
+            class="category__img"
+          />
+          <h3 class="category__title">Boots</h3>
+        </a>
+        <a href="/shop" class="category__item swiper-slide">
+          <img
+            src="/assets/img/Home page/HomePage3.webp"
+            alt=""
+            class="category__img"
+          />
+          <h3 class="category__title">Gloves</h3>
+        </a>
+        <a href="/shop" class="category__item swiper-slide">
+          <img
+            src="/assets/img/Category Page/Category3.webp"
+            alt=""
+            class="category__img"
+          />
+          <h3 class="category__title">Footballs</h3>
+        </a>
+      </div>
 
-          <!-- New added section  -->
-        <div class="tab__item" content id="new-added">
-          <div class="products__container grid">
-            <% products.newAdded.forEach(function(product) { %>
-              <div class="product__item">
-                <div class="product__banner">
-                  <a href="/productDetails?id=<%=product._id%>" class="product__images">
-                    <img
-                      src="<%=product.images[0]%>"
-                      alt="<%=product.name%>"
-                      class="product__img default"
-                    />
-                    <img
-                      src="<%=product.images[1]%>"
-                      alt="<%=product.name%>"
-                      class="product__img hover"
-                    />
+      <div class="swiper-button-prev">
+        <i class="fi fi-rs-angle-left"></i>
+      </div>
+      <div class="swiper-button-next">
+        <i class="fi fi-rs-angle-right"></i>
+      </div>
+    </div>
+  </section>
+
+  <!--=============== PRODUCTS ===============-->
+  <section class="products container section">
+    <div class="tab__btns">
+      <span class="tab__btn active-tab" data-target="#featured"
+        >Branded</span
+      >
+      <span class="tab__btn" data-target="#popular">Popular</span>
+      <span class="tab__btn" data-target="#new-added">New Added</span>
+    </div>
+
+  <div class="tab__items">
+      <!-- Branded section  -->
+      <div class="tab__item active-tab" content id="featured">
+        <div class="products__container grid">
+          <% products.branded.forEach(function(product) { %>
+            <div class="product__item">
+              <div class="product__banner">
+                <a href="/productDetails?id=<%=product._id%>" class="product__images">
+                  <img
+                    src="<%=product.images[0]%>"
+                    alt="<%=product.name%>"
+                    class="product__img default"
+                  />
+                  <img
+                    src="<%=product.images[1]%>"
+                    alt="<%=product.name%>"
+                    class="product__img hover"
+                  />
+                </a>
+                <div class="product__actions">
+                  <a href="/productDetails?id=<%=product._id%>" class="action__btn" aria-label="Quick View">
+                    <i class="fi fi-rs-eye"></i>
                   </a>
-                  <div class="product__actions">
-                    <a href="/productDetails?id=<%=product._id%>" class="action__btn" aria-label="Quick View">
-                      <i class="fi fi-rs-eye"></i>
-                    </a>
-                    <a
-                      href="#"
-                      class="action__btn wishlist-btn"
-                      aria-label="Add to Wishlist"
-                      data-product-id="<%=product._id%>"
-                    >
-                      <i class="fi fi-rs-heart"></i>
-                    </a>
-                    <a href="#" class="action__btn" aria-label="Compare">
-                      <i class="fi fi-rs-shuffle"></i>
-                    </a>
-                  </div>
-                  <div class="product__badge light-orange">Hot</div>
-                </div>
-                <div class="product__content">
-                  <span class="product__category"><%=product.brand%></span>
-                  <a href="details.html">
-                    <h3 class="product__title"><%=product.name%></h3>
-                  </a>
-                  <div class="product__rating">
-                    <i class="fi fi-rs-star"></i>
-                    <i class="fi fi-rs-star"></i>
-                    <i class="fi fi-rs-star"></i>
-                    <i class="fi fi-rs-star"></i>
-                    <i class="fi fi-rs-star"></i>
-                  </div>
-                  <div class="product__price flex">
-                    <span class="new__price">₹<%=product.combos[0].salesPrice%></span>
-                    <span class="old__price">₹<%=product.combos[0].regularPrice%></span>
-                  </div>
                   <a
                     href="#"
-                    class="action__btn cart__btn"
-                    aria-label="Add To Cart"
-                    data-combo-size="<%= product.combos[0].size %>"
+                    class="action__btn wishlist-btn"
+                    aria-label="Add to Wishlist"
+                    data-product-id="<%=product._id%>"
                   >
-                    <i class="fi fi-rs-shopping-bag-add"></i>
+                    <i class="fi fi-rs-heart"></i>
+                  </a>
+                  <a href="#" class="action__btn" aria-label="Compare">
+                    <i class="fi fi-rs-shuffle"></i>
                   </a>
                 </div>
+                <div class="product__badge light-orange">Hot</div>
               </div>
-            <% }); %>
-          </div>
+              <div class="product__content">
+                <span class="product__category"><%=product.brand%></span>
+                <a href="details.html">
+                  <h3 class="product__title"><%=product.name%></h3>
+                </a>
+                <div class="product__rating">
+                  <i class="fi fi-rs-star"></i>
+                  <i class="fi fi-rs-star"></i>
+                  <i class="fi fi-rs-star"></i>
+                  <i class="fi fi-rs-star"></i>
+                  <i class="fi fi-rs-star"></i>
+                </div>
+                <div class="product__price flex">
+                  <% 
+                    let categoryOffer = product.category && product.category.categoryOffer || 0;
+                    let productOffer = product.productOffer ? product.offerPercentage : 0;
+                    let effectiveOffer = Math.max(categoryOffer, productOffer); // Use higher offer
+                    if (product.productOffer && productOffer > 0) {
+                      effectiveOffer = productOffer; // Always use product offer if it exists
+                    }
+                    let originalPrice = product.combos[0].regularPrice;
+                    let salePriceBeforeDiscount = product.combos[0].salesPrice;
+                    let newSalesPrice = salePriceBeforeDiscount - (salePriceBeforeDiscount * (effectiveOffer / 100));
+                  %>
+                  <% if (effectiveOffer > 0) { %>
+                    <span class="new__price">₹<%= newSalesPrice.toFixed(2) %></span>
+                    <span class="old__price">₹<%= salePriceBeforeDiscount %></span>
+                    <span class="offer__percentage">(-<%= effectiveOffer %>%)</span>
+                  <% } else { %>
+                    <span class="new__price">₹<%= salePriceBeforeDiscount %></span>
+                    <span class="old__price">₹<%= originalPrice %></span>
+                  <% } %>
+                </div>
+                <a
+                href="#"
+                class="action__btn cart__btn"
+                aria-label="Add To Cart"
+                data-product-id="<%= product._id %>"
+                data-combo-size="<%= product.combos[0].size %>"
+              >
+                <i class="fi fi-rs-shopping-bag-add"></i>
+              </a>
+              </div>
+            </div>
+          <% }); %>
         </div>
       </div>
-      </section>
-      
-      <!--=============== NEWSLETTER ===============-->
-      <section class="newsletter section home__newsletter">
-        <div class="newsletter__container container grid">
-          <h3 class="newsletter__title flex">
-            <img
-              src="./assets/img/icon-email.svg"
-              alt=""
-              class="newsletter__icon"
-            />
-            Sign in to Newsletter
-          </h3>
-          <!-- <p class="newsletter__description">
-            ...and receive $25 coupon for first shopping.
-          </p> -->
-          <form action="" class="newsletter__form">
-            <input
-              type="text"
-              placeholder="Enter Your Email"
-              class="newsletter__input"
-            />
-            <button type="submit" class="newsletter__btn">Subscribe</button>
-          </form>
+
+      <!-- Popular section  -->
+      <div class="tab__item" content id="popular">
+        <div class="products__container grid">
+          <% products.popular.forEach(function(product) { %>
+            <div class="product__item">
+              <div class="product__banner">
+                <a href="/productDetails?id=<%=product._id%>" class="product__images">
+                  <img
+                    src="<%=product.images[0]%>"
+                    alt="<%=product.name%>"
+                    class="product__img default"
+                  />
+                  <img
+                    src="<%=product.images[1]%>"
+                    alt="<%=product.name%>"
+                    class="product__img hover"
+                  />
+                </a>
+                <div class="product__actions">
+                  <a href="/productDetails?id=<%=product._id%>" class="action__btn" aria-label="Quick View">
+                    <i class="fi fi-rs-eye"></i>
+                  </a>
+                  <a
+                    href="#"
+                    class="action__btn wishlist-btn"
+                    aria-label="Add to Wishlist"
+                    data-product-id="<%=product._id%>"
+                  >
+                    <i class="fi fi-rs-heart"></i>
+                  </a>
+                  <a href="#" class="action__btn" aria-label="Compare">
+                    <i class="fi fi-rs-shuffle"></i>
+                  </a>
+                </div>
+                <div class="product__badge light-orange">Hot</div>
+              </div>
+              <div class="product__content">
+                <span class="product__category"><%=product.brand%></span>
+                <a href="details.html">
+                  <h3 class="product__title"><%=product.name%></h3>
+                </a>
+                <div class="product__rating">
+                  <i class="fi fi-rs-star"></i>
+                  <i class="fi fi-rs-star"></i>
+                  <i class="fi fi-rs-star"></i>
+                  <i class="fi fi-rs-star"></i>
+                  <i class="fi fi-rs-star"></i>
+                </div>
+                <div class="product__price flex">
+                  <span class="new__price">₹<%=product.combos[0].salesPrice%></span>
+                  <span class="old__price">₹<%=product.combos[0].regularPrice%></span>
+                </div>
+                <a
+                  href="#"
+                  class="action__btn cart__btn"
+                  aria-label="Add To Cart"
+                  data-combo-size="<%= product.combos[0].size %>"
+                >
+                  <i class="fi fi-rs-shopping-bag-add"></i>
+                </a>
+              </div>
+            </div>
+          <% }); %>
         </div>
-      </section>
-    </main>
-    <!-- Footer Section Begin -->
+      </div>
+
+      <!-- New added section  -->
+    <div class="tab__item" content id="new-added">
+      <div class="products__container grid">
+        <% products.newAdded.forEach(function(product) { %>
+          <div class="product__item">
+            <div class="product__banner">
+              <a href="/productDetails?id=<%=product._id%>" class="product__images">
+                <img
+                  src="<%=product.images[0]%>"
+                  alt="<%=product.name%>"
+                  class="product__img default"
+                />
+                <img
+                  src="<%=product.images[1]%>"
+                  alt="<%=product.name%>"
+                  class="product__img hover"
+                />
+              </a>
+              <div class="product__actions">
+                <a href="/productDetails?id=<%=product._id%>" class="action__btn" aria-label="Quick View">
+                  <i class="fi fi-rs-eye"></i>
+                </a>
+                <a
+                  href="#"
+                  class="action__btn wishlist-btn"
+                  aria-label="Add to Wishlist"
+                  data-product-id="<%=product._id%>"
+                >
+                  <i class="fi fi-rs-heart"></i>
+                </a>
+                <a href="#" class="action__btn" aria-label="Compare">
+                  <i class="fi fi-rs-shuffle"></i>
+                </a>
+              </div>
+              <div class="product__badge light-orange">Hot</div>
+            </div>
+            <div class="product__content">
+              <span class="product__category"><%=product.brand%></span>
+              <a href="details.html">
+                <h3 class="product__title"><%=product.name%></h3>
+              </a>
+              <div class="product__rating">
+                <i class="fi fi-rs-star"></i>
+                <i class="fi fi-rs-star"></i>
+                <i class="fi fi-rs-star"></i>
+                <i class="fi fi-rs-star"></i>
+                <i class="fi fi-rs-star"></i>
+              </div>
+              <div class="product__price flex">
+                <span class="new__price">₹<%=product.combos[0].salesPrice%></span>
+                <span class="old__price">₹<%=product.combos[0].regularPrice%></span>
+              </div>
+              <a
+                href="#"
+                class="action__btn cart__btn"
+                aria-label="Add To Cart"
+                data-combo-size="<%= product.combos[0].size %>"
+              >
+                <i class="fi fi-rs-shopping-bag-add"></i>
+              </a>
+            </div>
+          </div>
+        <% }); %>
+      </div>
+    </div>
+  </div>
+  </section>
+  
+  <!--=============== NEWSLETTER ===============-->
+  <section class="newsletter section home__newsletter">
+    <div class="newsletter__container container grid">
+      <h3 class="newsletter__title flex">
+        <img
+          src="./assets/img/icon-email.svg"
+          alt=""
+          class="newsletter__icon"
+        />
+        Sign in to Newsletter
+      </h3>
+      <!-- <p class="newsletter__description">
+        ...and receive $25 coupon for first shopping.
+      </p> -->
+      <form action="" class="newsletter__form">
+        <input
+          type="text"
+          placeholder="Enter Your Email"
+          class="newsletter__input"
+        />
+        <button type="submit" class="newsletter__btn">Subscribe</button>
+      </form>
+    </div>
+  </section>
+</main>
+<!-- Footer Section Begin -->
 <%-include("../../views/user/partials/footer")%>
 
  <!-- iziToast JS -->
@@ -468,3 +616,54 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 });
  </script>
+
+<!-- Add Swiper JS before the closing body tag -->
+<script src="https://cdn.jsdelivr.net/npm/swiper@8/swiper-bundle.min.js"></script>
+<script>
+  // Initialize banner carousel
+  new Swiper('.swiper-banner', {
+    loop: true,
+    grabCursor: true,
+    effect: 'fade',
+    autoplay: {
+      delay: 5000,
+      disableOnInteraction: false,
+    },
+    pagination: {
+      el: '.swiper-pagination',
+      clickable: true,
+    },
+    navigation: {
+      nextEl: '.swiper-button-next',
+      prevEl: '.swiper-button-prev',
+    },
+  });
+</script>
+
+<script>
+  // Function to adapt colors based on banner image
+  function adaptColors(img) {
+    const colorThief = new ColorThief();
+    const bannerContent = img.closest('.banner-slide').querySelector('.banner__content');
+    const title = bannerContent.querySelector('.banner__title');
+    const description = bannerContent.querySelector('.banner__description');
+    
+    // Wait for image to load
+    if (img.complete) {
+      const palette = colorThief.getPalette(img, 3);
+      
+      // Convert RGB to HSL and adjust lightness for better contrast
+      const primaryColor = `rgb(${palette[0][0]}, ${palette[0][1]}, ${palette[0][2]})`;
+      const secondaryColor = `rgb(${palette[1][0]}, ${palette[1][1]}, ${palette[1][2]})`;
+      
+      // Apply colors
+      title.style.background = `linear-gradient(45deg, ${primaryColor}, ${secondaryColor})`;
+      title.style.webkitBackgroundClip = 'text';
+      title.style.webkitTextFillColor = 'transparent';
+      
+      // Adjust description color based on image brightness
+      const brightness = (palette[0][0] * 299 + palette[0][1] * 587 + palette[0][2] * 114) / 1000;
+      description.style.color = brightness > 128 ? '#333333' : '#ffffff';
+    }
+  }
+</script>

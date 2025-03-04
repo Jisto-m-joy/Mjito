@@ -1,0 +1,228 @@
+<%- include("../../views/admin/partials/header") %>
+<head>
+    <style>
+        .img-container {
+            max-height: 400px;
+            overflow: hidden;
+        }
+    </style>
+</head>
+
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="content-title">Banner Management</h1>
+            </div>
+        </div>
+    </div>
+</div>
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Add Banner Form -->
+            <div class="col-lg-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title">Add New Banner</h5>
+                    </div>
+                    <div class="card-body">
+                        <form action="/admin/banner/add" method="POST" enctype="multipart/form-data">
+                            <% if (typeof error !== 'undefined') { %>
+                                <div class="alert alert-danger" role="alert">
+                                    <%= error %>
+                                </div>
+                            <% } %>
+                            <div class="mb-3">
+                                <label class="form-label">Title</label>
+                                <input type="text" class="form-control" name="title" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Subtitle</label>
+                                <input type="text" class="form-control" name="subtitle" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Start Date</label>
+                                <input type="date" class="form-control" name="startDate" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">End Date</label>
+                                <input type="date" class="form-control" name="endDate" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Images (PNG, JPEG, WEBP only)</label>
+                                <input type="file" class="form-control" name="images" multiple required>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Add Banner</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Banner List -->
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title">Banner List</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Images</th>
+                                        <th>Title</th>
+                                        <th>Subtitle</th>
+                                        <th>Period</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% banners.forEach(banner => { %>
+                                        <tr>
+                                            <td>
+                                                <% banner.images.forEach(image => { %>
+                                                    <img src="<%= image %>" class="img-thumbnail" style="max-width: 80px;" alt="banner">
+                                                <% }) %>
+                                            </td>
+                                            <td><%= banner.title %></td>
+                                            <td><%= banner.subtitle %></td>
+                                            <td>
+                                                <%= banner.startDate.toLocaleDateString() %> - 
+                                                <%= banner.endDate.toLocaleDateString() %>
+                                            </td>
+                                            <td>
+                                                <span class="badge <%= banner.status === 'Active' ? 'bg-success' : 'bg-danger' %>">
+                                                    <%= banner.status %>
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-primary" 
+                                                        onclick="toggleStatus('<%= banner._id %>', '<%= banner.status %>')">
+                                                    <i class="material-icons md-18">Swap</i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-danger" 
+                                                        onclick="deleteBanner('<%= banner._id %>')">
+                                                    <i class="material-icons md-18">Delete</i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    <% }) %>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    async function toggleStatus(bannerId, currentStatus) {
+        try {
+            const newStatus = currentStatus === 'Active' ? 'Inactive' : 'Active';
+            await fetch(`/admin/banner/toggle/${bannerId}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: newStatus })
+            });
+            location.reload();
+        } catch (error) {
+            console.error('Error toggling status:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: 'Failed to update status. Please try again.'
+            });
+        }
+    }
+
+    async function deleteBanner(bannerId) {
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "You won't be able to revert this!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, delete it!'
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                try {
+                    await fetch(`/admin/banner/delete/${bannerId}`, {
+                        method: 'DELETE'
+                    });
+                    Swal.fire(
+                        'Deleted!',
+                        'The banner has been deleted.',
+                        'success'
+                    ).then(() => {
+                        location.reload();
+                    });
+                } catch (error) {
+                    console.error('Error deleting banner:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: 'Failed to delete banner. Please try again.'
+                    });
+                }
+            }
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('success') === 'true') {
+            Swal.fire({
+                icon: 'success',
+                title: 'Success!',
+                text: 'Banner added successfully!',
+                showConfirmButton: false,
+                timer: 1500
+            }).then(() => {
+                window.history.replaceState({}, document.title, '/admin/banner');
+            });
+        }
+
+        const form = document.querySelector('form[action="/admin/banner/add"]');
+        const startDateInput = document.querySelector('input[name="startDate"]');
+        const endDateInput = document.querySelector('input[name="endDate"]');
+
+        function validateDates() {
+            const today = new Date('2025-03-03');
+            const startDate = new Date(startDateInput.value);
+            const endDate = new Date(endDateInput.value);
+
+            if (startDate < today.setHours(0, 0, 0, 0)) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Invalid Start Date',
+                    text: 'Start date cannot be in the past.'
+                });
+                return false;
+            }
+            if (endDate <= startDate) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Invalid End Date',
+                    text: 'End date must be after the start date.'
+                });
+                return false;
+            }
+            return true;
+        }
+
+        form.addEventListener('submit', (e) => {
+            if (!validateDates()) {
+                e.preventDefault();
+            }
+        });
+    });
+</script>
+
+<%- include("../../views/admin/partials/footer") %>

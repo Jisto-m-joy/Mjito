@@ -2,6 +2,7 @@ const User = require("../../models/userSchema");
 const Category = require("../../models/categorySchema");
 const Product = require("../../models/productSchema");
 const Brand = require("../../models/brandSchema");
+const Banner = require("../../models/bannerSchema");
 const Cart = require("../../models/cartSchema");
 const env = require("dotenv").config();
 const nodemailer = require("nodemailer");
@@ -47,7 +48,7 @@ const loadHomepage = async (req, res, next) => {
     const allProducts = await Product.find(baseQuery)
       .populate({
         path: 'category',
-        select: 'categoryOffer'  // Only fetch necessary field
+        select: 'categoryOffer'
       })
       .lean();
 
@@ -55,10 +56,7 @@ const loadHomepage = async (req, res, next) => {
     const processedProducts = allProducts.map(product => {
       const categoryOffer = product.category?.categoryOffer || 0;
       const productOffer = product.productOffer ? product.offerPercentage : 0;
-      
-      // Always use product offer if it exists, otherwise use category offer
       product.effectiveOffer = product.productOffer ? productOffer : categoryOffer;
-      
       return product;
     });
 
@@ -79,6 +77,13 @@ const loadHomepage = async (req, res, next) => {
       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
       .slice(0, 4);
 
+    // Fetch active banners
+    const banners = await Banner.find({ 
+      status: "Active",
+      startDate: { $lte: new Date() },
+      endDate: { $gte: new Date() }
+    }).lean();
+
     // Prepare the final data object
     const productData = {
       branded: brandedProducts,
@@ -88,9 +93,16 @@ const loadHomepage = async (req, res, next) => {
 
     if (user) {
       const userData = await User.findOne({ _id: user._id });
-      return res.render("home", { user: userData, products: productData });
+      return res.render("home", { 
+        user: userData, 
+        products: productData, 
+        banners: banners 
+      });
     } else {
-      return res.render("home", { products: productData });
+      return res.render("home", { 
+        products: productData, 
+        banners: banners 
+      });
     }
   } catch (error) {
     console.error('Detailed Error in loadHomepage:', error);
