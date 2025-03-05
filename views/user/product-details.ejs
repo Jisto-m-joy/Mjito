@@ -171,6 +171,48 @@
         </span>
         <span class="detail__tab" data-target="#reviews">Reviews</span>
       </div>
+      <div class="details__tabs-content">
+        <div class="details__tab-content active-tab" content id="info">
+          <table class="info__table">
+            <tr>
+              <th>Product Name</th>
+              <td><%= product.name %></td>
+            </tr>
+            <tr>
+              <th>Brand</th>
+              <td><%= product.brand %></td>
+            </tr>
+            <th>Category</th>
+              <td><%= product.category.name %></td>
+            </tr>
+            <tr>
+              <th>Available Sizes</th>
+              <td>
+                <% product.combos.forEach(function(combo, index) { %>
+                  <%= combo.size %><%= index < product.combos.length - 1 ? ', ' : '' %>
+                <% }); %>
+              </td>
+            </tr>
+            <tr>
+              <th>Stock Quantity</th>
+              <td><%= product.combos[0].quantity %></td>
+            </tr>
+            <tr>
+              <th>Regular Price</th>
+              <td>₹<%= product.combos[0].regularPrice.toFixed(2) %></td>
+            </tr>
+            <tr>
+              <th>Sales Price</th>
+              <td>₹<%= product.combos[0].salesPrice.toFixed(2) %></td>
+            </tr>
+            <% if (product.offerPercentage > 0) { %>
+            <tr>
+              <th>Offer Percentage</th>
+              <td><%= product.offerPercentage %>%</td>
+            </tr>
+            <% } %>
+          </table>
+        </div>
         <div class="details__tab-content" content id="reviews">
           <div class="reviews__container grid">
             <% if (reviews && reviews.length > 0) { %>
