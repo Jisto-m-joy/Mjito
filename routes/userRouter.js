@@ -12,6 +12,7 @@ const walletController = require('../controllers/user/walletController');
 const passport = require("passport");
 const validateSession = require("../middlewares/session-validation");
 const { userAuth, adminAuth, checkBlockStatus } = require("../middlewares/auth");
+const upload = require("../helpers/multer");  
 const app = express();
 const { errorHandler } = require('../middlewares/errorHandler');
 
@@ -62,6 +63,11 @@ router.put('/update-address/:addressId', userAuth, profileController.updateAddre
 router.delete('/delete-address/:addressId', userAuth, profileController.deleteAddress);
 router.post('/change-password', userAuth, profileController.resetPassword);
 router.post('/update-name', userAuth, profileController.updateUserName); 
+router.post('/update-profile-pic', 
+  userAuth, 
+  upload.single('profilePic'), 
+  profileController.updateProfilePicture
+);
 
 /// Wallet Management 
 router.get('/user-wallet', userAuth, walletController.loadWalletPage);

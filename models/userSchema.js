@@ -37,6 +37,10 @@ const userSchema = new Schema(
       type: String,
       required: false,
     },
+    profilePicture: {
+      type: String,
+      default: null
+    },
     cart: [{
       product: {
         type: mongoose.Schema.Types.ObjectId,

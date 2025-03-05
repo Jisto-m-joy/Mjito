@@ -1,5 +1,7 @@
 const User = require("../../models/userSchema");
 const Address = require("../../models/addressSchema");
+const cloudinary = require('../../config/cloudinary');
+const upload = require('../../helpers/multer');
 const nodemailer = require("nodemailer");
 const bcrypt = require("bcrypt");
 const env = require("dotenv").config();
@@ -20,6 +22,53 @@ const env = require("dotenv").config();
       });
     } catch (error) {
       next(error);
+    }
+  };
+
+  const updateProfilePicture = async (req, res) => {
+    try {
+      const userId = req.session.user._id;
+      
+      // Upload to Cloudinary
+      const result = await new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+          {
+            folder: 'profile_pictures',
+            width: 200,
+            height: 200,
+            crop: 'fill'
+          },
+          (error, result) => {
+            if (error) reject(error);
+            else resolve(result);
+          }
+        );
+        stream.end(req.file.buffer);
+      });
+  
+      // Update user document with new profile picture URL
+      const updatedUser = await User.findByIdAndUpdate(
+        userId,
+        { profilePicture: result.secure_url },
+        { new: true }
+      );
+  
+      // Delete old profile picture from Cloudinary if it exists
+      if (req.user.profilePicture) {
+        const publicId = req.user.profilePicture.split('/').pop().split('.')[0];
+        await cloudinary.uploader.destroy(`profile_pictures/${publicId}`);
+      }
+  
+      res.json({
+        success: true,
+        profilePicture: updatedUser.profilePicture
+      });
+    } catch (error) {
+      console.error('Profile picture update error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to update profile picture'
+      });
     }
   };
   
@@ -230,6 +279,7 @@ const env = require("dotenv").config();
 module.exports = {
   loadUserProfile,
   addAddress,
+  updateProfilePicture,
   updateUserProfile,
   resetPassword,
   loadUserAddress,

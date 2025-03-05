@@ -16,6 +16,9 @@
     href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css"
   />
 
+  <!--=============== CROPPER CSS LINK ===============-->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css">
+
   <!--=============== CSS ===============-->
   <link rel="stylesheet" href="/assets/css/styles.css" />
 
@@ -147,12 +150,23 @@
               <!-- User Details Section -->
               <div class="user-details">
                 <div class="detail-row">
-                  <label>Name:</label>
+                  <label>Profile Picture:</label>
                   <div class="detail-content">
-                    <span id="displayName"><%= user.name %></span>
-                    <button class="change-btn" onclick="openEditNameModal()">Change</button>
+                    <img src="<%= user.profilePicture || '/assets/images/default-profile.png' %>" 
+                         alt="Profile" 
+                         id="profilePicDisplay" 
+                         style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover;">
+                    <button class="change-btn" onclick="openProfilePicModal()">Change</button>
                   </div>
                 </div>
+
+                  <div class="detail-row">
+                    <label>Name:</label>
+                    <div class="detail-content">
+                      <span id="displayName"><%= user.name %></span>
+                      <button class="change-btn" onclick="openEditNameModal()">Change</button>
+                    </div>
+                  </div>
 
                 <div class="detail-row">
                   <label>Email:</label>
@@ -234,11 +248,34 @@
             </form>
           </div>
         </div>
+
+        <!-- Profile picture modal  -->
+        <div id="profilePicModal" class="modal">
+          <div class="modal-content">
+            <span class="close-modal" onclick="closeProfilePicModal()">×</span>
+            <h3>Update Profile Picture</h3>
+            <form id="profilePicForm" enctype="multipart/form-data">
+              <div class="detail-row">
+                <label for="profilePicInput">Select Image:</label>
+                <input type="file" 
+                       id="profilePicInput" 
+                       name="profilePic" 
+                       accept=".png,.webp,.jpeg,.jpg" 
+                       required>
+              </div>
+              <div id="cropperContainer" style="display: none; max-width: 400px; margin: 20px auto;">
+                <img id="imageToCrop">
+              </div>
+              <button type="submit" class="change-btn" id="saveProfilePicBtn" disabled>Save Changes</button>
+            </form>
+          </div>
+        </div>
       </div>
     </section>
   </main>
 </body>
 <%- include("../../views/user/partials/footer") %>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
   // Modal functionality for name
@@ -394,6 +431,107 @@
         text: "Failed to copy referral code.",
       });
     });
+  }
+
+  //Profile pic functionality
+  let cropper;
+
+  function openProfilePicModal() {
+    document.getElementById('profilePicModal').style.display = 'block';
+  }
+
+  function closeProfilePicModal() {
+    document.getElementById('profilePicModal').style.display = 'none';
+    if (cropper) {
+      cropper.destroy();
+      cropper = null;
+    }
+    document.getElementById('cropperContainer').style.display = 'none';
+    document.getElementById('profilePicForm').reset();
+    document.getElementById('saveProfilePicBtn').disabled = true;
+  }
+
+  document.getElementById('profilePicInput').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+      const allowedTypes = ['image/png', 'image/webp', 'image/jpeg'];
+      if (!allowedTypes.includes(file.type)) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Invalid File Type',
+          text: 'Please upload only PNG, WEBP, or JPEG images'
+        });
+        this.value = '';
+        return;
+      }
+      
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        const img = document.getElementById('imageToCrop');
+        img.src = event.target.result;
+        document.getElementById('cropperContainer').style.display = 'block';
+        
+        if (cropper) cropper.destroy();
+        cropper = new Cropper(img, {
+          aspectRatio: 1,
+          viewMode: 1,
+          crop: function() {
+            document.getElementById('saveProfilePicBtn').disabled = false;
+          }
+        });
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+
+  document.getElementById('profilePicForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!cropper) return;
+
+    const canvas = cropper.getCroppedCanvas({
+      width: 200,
+      height: 200
+    });
+    
+    canvas.toBlob(async (blob) => {
+      const formData = new FormData();
+      formData.append('profilePic', blob, 'profile.jpg');
+
+      try {
+        const response = await fetch('/update-profile-pic', {
+          method: 'POST',
+          body: formData
+        });
+        
+        const data = await response.json();
+        if (data.success) {
+          document.getElementById('profilePicDisplay').src = data.profilePicture;
+          closeProfilePicModal();
+          Swal.fire({
+            icon: 'success',
+            title: 'Success',
+            text: 'Profile picture updated successfully!'
+          });
+        } else {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: data.message || 'Failed to update profile picture'
+          });
+        }
+      } catch (error) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Something went wrong!'
+        });
+      }
+    }, 'image/jpeg');
+  });
+
+  // Add profilePicModal to window.onclick
+  if (event.target === profilePicModal) {
+    closeProfilePicModal();
   }
 
   
