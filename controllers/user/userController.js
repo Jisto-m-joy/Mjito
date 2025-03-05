@@ -3,11 +3,31 @@ const Category = require("../../models/categorySchema");
 const Product = require("../../models/productSchema");
 const Brand = require("../../models/brandSchema");
 const Banner = require("../../models/bannerSchema");
+const walletController = require('../../controllers/user/walletController');
 const Cart = require("../../models/cartSchema");
 const env = require("dotenv").config();
 const nodemailer = require("nodemailer");
 const bcrypt = require("bcrypt");
 const { name, render } = require("ejs");
+
+const generateReferralCode = async () => {
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let referralCode;
+  let isUnique = false;
+
+  while (!isUnique) {
+    referralCode = '';
+    for (let i = 0; i < 8; i++) {
+      referralCode += characters.charAt(Math.floor(Math.random() * characters.length));
+    }
+    // Check if the referral code already exists
+    const existingUser = await User.findOne({ referralCode });
+    if (!existingUser) {
+      isUnique = true;
+    }
+  }
+  return referralCode;
+};
 
 const loadSignup = async (req, res, next) => {
   try {
@@ -164,7 +184,7 @@ async function sendVerificationEmail(email, otp, next) {
 
 const signup = async (req, res, next) => {
   try {
-    const { name, email, password, confirm_password } = req.body;
+    const { name, email, password, confirm_password, referralCode } = req.body;
 
     if (password !== confirm_password) {
       return res.render("signup", { message: "Passwords do not match" });
@@ -177,6 +197,18 @@ const signup = async (req, res, next) => {
       });
     }
 
+    // Validate referral code if provided
+    let referredBy = null;
+    if (referralCode) {
+      const referrer = await User.findOne({ referralCode });
+      if (!referrer) {
+        return res.render("signup", {
+          message: "Invalid referral code",
+        });
+      }
+      referredBy = referrer._id;
+    }
+
     const otp = generateOtp();
 
     const emailSent = await sendVerificationEmail(email, otp);
@@ -187,7 +219,7 @@ const signup = async (req, res, next) => {
     }
 
     req.session.userOtp = otp;
-    req.session.userData = { name, email, password };
+    req.session.userData = { name, email, password, referredBy };
 
     console.log("Session Data during signup:", req.session.userData);
     res.render("verify-otp");
@@ -210,21 +242,52 @@ const verifyOtp = async (req, res, next) => {
   try {
     const { otp } = req.body;
 
-    console.log(otp);
-
     if (otp === req.session.userOtp) {
       const user = req.session.userData;
       const passwordHash = await securePassword(user.password);
+      
+      // Generate referral code for new user
+      const newReferralCode = await generateReferralCode();
 
       const saveUserData = new User({
         name: user.name,
         email: user.email,
         password: passwordHash,
+        referralCode: newReferralCode,
+        referredBy: user.referredBy || null
       });
 
       await saveUserData.save();
+
+      // Check if user was referred and apply referral bonus
+      let referralBonusApplied = false;
+      if (user.referredBy) {
+        const referrer = await User.findById(user.referredBy);
+        if (referrer) {
+          // Add ₹1000 to new user's wallet
+          await walletController.addToWallet({
+            user: saveUserData._id,
+            amount: 1000,
+            description: 'Referral bonus for signing up'
+          });
+
+          // Add ₹1000 to referrer's wallet
+          await walletController.addToWallet({
+            user: referrer._id,
+            amount: 1000,
+            description: 'Referral bonus for inviting a friend'
+          });
+
+          referralBonusApplied = true;
+        }
+      }
+
       req.session.user = saveUserData._id;
-      res.json({ success: true, redirectUrl: "/home" });
+      res.json({ 
+        success: true, 
+        redirectUrl: "/home",
+        referralBonusApplied // Flag to trigger SweetAlert on client side
+      });
     } else {
       res
         .status(400)
@@ -270,7 +333,6 @@ const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
     const user = await User.findOne({ email });
-    req.session.user = user._id;
 
     if (!user) {
       return res.render("login", { message: "User not found" });
@@ -284,6 +346,12 @@ const login = async (req, res, next) => {
 
     if (!passwordMatch) {
       return res.render("login", { message: "Invalid password" });
+    }
+
+    // Check if user has a referralCode, generate one if not
+    if (!user.referralCode) {
+      const newReferralCode = await generateReferralCode();
+      await User.updateOne({ _id: user._id }, { $set: { referralCode: newReferralCode } });
     }
 
     req.session.user = user;

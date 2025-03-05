@@ -37,14 +37,27 @@ function validateOTPForm() {
     data: { otp: otpInput },
     success: function (response) {
       if (response.success) {
-        Swal.fire({
-          icon: "success",
-          title: "OTP Verified Successfully",
-          showConfirmButton: false,
-          timer: 1500,
-        }).then(() => {
-          window.location.href = response.redirectUrl;
-        });
+        if (response.referralBonusApplied) {
+          // Show referral bonus message if applicable
+          Swal.fire({
+            icon: "success",
+            title: "Welcome!",
+            text: "₹1000 added to your wallet and your friend’s wallet!",
+            confirmButtonText: "Great!",
+          }).then(() => {
+            window.location.href = response.redirectUrl;
+          });
+        } else {
+          // Standard success message without referral bonus
+          Swal.fire({
+            icon: "success",
+            title: "OTP Verified Successfully",
+            showConfirmButton: false,
+            timer: 1500,
+          }).then(() => {
+            window.location.href = response.redirectUrl;
+          });
+        }
       } else {
         Swal.fire({
           icon: "error",
@@ -59,7 +72,7 @@ function validateOTPForm() {
         title: "Invalid OTP",
         text: "Please try again",
       });
-    }
+    },
   });
   return false;
 }

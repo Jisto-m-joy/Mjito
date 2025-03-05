@@ -66,6 +66,16 @@ const userSchema = new Schema(
       enum: ["blocked", "unblocked"],
       default: "unblocked",
     },
+    referralCode: {
+      type: String,
+      unique: true,
+      sparse: true
+    },
+    referredBy: {
+        type: Schema.Types.ObjectId,
+        ref: 'User',
+        default: null
+    },
   },
   { timestamps: true }
 );

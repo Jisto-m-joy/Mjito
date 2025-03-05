@@ -2,6 +2,7 @@ function signupValidation() {
   const name = document.getElementById("signup_name").value.trim();
   const email = document.getElementById("signup_email").value.trim();
   const password = document.getElementById("password").value.trim();
+  const referralCode = document.getElementById("signup_referral").value.trim();
   const confirmPassword = document
     .getElementById("signup_confirm_password")
     .value.trim();
@@ -50,6 +51,11 @@ function signupValidation() {
     isValid = false;
   } else {
     clearError("error4");
+  }
+
+  if (referralCode && referralCode.length < 8) {
+      error5.textContent = "Referral code must be 8 characters long";
+      return false;
   }
 
   return isValid;

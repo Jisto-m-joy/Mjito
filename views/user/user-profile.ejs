@@ -168,6 +168,16 @@
                     <button class="change-btn" onclick="openChangePasswordModal()">Change</button>
                   </div>
                 </div>
+
+                <div class="detail-row">
+                  <label>Referral Code:</label>
+                  <div class="detail-content">
+                    <span id="referralCode"><%= user.referralCode || 'Not Generated' %></span>
+                    <% if (user.referralCode) { %>
+                      <button class="change-btn" onclick="copyReferralCode()">Copy</button>
+                    <% } %>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -364,6 +374,27 @@
       });
     }
   });
+
+  //Copy referal code functionality
+  function copyReferralCode() {
+    const referralCode = document.getElementById("referralCode").textContent;
+    navigator.clipboard.writeText(referralCode).then(() => {
+      Swal.fire({
+        icon: "success",
+        title: "Copied!",
+        text: "Referral code copied to clipboard.",
+        showConfirmButton: false,
+        timer: 1500
+      });
+    }).catch((err) => {
+      console.error("Failed to copy: ", err);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Failed to copy referral code.",
+      });
+    });
+  }
 
   
   // Close modals when clicking outside
