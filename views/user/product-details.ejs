@@ -178,7 +178,7 @@
                 <div class="review__single">
                   <div>
                     <img
-                      src="/assets/img/User.webp"
+                      src="<%= review.userId.profilePicture %>"
                       alt=""
                       class="review__img"
                     />
@@ -342,73 +342,75 @@
 
   <script src="/assets/js/user/product-details.js"></script>
   <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      const stars = document.querySelectorAll('.rate__product .fi');
-      const ratingInput = document.getElementById('ratingInput');
-    
-      stars.forEach(star => {
-        star.addEventListener('click', function() {
-          const rating = this.getAttribute('data-rating');
-          ratingInput.value = rating;
-          stars.forEach((s, index) => {
-            if (index < rating) {
-              s.classList.add('gold');
-            } else {
-              s.classList.remove('gold');
-            }
-          });
-        });
-      });
-    
-      document.getElementById('reviewForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const formData = new FormData(this);
-    
-        console.log('Form Data:', Object.fromEntries(formData.entries()));
-    
-        fetch('/submitReview', {
-          method: 'POST',
-          body: JSON.stringify(Object.fromEntries(formData.entries())), // Convert formData to JSON string
-          headers: {
-            'Content-Type': 'application/json', // Set the content type to JSON
-            'Accept': 'application/json'
-          }
-        })
-        .then(response => {
-          if (!response.ok) {
-            console.error('Server responded with a non-200 status code:', response.status, response.statusText);
-            throw new Error('Network response was not ok');
-          }
-          return response.json();
-        })
-        .then(data => {
-          if (data.success) {
-            iziToast.success({
-              title: 'Success',
-              message: data.message,
-              position: 'topRight'
-            });
-            setTimeout(() => {
-              window.location.reload();
-            }, 1500);
+document.addEventListener('DOMContentLoaded', function() {
+    const stars = document.querySelectorAll('.rate__product .fi');
+    const ratingInput = document.getElementById('ratingInput');
+  
+    stars.forEach(star => {
+      star.addEventListener('click', function() {
+        const rating = this.getAttribute('data-rating');
+        ratingInput.value = rating;
+        stars.forEach((s, index) => {
+          if (index < rating) {
+            s.classList.add('gold');
           } else {
-            iziToast.error({
-              title: 'Error',
-              message: data.message || 'Failed to submit review',
-              position: 'topRight'
-            });
+            s.classList.remove('gold');
           }
-        })
-        .catch(error => {
-          console.error('Fetch error:', error);
-          iziToast.error({
-            title: 'Error',
-            message: error.message || 'Failed to submit review',
-            position: 'topRight'
-          });
         });
       });
     });
+  
+    document.getElementById('reviewForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const formData = new FormData(this);
+  
+      console.log('Form Data:', Object.fromEntries(formData.entries()));
+  
+      fetch('/submitReview', {
+        method: 'POST',
+        body: JSON.stringify(Object.fromEntries(formData.entries())),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
+      })
+      .then(response => {
+        if (!response.ok) {
+          console.error('Server responded with a non-200 status code:', response.status, response.statusText);
+          return response.json().then(data => {
+            throw new Error(data.message || 'Network response was not ok');
+          });
+        }
+        return response.json();
+      })
+      .then(data => {
+        if (data.success) {
+          iziToast.success({
+            title: 'Success',
+            message: data.message,
+            position: 'topRight'
+          });
+          setTimeout(() => {
+            window.location.reload();
+          }, 1500);
+        } else {
+          iziToast.error({
+            title: 'Error',
+            message: data.message || 'Failed to submit review',
+            position: 'topRight'
+          });
+        }
+      })
+      .catch(error => {
+        console.error('Fetch error:', error);
+        iziToast.error({
+          title: 'Error',
+          message: error.message || 'Failed to submit review',
+          position: 'topRight'
+        });
+      });
+    });
+  });
 
 
     document.addEventListener('DOMContentLoaded', function() {
@@ -610,8 +612,8 @@ document.addEventListener('DOMContentLoaded', function() {
   const availabilityElement = document.getElementById('availability');
 
   // Get offer details from server-side
-  const categoryOffer = <%= category && category.categoryOffer || 0 %>;
-  const productOffer = <%= product.productOffer ? product.offerPercentage : 0 %>;
+  const categoryOffer = '<%= category && category.categoryOffer || 0 %>';
+  const productOffer =' <%= product.productOffer ? product.offerPercentage : 0 %>';
   const effectiveOffer = productOffer > 0 ? productOffer : categoryOffer;
 
   sizeLinks.forEach(link => {

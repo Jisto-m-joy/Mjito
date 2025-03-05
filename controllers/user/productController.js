@@ -2,6 +2,7 @@ const Product = require("../../models/productSchema");
 const Review = require("../../models/reviewSchema"); // Import the Review model
 const Category = require("../../models/categorySchema");
 const User = require("../../models/userSchema");
+const Order = require("../../models/orderSchema");
 
 const productDetails = async (req, res, next) => {
   try {
@@ -93,6 +94,21 @@ const submitReview = async (req, res, next) => {
     }
 
     const userId = req.user._id;
+
+    // Check if the user has purchased the product and the order is not cancelled
+    const order = await Order.findOne({
+      userId: userId,
+      "orderedItems.product": productId,
+      status: { $ne: "Cancelled" }, // Exclude cancelled orders
+    });
+
+    if (!order) {
+      console.error("Authorization Error: User has not purchased this product or order was cancelled.");
+      return res.status(403).json({
+        success: false,
+        message: "You can only review products you have purchased and not cancelled.",
+      });
+    }
 
     console.log('Received Data:', { userId, productId, rating, description });
 
