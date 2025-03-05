@@ -4,7 +4,7 @@ const { Schema } = mongoose;
 const bannerSchema = new Schema(
   {
     images: {
-      type: String,
+      type: [String],
       required: true,
     },
     subtitle: {

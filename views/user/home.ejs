@@ -10,25 +10,30 @@
       position: relative;
       overflow: hidden;
       height: 600px;
-      background: url('<%= banners[0].images[0] %>') no-repeat center center;
       background-size: cover;
-      background-color: #1a1a1a;
-      background-blend-mode: overlay;
+      background-position: center center;
+      background-repeat: no-repeat;
+      transition: background-image 0.5s ease-in-out;
       display: flex;
       align-items: flex-end;
-      justify-content: flex-start;
+      justify-content: center;
       padding-bottom: 3rem;
     }
 
-    .banner__container {
+    .banner-carousel::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
       height: 100%;
-      display: flex;
-      align-items: flex-end;
-      justify-content: flex-start;
-      padding: 0 4rem;
-      gap: 2rem;
-      max-width: 1400px;
-      margin: 0 auto;
+      background: rgba(0, 0, 0, 0.3); /* Keep the semi-transparent overlay */
+      z-index: 1;
+    }
+
+    .banner__container, .banner__content, .banner__img-wrap, .banner__img {
+      position: relative;
+      z-index: 2;
     }
 
     .banner__content {
@@ -37,10 +42,46 @@
       text-align: left;
       position: relative;
       margin-bottom: 2rem;
+      opacity: 0; /* Initially hidden */
+      transition: opacity 0.3s ease-in-out;
+    }
+
+    .banner__content.active .banner__subtitle,
+    .banner__content.active .banner__title,
+    .banner__content.active .btn {
+      animation: fadeInSlideUp 0.8s ease-out forwards;
+      opacity: 0;
+      transform: translateY(20px);
+    }
+
+    .banner__content.active {
+      opacity: 1; /* Show only active content */
+    }
+
+    .banner__container {
+      height: auto; /* Changed from 100% to auto for flexibility */
+      display: flex;
+      align-items: flex-end; /* Align items to the bottom */
+      justify-content: center; /* Center horizontally */
+      padding: 0 4rem;
+      gap: 2rem;
+      max-width: 1400px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .banner__content {
+      flex: 1;
+      max-width: 900px;
+      text-align: left;
+      position: relative;
+      margin-bottom: 2rem;
+      opacity: 0;
+      transition: opacity 0.3s ease-in-out;
     }
 
     .banner__subtitle {
-      color: hsl(176, 88%, 27%);
+      color: hsl(57, 89%, 48%);
       font-size: 0.700rem;
       font-weight: 700;
       text-transform: uppercase;
@@ -58,17 +99,10 @@
       text-transform: uppercase;
     }
 
-    .banner__description {
-      color: rgba(255,255,255,0.7);
-      font-size: 1rem;
-      line-height: 1.5;
-      margin-bottom: 1.5rem;
-    }
-
     .banner__img-wrap {
       flex: 1.2;
       display: flex;
-      align-items: center;
+      align-items: flex-end; /* Align image to the bottom */
       justify-content: center;
       position: relative;
     }
@@ -88,6 +122,10 @@
     .btn:hover {
       transform: translateY(-2px);
       box-shadow: 0 10px 25px rgba(125, 255, 42, 0.3);
+    }
+
+    .btn {
+      transition: transform 0.3s ease, opacity 0.3s ease;
     }
 
     .swiper-button-next,
@@ -110,6 +148,18 @@
     .swiper-button-prev::after {
       font-size: 20px;
       font-weight: bold;
+    }
+
+    /* Animation */
+    @keyframes fadeInSlideUp {
+      0% {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     @media screen and (max-width: 992px) {
@@ -135,8 +185,9 @@
 
       .banner__container {
         flex-direction: column-reverse;
-        text-align: left;
+        text-align: center; /* Center text on mobile */
         padding: 0 1.5rem;
+        align-items: center; /* Center on mobile */
       }
 
       .banner__content {
@@ -157,10 +208,10 @@
 <section class="banner-carousel">
   <div class="swiper swiper-banner">
     <div class="swiper-wrapper">
-      <% banners.forEach(function(banner) { %>
-        <div class="swiper-slide">
+      <% banners.forEach(function(banner, index) { %>
+        <div class="swiper-slide" data-background="<%= banner.images[0] %>">
           <div class="banner__container">
-            <div class="banner__content">
+            <div class="banner__content" data-slide="<%= index %>">
               <span class="banner__subtitle"><%= banner.subtitle %></span>
               <h1 class="banner__title"><%= banner.title %></h1>
               <a href="/shop" class="btn">SHOP NOW</a>
@@ -520,7 +571,7 @@
  <!-- iziToast JS -->
  <script src="https://cdn.jsdelivr.net/npm/izitoast/dist/js/iziToast.min.js"></script>
  <script src="/assets/js/user/wishlist.js"></script>
-
+ <script src="https://cdn.jsdelivr.net/npm/swiper@8/swiper-bundle.min.js"></script>
  <script>
 document.addEventListener('DOMContentLoaded', function() {
   const cartButtons = document.querySelectorAll('.cart__btn');
@@ -615,32 +666,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 });
- </script>
 
-<!-- Add Swiper JS before the closing body tag -->
-<script src="https://cdn.jsdelivr.net/npm/swiper@8/swiper-bundle.min.js"></script>
-<script>
-  // Initialize banner carousel
-  new Swiper('.swiper-banner', {
-    loop: true,
-    grabCursor: true,
-    effect: 'fade',
-    autoplay: {
-      delay: 5000,
-      disableOnInteraction: false,
-    },
-    pagination: {
-      el: '.swiper-pagination',
-      clickable: true,
-    },
-    navigation: {
-      nextEl: '.swiper-button-next',
-      prevEl: '.swiper-button-prev',
-    },
-  });
-</script>
-
-<script>
   // Function to adapt colors based on banner image
   function adaptColors(img) {
     const colorThief = new ColorThief();
@@ -666,4 +692,54 @@ document.addEventListener('DOMContentLoaded', function() {
       description.style.color = brightness > 128 ? '#333333' : '#ffffff';
     }
   }
-</script>
+
+   // Initialize banner carousel
+   const bannerSwiper = new Swiper('.swiper-banner', {
+    loop: true,
+    grabCursor: true,
+    effect: 'fade',
+    autoplay: {
+      delay: 5000,
+      disableOnInteraction: false,
+    },
+    pagination: {
+      el: '.swiper-pagination',
+      clickable: true,
+    },
+    navigation: {
+      nextEl: '.swiper-button-next',
+      prevEl: '.swiper-button-prev',
+    },
+    on: {
+      init: function() {
+        updateBackgroundAndContent(this);
+      },
+      slideChange: function() {
+        updateBackgroundAndContent(this);
+      }
+    }
+  });
+
+  // Function to update background and content
+  function updateBackgroundAndContent(swiper) {
+    // Get the active slide
+    const activeSlide = swiper.slides[swiper.activeIndex];
+    const backgroundImage = activeSlide.getAttribute('data-background');
+    
+    // Update banner background
+    const bannerCarousel = document.querySelector('.banner-carousel');
+    bannerCarousel.style.backgroundImage = `url(${backgroundImage})`;
+    
+    // Hide all content
+    document.querySelectorAll('.banner__content').forEach(content => {
+      content.classList.remove('active');
+    });
+    
+    // Show only active slide's content
+    const activeContent = activeSlide.querySelector('.banner__content');
+    if (activeContent) {
+      activeContent.classList.add('active');
+    }
+  }
+ </script>
+
