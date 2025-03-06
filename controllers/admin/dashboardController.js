@@ -7,61 +7,78 @@ const PDFDocument = require('pdfkit');
 
 const loadDashboard = async (req, res, next) => {
   if (req.session.admin) {
-    try {
-      // Get total counts
-      const totalUsers = await User.countDocuments({ isAdmin: false });
-      const totalProducts = await Product.countDocuments();
-      const totalOrders = await Order.countDocuments();
-      
-      // Calculate total revenue
-      const orders = await Order.find();
-      const totalRevenue = orders.reduce((sum, order) => sum + order.finalAmount, 0);
-      
-      // Get recent orders with populated data
-      const recentOrders = await Order.find()
-        .populate('userId', 'name')
-        .populate('orderedItems.product', 'name')
-        .sort({ orderDate: -1 })
-        .limit(5);
-        
-      // Format recent orders for display
-      const formattedRecentOrders = recentOrders.map(order => ({
-        orderId: order.orderId,
-        customerName: order.userId ? order.userId.name : 'Unknown Customer',
-        productName: order.orderedItems.length > 0 && order.orderedItems[0].product ? order.orderedItems[0].product.name : 'Unknown Product',
-        amount: order.finalAmount,
-        status: order.status,
-        date: order.orderDate.toLocaleDateString()
-      }));
+      try {
+          // Get total counts
+          const totalUsers = await User.countDocuments({ isAdmin: false });
+          const totalProducts = await Product.countDocuments();
+          const totalOrders = await Order.countDocuments();
+          
+          // Calculate total revenue
+          const orders = await Order.find();
+          const totalRevenue = orders.reduce((sum, order) => sum + order.finalAmount, 0);
+          
+          // Get recent orders with populated data
+          const recentOrders = await Order.find()
+              .populate('userId', 'name')
+              .populate('orderedItems.product', 'name')
+              .sort({ orderDate: -1 })
+              .limit(5);
+              
+          // Format recent orders for display
+          const formattedRecentOrders = recentOrders.map(order => ({
+              orderId: order.orderId,
+              customerName: order.userId ? order.userId.name : 'Unknown Customer',
+              productName: order.orderedItems.length > 0 && order.orderedItems[0].product ? order.orderedItems[0].product.name : 'Unknown Product',
+              amount: order.finalAmount,
+              status: order.status,
+              date: order.orderDate.toLocaleDateString()
+          }));
 
-      // Prepare data for charts - last 6 months of revenue and orders
-      const monthlyData = await getMonthlyData();
-      const { revenueData, ordersData, chartLabels } = monthlyData;
+          // Prepare data for charts - default to yearly
+          const monthlyData = await getMonthlyData('yearly');
+          const { revenueData, ordersData, chartLabels } = monthlyData;
 
-      // Get top products data
-      const { productLabels, productData } = await getTopProductsData();
+          // Get top data
+          const topProducts = await getTopProductsData();
+          const topCategories = await getTopCategoriesData();
+          const topBrands = await getTopBrandsData();
 
-      res.render("dashboard", {
-        totalUsers,
-        totalProducts,
-        totalOrders,
-        totalRevenue,
-        recentOrders: formattedRecentOrders,
-        chartData: {
-          revenueData,
-          ordersData,
-          chartLabels,
-          productLabels,
-          productData
-        }
-      });
-      
-    } catch (error) {
-      console.error("Dashboard Error:", error);
-      next(error);
-    }
+          res.render("dashboard", {
+              totalUsers,
+              totalProducts,
+              totalOrders,
+              totalRevenue,
+              recentOrders: formattedRecentOrders,
+              chartData: {
+                  revenueData,
+                  ordersData,
+                  chartLabels,
+                  topProductLabels: topProducts.productLabels,
+                  topProductData: topProducts.productData,
+                  topCategoryLabels: topCategories.categoryLabels,
+                  topCategoryData: topCategories.categoryData,
+                  topBrandLabels: topBrands.brandLabels,
+                  topBrandData: topBrands.brandData
+              }
+          });
+          
+      } catch (error) {
+          console.error("Dashboard Error:", error);
+          next(error);
+      }
   } else {
-    res.redirect('/admin/login');
+      res.redirect('/admin/login');
+  }
+};
+
+const getChartData = async (req, res) => {
+  try {
+      const range = req.query.range || 'yearly';
+      const chartData = await getMonthlyData(range);
+      res.json(chartData);
+  } catch (error) {
+      console.error("Error fetching chart data:", error);
+      res.status(500).json({ error: "Failed to fetch chart data" });
   }
 };
 
@@ -154,102 +171,6 @@ const getDateRange = (reportType, startDate, endDate) => {
   }
   
   return { startDate: startDateTime, endDate: endDateTime };
-};
-
-const getMonthlyData = async () => {
-  const sixMonthsAgo = new Date();
-  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
-  
-  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  const monthlyData = await Order.aggregate([
-    {
-      $match: {
-        orderDate: { $gte: sixMonthsAgo }
-      }
-    },
-    {
-      $group: {
-        _id: { 
-          month: { $month: "$orderDate" },
-          year: { $year: "$orderDate" }
-        },
-        revenue: { $sum: "$finalAmount" },
-        orderCount: { $sum: 1 }
-      }
-    },
-    { $sort: { "_id.year": 1, "_id.month": 1 } }
-  ]);
-
-  // Setup default data for the past 6 months
-  const last6Months = [];
-  for (let i = 0; i < 6; i++) {
-    const d = new Date();
-    d.setMonth(d.getMonth() - i);
-    last6Months.unshift({ month: d.getMonth() + 1, year: d.getFullYear() });
-  }
-
-  // Initialize arrays with zeros
-  const revenueData = new Array(6).fill(0);
-  const ordersData = new Array(6).fill(0);
-
-  // Fill in actual data where it exists
-  monthlyData.forEach(data => {
-    const month = data._id.month;
-    const year = data._id.year;
-    
-    const index = last6Months.findIndex(m => m.month === month && m.year === year);
-    if (index !== -1) {
-      revenueData[index] = data.revenue;
-      ordersData[index] = data.orderCount;
-    }
-  });
-
-  const chartLabels = last6Months.map(m => monthNames[m.month - 1]);
-
-  return { revenueData, ordersData, chartLabels };
-};
-
-const getTopProductsData = async () => {
-  try {
-    const topProducts = await Order.aggregate([
-      { $unwind: "$orderedItems" },
-      {
-        $group: {
-          _id: "$orderedItems.product",
-          totalQuantity: { $sum: "$orderedItems.quantity" }
-        }
-      },
-      { $sort: { totalQuantity: -1 } },
-      { $limit: 3 },
-      {
-        $lookup: {
-          from: "products",
-          localField: "_id",
-          foreignField: "_id",
-          as: "productInfo"
-        }
-      },
-      { $match: { "productInfo.0": { $exists: true } } }
-    ]);
-
-    if (topProducts.length > 0) {
-      return {
-        productLabels: topProducts.map(p => p.productInfo[0]?.name || 'Unknown Product'),
-        productData: topProducts.map(p => p.totalQuantity)
-      };
-    }
-    
-    return {
-      productLabels: ['No Products'],
-      productData: [100]
-    };
-  } catch(err) {
-    console.error('Error fetching top products:', err);
-    return {
-      productLabels: ['Error'],
-      productData: [100]
-    };
-  }
 };
 
 const generateExcelReport = async (data, reportType) => {
@@ -350,9 +271,138 @@ const generatePDFReport = (data, reportType, startDate, endDate) => {
   return doc;
 };
 
+  async function getMonthlyData(range = 'yearly') {
+    const now = new Date();
+    let startDate;
+
+    switch (range) {
+        case 'weekly':
+            startDate = new Date(now.setDate(now.getDate() - 7));
+            break;
+        case 'monthly':
+            startDate = new Date(now.setMonth(now.getMonth() - 1));
+            break;
+        case 'yearly':
+        default:
+            startDate = new Date(now.setFullYear(now.getFullYear() - 1));
+            break;
+    }
+
+    const orders = await Order.aggregate([
+        { $match: { orderDate: { $gte: startDate, $lte: new Date() } } },
+        {
+            $group: {
+                _id: { $dateToString: { format: "%Y-%m-%d", date: "$orderDate" } },
+                totalRevenue: { $sum: "$finalAmount" }, // Ensure finalAmount is the correct field
+                totalOrders: { $sum: 1 }
+            }
+        },
+        { $sort: { "_id": 1 } }
+    ]);
+
+    const chartLabels = orders.map(item => item._id);
+    const revenueData = orders.map(item => item.totalRevenue || 0); // Default to 0 if null
+    const ordersData = orders.map(item => item.totalOrders || 0); // Default to 0 if null
+
+    return { chartLabels, revenueData, ordersData };
+  }
+
+  async function getTopProductsData() {
+    const topProducts = await Order.aggregate([
+        { $unwind: "$orderedItems" },
+        {
+            $group: {
+                _id: "$orderedItems.product",
+                totalQuantity: { $sum: "$orderedItems.quantity" },
+                totalRevenue: { $sum: { $multiply: ["$orderedItems.quantity", "$orderedItems.price"] } }
+            }
+        },
+        { $sort: { totalQuantity: -1 } },
+        { $limit: 5 },
+        {
+            $lookup: {
+                from: "products",
+                localField: "_id",
+                foreignField: "_id",
+                as: "product"
+            }
+        }
+    ]);
+
+    const productLabels = topProducts.map(p => p.product[0]?.name || 'Unknown Product');
+    const productData = topProducts.map(p => p.totalQuantity);
+
+    return { productLabels, productData };
+  }
+
+  async function getTopCategoriesData() {
+    const topCategories = await Order.aggregate([
+        { $unwind: "$orderedItems" },
+        {
+            $lookup: {
+                from: "products",
+                localField: "orderedItems.product",
+                foreignField: "_id",
+                as: "product"
+            }
+        },
+        { $unwind: "$product" },
+        {
+            $group: {
+                _id: "$product.category",
+                totalQuantity: { $sum: "$orderedItems.quantity" }
+            }
+        },
+        { $sort: { totalQuantity: -1 } },
+        { $limit: 5 },
+        {
+            $lookup: {
+                from: "categories",
+                localField: "_id",
+                foreignField: "_id",
+                as: "category"
+            }
+        }
+    ]);
+
+    const categoryLabels = topCategories.map(c => c.category[0]?.name || 'Unknown Category');
+    const categoryData = topCategories.map(c => c.totalQuantity);
+
+    return { categoryLabels, categoryData };
+  }
+
+  async function getTopBrandsData() {
+    const topBrands = await Order.aggregate([
+        { $unwind: "$orderedItems" },
+        {
+            $lookup: {
+                from: "products",
+                localField: "orderedItems.product",
+                foreignField: "_id",
+                as: "product"
+            }
+        },
+        { $unwind: "$product" },
+        {
+            $group: {
+                _id: "$product.brand",
+                totalQuantity: { $sum: "$orderedItems.quantity" }
+            }
+        },
+        { $sort: { totalQuantity: -1 } },
+        { $limit: 5 }
+    ]);
+
+    const brandLabels = topBrands.map(b => b._id || 'Unknown Brand');
+    const brandData = topBrands.map(b => b.totalQuantity);
+
+    return { brandLabels, brandData };
+  }
+
 module.exports = {
     loadDashboard,
     downloadReport,
     generateExcelReport,
-    generatePDFReport
+    generatePDFReport,
+    getChartData
 };

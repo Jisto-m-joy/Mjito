@@ -26,6 +26,7 @@ router.get("/logout", adminController.logout);
 // Dashboard Management
 router.get("/", adminAuth, dashboardController.loadDashboard);
 router.get("/download-report", adminAuth, dashboardController.downloadReport);
+router.get("/dashboard/chart-data", adminAuth, dashboardController.getChartData);
 
 // Customer Management
 router.get("/users", adminAuth, customerController.customerInfo);
