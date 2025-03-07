@@ -80,15 +80,13 @@
                 <article class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <h5 class="card-title mb-0">Revenue & Orders Overview</h5>
-                        <div class="dropdown">
-                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="timeRangeDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="fas fa-calendar me-1"></i> Yearly
-                            </button>
-                            <ul class="dropdown-menu" aria-labelledby="timeRangeDropdown">
-                                <li><a class="dropdown-item" href="#" data-range="yearly">Yearly</a></li>
-                                <li><a class="dropdown-item" href="#" data-range="monthly">Monthly</a></li>
-                                <li><a class="dropdown-item" href="#" data-range="weekly">Weekly</a></li>
-                            </ul>
+                        <div class="custom-select-wrapper">
+                            <i class="fas fa-calendar me-1"></i>
+                            <select id="timeRangeSelect" class="custom-time-range">
+                                <option value="yearly" selected>Yearly</option>
+                                <option value="monthly">Monthly</option>
+                                <option value="weekly">Weekly</option>
+                            </select>
                         </div>
                     </div>
                     <div class="chart-container" style="position: relative; height:400px; width:100%;">
@@ -102,9 +100,7 @@
                 <article class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <h5 class="card-title mb-0">Top Products</h5>
-                        <button class="btn btn-sm btn-outline-secondary">
-                            <i class="fas fa-filter me-1"></i> Filter
-                        </button>
+                        <!-- Filter button removed -->
                     </div>
                     <div class="chart-container" style="position: relative; height:200px; width:100%;">
                         <canvas id="topProductsChart" width="400" height="200"></canvas>
@@ -117,9 +113,7 @@
                 <article class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <h5 class="card-title mb-0">Top Categories</h5>
-                        <button class="btn btn-sm btn-outline-secondary">
-                            <i class="fas fa-filter me-1"></i> Filter
-                        </button>
+                        <!-- Filter button removed -->
                     </div>
                     <div class="chart-container" style="position: relative; height:200px; width:100%;">
                         <canvas id="topCategoriesChart" width="400" height="200"></canvas>
@@ -132,9 +126,7 @@
                 <article class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <h5 class="card-title mb-0">Top Brands</h5>
-                        <button class="btn btn-sm btn-outline-secondary">
-                            <i class="fas fa-filter me-1"></i> Filter
-                        </button>
+                        <!-- Filter button removed -->
                     </div>
                     <div class="chart-container" style="position: relative; height:200px; width:100%;">
                         <canvas id="topBrandsChart" width="400" height="200"></canvas>
@@ -261,15 +253,17 @@
     </div>
 </div>
 
-<!-- Required Libraries -->
 <!-- FontAwesome -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<!-- Bootstrap CSS -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-rbsA2VBKQKo4XO3aRgsiFNOd3N8/q2xAE4F5l5jzU8PbsSsh3vD0P6XyyFo0Gagp" crossorigin="anonymous">
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-h9tq5DCRG2mY6eMI8S7VFLtQv1i5pVx7BI4vlXvsO+0R6MW+S1kBOVb8c2FVZz5D" crossorigin="anonymous"></script>
+
 <!-- Custom Styles -->
 <style>
     .icon-stat {
@@ -303,223 +297,251 @@
         padding: 20px;
         position: relative;
     }
-
     canvas#salesChart, canvas#productChart {
         width: 100% !important;
         height: 100% !important;
+    }
+    /* Custom Select Styling */
+    .custom-select-wrapper {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+    }
+    .custom-time-range {
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        background-color: #fff;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        padding: 6px 24px 6px 12px;
+        font-size: 14px;
+        line-height: 1.5;
+        color: #495057;
+        cursor: pointer;
+        min-width: 120px;
+    }
+    .custom-time-range:focus {
+        outline: none;
+        border-color: #80bdff;
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+    .custom-select-wrapper::after {
+        content: '\f078'; /* FontAwesome chevron-down */
+        font-family: 'Font Awesome 6 Free';
+        font-weight: 900;
+        position: absolute;
+        right: 10px;
+        pointer-events: none;
+        color: #495057;
     }
 </style>
 
 <!-- Dashboard Scripts -->
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    try {
-        // Parse the chartData from the server
-        const chartData = JSON.parse('<%- JSON.stringify(chartData) %>');
+    document.addEventListener('DOMContentLoaded', function() {
+        const timeRangeSelect = document.getElementById('timeRangeSelect');
+        let salesChart, topProductsChart, topCategoriesChart, topBrandsChart;
 
-        // Sales Chart configuration
-        const salesChart = new Chart(
-            document.getElementById('salesChart').getContext('2d'),
-            {
-                type: 'line',
-                data: {
-                    labels: chartData.chartLabels || [],
-                    datasets: [
-                        {
-                            label: 'Revenue (₹)',
-                            data: chartData.revenueData || [],
-                            borderColor: '#36A2EB',
-                            backgroundColor: 'rgba(54, 162, 235, 0.1)',
-                            borderWidth: 2,
-                            fill: true,
-                            yAxisID: 'y-revenue'
+        // Initialize all charts
+        function initializeCharts() {
+            try {
+                const chartData = JSON.parse('<%- JSON.stringify(chartData) %>' || '{}');
+
+                salesChart = new Chart(
+                    document.getElementById('salesChart').getContext('2d'),
+                    {
+                        type: 'line',
+                        data: {
+                            labels: chartData.chartLabels || [],
+                            datasets: [
+                                {
+                                    label: 'Revenue (₹)',
+                                    data: chartData.revenueData || [],
+                                    borderColor: '#36A2EB',
+                                    backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                                    borderWidth: 2,
+                                    fill: true,
+                                    yAxisID: 'y-revenue'
+                                },
+                                {
+                                    label: 'Orders',
+                                    data: chartData.ordersData || [],
+                                    borderColor: '#FF6384',
+                                    backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                                    borderWidth: 2,
+                                    fill: true,
+                                    yAxisID: 'y-orders'
+                                }
+                            ]
                         },
-                        {
-                            label: 'Orders',
-                            data: chartData.ordersData || [],
-                            borderColor: '#FF6384',
-                            backgroundColor: 'rgba(255, 99, 132, 0.1)',
-                            borderWidth: 2,
-                            fill: true,
-                            yAxisID: 'y-orders'
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                'y-revenue': {
+                                    type: 'linear',
+                                    position: 'left',
+                                    title: { display: true, text: 'Revenue (₹)' }
+                                },
+                                'y-orders': {
+                                    type: 'linear',
+                                    position: 'right',
+                                    title: { display: true, text: 'Number of Orders' }
+                                }
+                            },
+                            plugins: { legend: { position: 'top' } }
                         }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        'y-revenue': {
-                            type: 'linear',
-                            position: 'left',
-                            title: {
-                                display: true,
-                                text: 'Revenue (₹)'
-                            }
+                    }
+                );
+
+                topProductsChart = new Chart(
+                    document.getElementById('topProductsChart').getContext('2d'),
+                    {
+                        type: 'doughnut',
+                        data: {
+                            labels: chartData.topProductLabels || [],
+                            datasets: [{
+                                data: chartData.topProductData || [],
+                                backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF']
+                            }]
                         },
-                        'y-orders': {
-                            type: 'linear',
-                            position: 'right',
-                            title: {
-                                display: true,
-                                text: 'Number of Orders'
-                            }
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            position: 'top',
-                        }
-                    }
-                }
-            }
-        );
-        const topProductsChart = new Chart(
-            document.getElementById('topProductsChart').getContext('2d'),
-            {
-                type: 'doughnut',
-                data: {
-                    labels: chartData.topProductLabels || [],
-                    datasets: [{
-                        data: chartData.topProductData || [],
-                        backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF']
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: {
-                                boxWidth: 12,
-                                font: { size: 11 }
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    position: 'bottom',
+                                    labels: {
+                                        boxWidth: 12,
+                                        font: { size: 11 }
+                                    }
+                                }
                             }
                         }
                     }
-                }
-            }
-        );
+                );
 
-        // Top Categories Chart
-        const topCategoriesChart = new Chart(
-            document.getElementById('topCategoriesChart').getContext('2d'),
-            {
-                type: 'doughnut',
-                data: {
-                    labels: chartData.topCategoryLabels || [],
-                    datasets: [{
-                        data: chartData.topCategoryData || [],
-                        backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF']
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: {
-                                boxWidth: 12,
-                                font: { size: 11 }
+                topCategoriesChart = new Chart(
+                    document.getElementById('topCategoriesChart').getContext('2d'),
+                    {
+                        type: 'doughnut',
+                        data: {
+                            labels: chartData.topCategoryLabels || [],
+                            datasets: [{
+                                data: chartData.topCategoryData || [],
+                                backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF']
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    position: 'bottom',
+                                    labels: {
+                                        boxWidth: 12,
+                                        font: { size: 11 }
+                                    }
+                                }
                             }
                         }
                     }
-                }
-            }
-        );
+                );
 
-        // Top Brands Chart
-        const topBrandsChart = new Chart(
-            document.getElementById('topBrandsChart').getContext('2d'),
-            {
-                type: 'doughnut',
-                data: {
-                    labels: chartData.topBrandLabels || [],
-                    datasets: [{
-                        data: chartData.topBrandData || [],
-                        backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF']
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: {
-                                boxWidth: 12,
-                                font: { size: 11 }
+                topBrandsChart = new Chart(
+                    document.getElementById('topBrandsChart').getContext('2d'),
+                    {
+                        type: 'doughnut',
+                        data: {
+                            labels: chartData.topBrandLabels || [],
+                            datasets: [{
+                                data: chartData.topBrandData || [],
+                                backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF']
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    position: 'bottom',
+                                    labels: {
+                                        boxWidth: 12,
+                                        font: { size: 11 }
+                                    }
+                                }
                             }
                         }
                     }
-                }
+                );
+
+                console.log('Chart Data:', chartData);
+            } catch (error) {
+                console.error('Error initializing charts:', error);
             }
-        );
-
-    } catch (error) {
-        console.error('Error initializing charts:', error);
-        console.error('Error details:', error.message);
-    }
-});
-
-    // Download Report
-    document.getElementById('downloadReport').addEventListener('click', function() {
-        const myModal = new bootstrap.Modal(document.getElementById('generateReportModal'));
-        myModal.show();
-    });
-
-    document.getElementById('reportType').addEventListener('change', function() {
-        const customDateFields = document.getElementById('customDateFields');
-        customDateFields.style.display = this.value === 'custom' ? 'block' : 'none';
-    });
-
-    document.getElementById('generateReportBtn').addEventListener('click', function() {
-        const reportType = document.getElementById('reportType').value;
-        const reportFormat = document.getElementById('reportFormat').value;
-        let downloadUrl = `/admin/download-report?reportType=${reportType}&reportFormat=${reportFormat}`;
-        
-        if (reportType === 'custom') {
-            const startDate = document.getElementById('startDate').value;
-            const endDate = document.getElementById('endDate').value;
-            if (!startDate || !endDate) {
-                alert('Please select both start and end dates');
-                return;
-            }
-            downloadUrl += `&startDate=${startDate}&endDate=${endDate}`;
         }
-        
-        const link = document.createElement('a');
-        link.href = downloadUrl;
-        link.target = '_blank';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        
-        bootstrap.Modal.getInstance(document.getElementById('generateReportModal')).hide();
-    });
 
-    // Time range filter
-    document.getElementById('timeRangeDropdown').addEventListener('click', function(e) {
-        if (e.target.tagName === 'A') {
-            e.preventDefault();
-            const range = e.target.getAttribute('data-range');
+        // Update sales chart based on time range
+        function updateSalesChart(range) {
+            fetch(`/admin/dashboard/chart-data?range=${range}`)
+                .then(response => response.json())
+                .then(data => {
+                    salesChart.data.labels = data.chartLabels || [];
+                    salesChart.data.datasets[0].data = data.revenueData || [];
+                    salesChart.data.datasets[1].data = data.ordersData || [];
+                    salesChart.update();
+                })
+                .catch(error => console.error('Error updating chart:', error));
+        }
+
+        // Handle select change
+        timeRangeSelect.addEventListener('change', function() {
+            const range = this.value;
+            timeRangeSelect.options[timeRangeSelect.selectedIndex].text = range.charAt(0).toUpperCase() + range.slice(1);
             updateSalesChart(range);
-        }
-    });
+        });
 
-    // Update sales chart based on time range
-    function updateSalesChart(range) {
-        fetch(`/admin/dashboard/chart-data?range=${range}`)
-            .then(response => response.json())
-            .then(data => {
-                salesChart.data.labels = data.chartLabels || [];
-                salesChart.data.datasets[0].data = data.revenueData || [];
-                salesChart.data.datasets[1].data = data.ordersData || [];
-                salesChart.update();
-            })
-            .catch(error => console.error('Error updating chart:', error));
-    }
+        // Initialize charts and load default data
+        initializeCharts();
+        updateSalesChart('yearly');
+
+        // Download Report
+        document.getElementById('downloadReport').addEventListener('click', function() {
+            const myModal = new bootstrap.Modal(document.getElementById('generateReportModal'));
+            myModal.show();
+        });
+
+        document.getElementById('reportType').addEventListener('change', function() {
+            const customDateFields = document.getElementById('customDateFields');
+            customDateFields.style.display = this.value === 'custom' ? 'block' : 'none';
+        });
+
+        document.getElementById('generateReportBtn').addEventListener('click', function() {
+            const reportType = document.getElementById('reportType').value;
+            const reportFormat = document.getElementById('reportFormat').value;
+            let downloadUrl = `/admin/download-report?reportType=${reportType}&reportFormat=${reportFormat}`;
+            
+            if (reportType === 'custom') {
+                const startDate = document.getElementById('startDate').value;
+                const endDate = document.getElementById('endDate').value;
+                if (!startDate || !endDate) {
+                    alert('Please select both start and end dates');
+                    return;
+                }
+                downloadUrl += `&startDate=${startDate}&endDate=${endDate}`;
+            }
+            
+            const link = document.createElement('a');
+            link.href = downloadUrl;
+            link.target = '_blank';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            bootstrap.Modal.getInstance(document.getElementById('generateReportModal')).hide();
+        });
+    });
 </script>
 
 <%- include("../../views/admin/partials/footer") %>
