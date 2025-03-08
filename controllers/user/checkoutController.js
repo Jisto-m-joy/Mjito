@@ -338,6 +338,15 @@ const placeOrder = async (req, res) => {
         }
       }
       else if (paymentMethod === 'cod') {
+        
+        // Check COD limit
+        const COD_LIMIT = 10000;
+        if (finalAmount > COD_LIMIT) {
+          return res.status(400).json({ 
+            error: `Cash on Delivery is not available for orders above ₹${COD_LIMIT}. Please choose another payment method.` 
+          });
+        }
+
         // Enhanced stock check
         for (const item of cart.items) {
           const product = await Product.findById(item.productId._id);

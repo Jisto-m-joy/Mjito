@@ -1,5 +1,6 @@
 <%- include("../../views/user/partials/header") %>
 <head>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/izitoast/1.4.0/css/iziToast.min.css" integrity="sha512-O03ntXoVqaGUTAeAmvQ2YSzkCvQ78qXsDOKWlILrOV8WY/hBprDJcz/VVgY0uAWHvAxdFpTMk0aZENCNzarMkUA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <style>
     .modal {
       display: none;
@@ -340,6 +341,7 @@
 </main>
 <%- include("../../views/user/partials/footer") %>
 
+<script src="https://cdn.jsdelivr.net/npm/izitoast/dist/js/iziToast.min.js"></script>
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
   document.addEventListener("DOMContentLoaded", function () {
@@ -409,39 +411,50 @@
     const formData = { paymentMethod, addressId, couponCode: couponCode || '' };
     console.log("Submitting order:", formData);
 
-      fetch('/place-order', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
-      })
-      .then(response => {
-        if (!response.ok) {
-          return response.json().then(errorData => {
-            throw new Error(`HTTP error! status: ${response.status}, message: ${errorData.error}`);
-          });
-        }
-        return response.json();
-      })
-      .then(data => {
-        console.log('Response from /place-order:', data);
-        if (data.success) {
-          if (paymentMethod === 'razorpay') {
-            openRazorpayModal(data, addressId, couponCode);
-          } else {
-            window.location.href = '/order-placed';
-          }
+    fetch('/place-order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(formData)
+    })
+    .then(response => {
+      if (!response.ok) {
+        return response.json().then(errorData => {
+          throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+        });
+      }
+      return response.json();
+    })
+    .then(data => {
+      console.log('Response from /place-order:', data);
+      if (data.success) {
+        if (paymentMethod === 'razorpay') {
+          openRazorpayModal(data, addressId, couponCode);
         } else {
-          alert(data.error || 'Failed to place order');
+          window.location.href = '/order-placed';
         }
-      })
-      .catch(error => {
-        console.error('Fetch error:', error);
-        const errorMessage = error.message.includes('Insufficient stock') 
-          ? error.message 
+      } else {
+        // This case should not happen with success: false, but kept for safety
+        iziToast.error({
+          title: 'Error',
+          message: data.error || 'Failed to place order',
+          position: 'topRight'
+        });
+      }
+    })
+    .catch(error => {
+      console.error('Fetch error:', error);
+      const errorMessage = error.message.includes('Insufficient stock') 
+        ? error.message 
+        : error.message.includes('Cash on Delivery') 
+          ? error.message // Use the COD-specific error message from backend
           : `Error placing order: ${error.message}`;
-        alert(errorMessage);
+      iziToast.error({
+        title: 'Error',
+        message: errorMessage,
+        position: 'topRight'
       });
-    }
+    });
+  }
 
     function openRazorpayModal(data, addressId, couponCode) {
       const options = {

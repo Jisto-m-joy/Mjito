@@ -3,6 +3,7 @@ const Category = require("../../models/categorySchema");
 const Product = require("../../models/productSchema");
 const Brand = require("../../models/brandSchema");
 const Banner = require("../../models/bannerSchema");
+const Wishlist = require("../../models/wishlistSchema");
 const walletController = require('../../controllers/user/walletController');
 const Cart = require("../../models/cartSchema");
 const env = require("dotenv").config();
@@ -436,7 +437,7 @@ const loadShopingPage = async (req, res, next) => {
       user: userData,
       categories,
       brands,
-      products, // Pass raw products directly
+      products,
       totalPages,
       currentPage: page,
       sizes,

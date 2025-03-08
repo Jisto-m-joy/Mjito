@@ -12,12 +12,14 @@ const walletController = require('../controllers/user/walletController');
 const passport = require("passport");
 const validateSession = require("../middlewares/session-validation");
 const { userAuth, adminAuth, checkBlockStatus } = require("../middlewares/auth");
+const  fetchCounts  = require("../middlewares/countMiddleware");
 const upload = require("../helpers/multer");  
 const app = express();
 const { errorHandler } = require('../middlewares/errorHandler');
 
 // Error handling middleware
 router.use(errorHandler);
+router.use(fetchCounts);
 
 // Debugging Middleware
 // router.use((req, res, next) => {
