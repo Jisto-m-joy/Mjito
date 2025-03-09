@@ -80,11 +80,14 @@ const placeOrder = async (req, res) => {
       const userId = req.session.user._id;
       const { paymentMethod, addressId, couponCode } = req.body;
   
-      // Get the selected address
+      console.log("Received addressId:", addressId); // Debug log
+
       const userAddress = await Address.findOne({ userId });
       if (!userAddress || !userAddress.address.length) {
         return res.status(400).json({ error: 'No address found for user' });
       }
+  
+      console.log("Available addresses:", userAddress.address.map(a => a._id.toString())); // Debug log
   
       const selectedAddress = userAddress.address.find(addr => addr._id.toString() === addressId);
       if (!selectedAddress) {
@@ -338,8 +341,6 @@ const placeOrder = async (req, res) => {
         }
       }
       else if (paymentMethod === 'cod') {
-        
-        // Check COD limit
         const COD_LIMIT = 10000;
         if (finalAmount > COD_LIMIT) {
           return res.status(400).json({ 
