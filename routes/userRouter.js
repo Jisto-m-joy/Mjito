@@ -94,6 +94,7 @@ router.post('/post-reset-password', passwordController.postNewPassword);
 // Cart Management 
 router.get('/cart', userAuth, cartController.loadCartPage);
 router.post('/add-to-cart', userAuth, cartController.addToCart);
+router.post('/buy-now', userAuth, cartController.buyNow);
 router.put('/update-cart-quantity', userAuth, cartController.updateCartQuantity);
 router.delete('/remove-from-cart/:productId', userAuth, cartController.removeFromCart);
 

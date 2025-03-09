@@ -136,13 +136,14 @@
           </div>
           <div class="details__action">
             <div class="quantity-calculator">
-              <button class="quantity-btn minus-btn">-</button>
-              <input type="number" min="1" value="1" class="quantity-input" readonly>
-              <button class="quantity-btn plus-btn">+</button>
+                <button class="quantity-btn minus-btn">-</button>
+                <input type="number" min="1" value="1" class="quantity-input" readonly>
+                <button class="quantity-btn plus-btn">+</button>
             </div>
             <a href="#" class="btn btn--sm" id="addToCartBtn">Add To Cart</a>
-            <a href="#" class="details__action-btn">
-                <i class="fi fi-rs-heart"></i>
+            <a href="#" class="btn btn--sm" id="buyNowBtn">Buy Now</a>
+            <a href="#" class="details__action-btn wishlist-btn" data-product-id="<%= product._id %>">
+                <i class="fi fi-rs-heart wishlist-icon"></i>
             </a>
         </div>
         <ul class="details__meta">
@@ -685,42 +686,58 @@ document.addEventListener('DOMContentLoaded', function() {
 
 //Wishlist functionality
 
+// Wishlist functionality
 document.addEventListener('DOMContentLoaded', function() {
-    // Helper function to handle wishlist actions
-    async function handleWishlist(event, heartIcon) {
-        event.preventDefault();
+    const wishlistButtons = document.querySelectorAll('.wishlist-btn');
+    
+    wishlistButtons.forEach(async (btn) => {
+        const heartIcon = btn.querySelector('.wishlist-icon');
+        const productId = btn.getAttribute('data-product-id');
         
+        // Check initial wishlist status
         try {
-            const productId = heartIcon.closest('a').dataset.productId;
-            const isInWishlist = heartIcon.style.color === 'rgb(0, 178, 7)'; // Check if product is already in wishlist
-            
-            const response = await fetch(`/wishlist/${isInWishlist ? 'remove' : 'add'}/${productId}`, {
-                method: isInWishlist ? 'DELETE' : 'POST',
-            });
-            
+            const response = await fetch(`/wishlist/check-status?productId=${productId}`);
             const data = await response.json();
-            
-            if (data.success) {
-                // Toggle heart icon color
-                heartIcon.style.color = isInWishlist ? '' : '#00B207';
-                
-                // Show success message
-                iziToast.success({
-                    title: 'Success',
-                    message: isInWishlist ? 'Product removed from wishlist' : 'Product added to wishlist',
-                    position: 'topRight'
-                });
-            } else {
-                throw new Error(data.error || 'Operation failed');
+            if (data.success && data.inWishlist) {
+                heartIcon.style.color = '#00B207'; // Green when in wishlist
             }
         } catch (error) {
-            iziToast.error({
-                title: 'Error',
-                message: error.message || 'Failed to update wishlist',
-                position: 'topRight'
-            });
+            console.error('Failed to check wishlist status:', error);
         }
-    }
+        
+        btn.addEventListener('click', async (event) => {
+            event.preventDefault();
+            
+            try {
+                const isInWishlist = heartIcon.style.color === 'rgb(0, 178, 7)';
+                const response = await fetch(`/wishlist/${isInWishlist ? 'remove' : 'add'}/${productId}`, {
+                    method: isInWishlist ? 'DELETE' : 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    heartIcon.style.color = isInWishlist ? '' : '#00B207';
+                    iziToast.success({
+                        title: 'Success',
+                        message: isInWishlist ? 'Product removed from wishlist' : 'Product added to wishlist',
+                        position: 'topRight'
+                    });
+                } else {
+                    throw new Error(data.error || 'Operation failed');
+                }
+            } catch (error) {
+                iziToast.error({
+                    title: 'Error',
+                    message: error.message || 'Failed to update wishlist',
+                    position: 'topRight'
+                });
+            }
+        });
+    });
 
     // Add click event listeners to all wishlist icons
     document.querySelectorAll('.action__btn[aria-label="Add to Wishlist"]').forEach(async btn => {
@@ -740,6 +757,82 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         btn.addEventListener('click', (e) => handleWishlist(e, heartIcon));
+    });
+});
+
+//Buy now functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const buyNowBtn = document.querySelector('#buyNowBtn');
+    const quantityInput = document.querySelector('.quantity-input');
+    const productId = '<%= product._id %>';
+    
+    buyNowBtn.addEventListener('click', function(event) {
+        event.preventDefault();
+        
+        // Get the active size element
+        const activeSizeElement = document.querySelector('.size__link.size-active');
+        if (!activeSizeElement) {
+            iziToast.error({
+                title: 'Error',
+                message: 'Please select a size',
+                position: 'topRight'
+            });
+            return;
+        }
+
+        const selectedCombo = {
+            size: activeSizeElement.textContent.trim(),
+            salesPrice: activeSizeElement.getAttribute('data-salesPrice'),
+            regularPrice: activeSizeElement.getAttribute('data-regularPrice')
+        };
+        
+        const quantity = parseInt(quantityInput.value);
+        if (quantity > 10) {
+            iziToast.error({
+                title: 'Error',
+                message: 'Maximum quantity limit is 10',
+                position: 'topRight'
+            });
+            return;
+        }
+        
+        fetch('/buy-now', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ 
+                productId, 
+                quantity, 
+                selectedCombo 
+            })
+        })
+        .then(response => {
+            if (response.redirected) {
+                window.location.href = response.url;  // Handle redirect to login
+                return;
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data && data.success) {
+                window.location.href = '/checkout';  // Redirect to checkout page
+            } else if (data) {
+                iziToast.error({
+                    title: 'Error',
+                    message: data.message || 'Failed to process buy now',
+                    position: 'topRight'
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            iziToast.error({
+                title: 'Error',
+                message: 'Please login to proceed with buy now',
+                position: 'topRight'
+            });
+        });
     });
 });
   </script>

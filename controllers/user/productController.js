@@ -78,6 +78,7 @@ const productDetails = async (req, res, next) => {
   }
 };
 
+
 const submitReview = async (req, res, next) => {
   try {
     const { productId, rating, description } = req.body;

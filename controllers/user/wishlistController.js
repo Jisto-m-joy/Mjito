@@ -54,7 +54,10 @@ const addToWishlist = async (req, res) => {
         }
 
         await wishlist.save();
-        res.json({ success: true });
+        res.json({ 
+            success: true,
+            message: 'Product added to wishlist successfully'
+        });
     } catch (error) {
         console.error('Wishlist error:', error);
         res.status(500).json({ 
@@ -83,7 +86,10 @@ const removeFromWishlist = async (req, res) => {
         );
 
         await wishlist.save();
-        res.json({ success: true });
+        res.json({ 
+            success: true,
+            message: 'Product removed from wishlist successfully'
+        });
     } catch (error) {
         console.error('Wishlist error:', error);
         res.status(500).json({ 

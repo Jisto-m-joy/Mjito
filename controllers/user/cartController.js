@@ -198,6 +198,125 @@ const addToCart = async (req, res, next) => {
   }
 };
 
+const buyNow = async (req, res, next) => {
+  try {
+    if (!req.session.user) {
+      return res.status(401).json({ 
+        success: false, 
+        message: 'Please login to proceed with buy now' 
+      });
+    }
+    
+    const { productId, quantity = 1, selectedCombo } = req.body;
+    const userId = req.session.user._id;
+
+    const product = await Product.findById(productId);
+    if (!product) {
+      return res.status(404).json({ 
+        success: false, 
+        message: "Product not found" 
+      });
+    }
+
+    if (!selectedCombo?.size) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Product size is required" 
+      });
+    }
+
+    const matchingCombo = product.combos.find(
+      combo => combo.size.toString().trim() === selectedCombo.size.toString().trim()
+    );
+    
+    if (!matchingCombo) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Invalid product size selected" 
+      });
+    }
+
+    if (matchingCombo.quantity < quantity) {
+      return res.status(400).json({ 
+        success: false, 
+        message: `Only ${matchingCombo.quantity} units available in stock`,
+        limitExceeded: false
+      });
+    }
+    
+    let cart = await Cart.findOne({ userId });
+    if (!cart) {
+      cart = new Cart({ userId, items: [] });
+    }
+    
+    const existingItemIndex = cart.items.findIndex(
+      item => item.productId.toString() === productId.toString()
+    );
+
+    const newQuantity = existingItemIndex > -1 
+      ? cart.items[existingItemIndex].quantity + quantity
+      : quantity;
+
+    if (newQuantity > 10) {
+      return res.status(400).json({
+        success: false,
+        message: 'Maximum quantity limit is 10 per product',
+        limitExceeded: true
+      });
+    }
+
+    const totalItems = cart.items.reduce((total, item) => {
+      if (existingItemIndex > -1 && item.productId.toString() === productId.toString()) {
+        return total;
+      }
+      return total + item.quantity;
+    }, newQuantity);
+
+    if (totalItems > 50) {
+      return res.status(400).json({
+        success: false,
+        message: 'Cart limit exceeded. Maximum 50 items allowed across all products.',
+        limitExceeded: true
+      });
+    }
+
+    if (existingItemIndex === -1 && cart.items.length >= 50) {
+      return res.status(400).json({
+        success: false,
+        message: 'Cart limit exceeded. Maximum 50 unique products allowed.',
+        limitExceeded: true
+      });
+    }
+
+    const price = matchingCombo.salesPrice;
+    const totalPrice = price * newQuantity;
+
+    if (existingItemIndex > -1) {
+      cart.items[existingItemIndex].quantity = newQuantity;
+      cart.items[existingItemIndex].totalPrice = totalPrice;
+    } else {
+      cart.items.push({
+        productId,
+        quantity: newQuantity,
+        price,
+        totalPrice,
+      });
+    }
+
+    await cart.save();
+    res.json({ 
+      success: true, 
+      message: "Product added to cart, proceeding to checkout" 
+    });
+  } catch (error) {
+    console.error("Buy now error:", error);
+    res.status(500).json({ 
+      success: false, 
+      message: "Failed to process buy now" 
+    });
+  }
+};
+
 const updateCartQuantity = async (req, res, next) => {
   try {
     const { productId, quantity } = req.body;
@@ -304,4 +423,5 @@ module.exports = {
   addToCart,
   updateCartQuantity,
   removeFromCart,
+  buyNow,
 };
