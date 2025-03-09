@@ -22,6 +22,10 @@ const couponSchema = new Schema({
     type: Date,
     required: true,
   },
+  description: {
+    type: String,
+    default: 'for mass sale',
+  },
   offerPrice: {
     type: Number,
     required: true,

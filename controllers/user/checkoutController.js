@@ -712,6 +712,26 @@ const applyCoupon = async (req, res) => {
   }
 };
 
+const removeCoupon = async (req, res) => {
+  try {
+    const userId = req.session.user._id;
+
+    // Clear the applied coupon from session
+    req.session.appliedCoupon = null;
+
+    // Get cart total
+    const cart = await Cart.findOne({ userId }).populate('items.productId');
+    const cartTotal = cart.items.reduce((sum, item) => sum + item.totalPrice, 0);
+
+    res.json({
+      success: true,
+      originalAmount: cartTotal
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to remove coupon' });
+  }
+};
+
 module.exports = {
     loadCheckoutPage,
     placeOrder,
@@ -720,4 +740,5 @@ module.exports = {
     initiateRazorpayPayment,
     verifyRazorpayPayment,
     getWalletBalance,
+    removeCoupon,
 };

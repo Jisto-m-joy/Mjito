@@ -138,31 +138,44 @@
             </div>
             <div id="couponMessage" class="coupon__message-container"></div>
 
-            <!-- Show first coupon and "Show More" button -->
+            <!-- Applied Coupon Display -->
+            <div id="appliedCouponSection" style="display: none;">
+              <h4>Applied Coupon:</h4>
+              <div class="applied__coupon">
+                <span id="appliedCouponCode"></span>
+                <button type="button" id="removeCouponBtn" class="btn remove-coupon__btn">
+                  Remove
+                </button>
+              </div>
+            </div>
+
+            <!-- Available Coupons -->
             <div class="available__coupons">
               <h4>Available Coupons:</h4>
-              <% if (coupons.length > 0) { %>
-              <div
-                class="coupon__card"
-                onclick="applyCouponCode('<%= coupons[0].code %>')"
-              >
-                <div class="coupon__code"><%= coupons[0].code %></div>
-                <div class="coupon__details">
-                  <p>
-                    Get ₹<%= coupons[0].offerPrice %> off on minimum purchase of
-                    ₹<%= coupons[0].minimumPrice %>
-                  </p>
-                  <small
-                    >Valid till <%= coupons[0].expireOn.toLocaleDateString()
-                    %></small
-                  >
-                </div>
+              <div id="couponsList">
+                <% if (coupons.length > 0) { %>
+                  <% coupons.slice(0, 2).forEach(coupon => { %>
+                    <div class="coupon__card">
+                      <div class="coupon__code">
+                        <span><%= coupon.code %></span>
+                        <button class="btn copy-coupon__btn" onclick="copyCouponCode('<%= coupon.code %>')">Copy</button>
+                        <button class="btn apply-coupon__btn" onclick="applyCouponCode('<%= coupon.code %>')">Apply</button>
+                      </div>
+                      <div class="coupon__details">
+                        <p><%= coupon.description || 'for mass sale' %></p>
+                        <small>Expires on: <%= coupon.expireOn.toLocaleDateString() %></small>
+                      </div>
+                    </div>
+                  <% }); %>
+                <% } else { %>
+                  <p>No coupons available</p>
+                <% } %>
               </div>
-              <% if (coupons.length > 1) { %>
-              <button id="showMoreCoupons" class="btn show-more__btn">
-                Show More Coupons
-              </button>
-              <% } %> <% } %>
+              <% if (coupons.length > 2) { %>
+                <button id="showMoreCoupons" class="btn show-more__btn">
+                  Show More Coupons
+                </button>
+              <% } %>
             </div>
           </div>
         </div>
@@ -284,29 +297,26 @@
     </div>
   </section>
 
-  <!-- Coupon Modal -->
-  <div id="couponModal" class="modal">
-    <div class="modal-content">
-      <span class="close">&times;</span>
-      <h2>Available Coupons</h2>
-      <div class="modal-coupons">
-        <% coupons.forEach(coupon => { %>
-        <div
-          class="coupon__card"
-          onclick="applyCouponCode('<%= coupon.code %>')"
-        >
-          <div class="coupon__code"><%= coupon.code %></div>
-          <div class="coupon__details">
-            <p>
-              Get ₹<%= coupon.offerPrice %> off on minimum purchase of ₹<%=
-              coupon.minimumPrice %>
-            </p>
-            <small
-              >Valid till <%= coupon.expireOn.toLocaleDateString() %></small
-            >
-          </div>
+<!-- Coupon Modal -->
+<div id="couponModal" class="modal">
+      <div class="modal-content">
+        <span class="close">×</span>
+        <h2>Available Coupons</h2>
+        <div class="modal-coupons" id="modalCouponsList">
+          <% coupons.forEach(coupon => { %>
+            <div class="coupon__card">
+              <div class="coupon__code">
+                <span><%= coupon.code %></span>
+                <button class="btn copy-coupon__btn" onclick="copyCouponCode('<%= coupon.code %>')">Copy</button>
+                <button class="btn apply-coupon__btn" onclick="applyCouponCode('<%= coupon.code %>')">Apply</button>
+              </div>
+              <div class="coupon__details">
+                <p><%= coupon.description || 'for mass sale' %></p>
+                <small>Expires on: <%= coupon.expireOn.toLocaleDateString() %></small>
+              </div>
+            </div>
+          <% }); %>
         </div>
-        <% }); %>
       </div>
     </div>
   </div>
@@ -340,24 +350,7 @@
 <script src="https://unpkg.com/izitoast/dist/js/iziToast.min.js"></script>
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
-  // Ensure iziToast loads before running any code
   document.addEventListener("DOMContentLoaded", function () {
-    console.log("DOM fully loaded, script running");
-
-    // Test iziToast immediately
-    if (typeof iziToast !== 'undefined') {
-      iziToast.show({
-        title: 'Test',
-        message: 'iziToast is working!',
-        position: 'topRight',
-        timeout: 5000,
-        color: 'green' // Make it visually distinct
-      });
-      console.log("iziToast test executed");
-    } else {
-      console.error("iziToast is not defined - library not loaded");
-      alert("iziToast library failed to load. Check your internet or CDN.");
-    }
 
     const form = document.querySelector('form[action="/place-order"]');
     if (!form) {
@@ -372,7 +365,6 @@
       return;
     }
 
-    // Create wallet error element
     let walletError = document.createElement('div');
     walletError.className = 'error-message wallet-error';
     walletError.style.color = 'red';
@@ -380,7 +372,6 @@
     const walletPaymentOption = document.querySelector('label[for="l1"]').parentNode;
     walletPaymentOption.appendChild(walletError);
 
-    // Set initial selected address and log it
     const firstAddressRadio = document.querySelector('input[name="address"]');
     const selectedAddressInput = document.getElementById("selectedAddressId");
     if (firstAddressRadio) {
@@ -390,7 +381,6 @@
       console.warn("No address radio buttons found!");
     }
 
-    // Update selected address when radio changes
     document.querySelectorAll('input[name="address"]').forEach((radio) => {
       radio.addEventListener("change", function () {
         selectedAddressInput.value = this.value;
@@ -398,7 +388,6 @@
       });
     });
 
-    // Handle form submission
     form.addEventListener('submit', function (e) {
       e.preventDefault();
       console.log("Form submission intercepted");
@@ -491,7 +480,7 @@
         key: data.keyId,
         amount: data.amount,
         currency: "INR",
-        name: "Your Store Name",
+        name: "GoalZone",
         description: "Order Payment",
         order_id: data.order.id,
         handler: function (response) {
@@ -590,6 +579,7 @@
 
     let appliedCoupon = null;
 
+    // Apply Coupon
     document.getElementById("applyCouponBtn").addEventListener("click", async function () {
       const couponCode = document.getElementById("couponInput").value;
       const messageContainer = document.getElementById("couponMessage");
@@ -620,13 +610,51 @@
           form.appendChild(hiddenInput);
 
           appliedCoupon = couponCode;
+
+          // Show applied coupon
+          document.getElementById("appliedCouponSection").style.display = "block";
+          document.getElementById("appliedCouponCode").textContent = couponCode;
         } else {
           messageContainer.innerHTML = `<div class="error-message">${data.error}</div>`;
           appliedCoupon = null;
+          document.getElementById("appliedCouponSection").style.display = "none";
         }
       } catch (error) {
         messageContainer.innerHTML = '<div class="error-message">Failed to apply coupon</div>';
         appliedCoupon = null;
+        document.getElementById("appliedCouponSection").style.display = "none";
+      }
+    });
+
+    // Remove Coupon
+    document.getElementById("removeCouponBtn").addEventListener("click", async function () {
+      try {
+        const response = await fetch("/remove-coupon", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ couponCode: appliedCoupon })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          appliedCoupon = null;
+          document.getElementById("appliedCouponSection").style.display = "none";
+          document.getElementById("couponInput").value = "";
+          document.getElementById("couponMessage").innerHTML = `<div class="success-message">Coupon removed!</div>`;
+
+          const discountRow = document.getElementById("coupon-discount-row");
+          discountRow.style.display = "none";
+          document.querySelector(".coupon-discount").textContent = `-₹0`;
+          document.querySelector(".order__grand-total").textContent = `₹${data.originalAmount}`;
+
+          const existingInput = form.querySelector('input[name="couponCode"]');
+          if (existingInput) existingInput.remove();
+        } else {
+          document.getElementById("couponMessage").innerHTML = `<div class="error-message">${data.error}</div>`;
+        }
+      } catch (error) {
+        document.getElementById("couponMessage").innerHTML = '<div class="error-message">Failed to remove coupon</div>';
       }
     });
 
@@ -652,13 +680,28 @@
       }
     });
 
-    function applyCouponCode(code) {
+    window.applyCouponCode = function(code) {
       document.getElementById("couponInput").value = code;
-      appliedCoupon = code;
       document.getElementById("applyCouponBtn").click();
       if (document.getElementById("couponModal").style.display === "block") {
         document.getElementById("couponModal").style.display = "none";
       }
-    }
+    };
+
+    window.copyCouponCode = function(code) {
+      navigator.clipboard.writeText(code).then(() => {
+        iziToast.success({
+          title: 'Copied!',
+          message: `Coupon code ${code} copied to clipboard`,
+          position: 'topRight'
+        });
+      }).catch(err => {
+        iziToast.error({
+          title: 'Error',
+          message: 'Failed to copy coupon code',
+          position: 'topRight'
+        });
+      });
+    };
   });
 </script>
