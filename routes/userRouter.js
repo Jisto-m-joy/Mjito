@@ -81,6 +81,8 @@ router.get('/my-orders', userAuth, orderController.loadMyOrders);
 router.post('/cancel-order/:orderId', userAuth, orderController.cancelOrder);
 router.post('/return-order/:orderId', userAuth, orderController.returnOrder);
 router.post('/approve-return/:orderId', adminAuth, orderController.approveReturn);
+router.get('/order-details/:orderId', userAuth, orderController.getOrderDetails);
+router.get('/download-invoice/:orderId', userAuth, orderController.downloadInvoice);
 
 // Forgot Password Management
 router.post('/reset-password',userAuth, profileController.resetPassword);

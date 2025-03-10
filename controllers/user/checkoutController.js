@@ -76,62 +76,58 @@ const loadOrderPlacedPage = async (req, res) => {
 };
 
 const placeOrder = async (req, res) => {
-    try {
-      const userId = req.session.user._id;
-      const { paymentMethod, addressId, couponCode } = req.body;
-  
-      console.log("Received addressId:", addressId); // Debug log
+  try {
+    const userId = req.session.user._id;
+    const { paymentMethod, addressId, couponCode } = req.body;
 
-      const userAddress = await Address.findOne({ userId });
-      if (!userAddress || !userAddress.address.length) {
-        return res.status(400).json({ error: 'No address found for user' });
-      }
-  
-      console.log("Available addresses:", userAddress.address.map(a => a._id.toString())); // Debug log
-  
-      const selectedAddress = userAddress.address.find(addr => addr._id.toString() === addressId);
-      if (!selectedAddress) {
-        return res.status(400).json({ error: 'Selected address not found' });
-      }
-  
-      // Get cart items with complete product details
-      const cart = await Cart.findOne({ userId }).populate('items.productId');
-      if (!cart || cart.items.length === 0) {
-        return res.status(400).json({ error: 'Cart is empty' });
-      }
-  
-      // Calculate totals
-      let totalPrice = cart.items.reduce((sum, item) => sum + item.totalPrice, 0);
-      let shippingCharge = 0;
-      let discount = 0;
-  
-      // Apply coupon if provided
-      if (couponCode) {
-        const coupon = await Coupon.findOne({
-          code: couponCode.toUpperCase(),
-          isListed: true,
-          isDeleted: false,
-          startOn: { $lte: new Date() },
-          expireOn: { $gte: new Date() }
-        });
-  
-        if (coupon && totalPrice >= coupon.minimumPrice) {
-          discount = Math.min(coupon.offerPrice, totalPrice);
-          const userUsage = coupon.userUses.find(u => u.userId.toString() === userId.toString());
-          if (userUsage) {
-            userUsage.count += 1;
-          } else {
-            coupon.userUses.push({ userId, count: 1 });
-          }
-          coupon.usesCount += 1;
-          if (coupon.usesCount >= coupon.maxUses) {
-            coupon.isDeleted = true;
-          }
-          await coupon.save();
+    const userAddress = await Address.findOne({ userId });
+    if (!userAddress || !userAddress.address.length) {
+      return res.status(400).json({ error: 'No address found for user' });
+    }
+
+    const selectedAddress = userAddress.address.find(addr => addr._id.toString() === addressId);
+    if (!selectedAddress) {
+      return res.status(400).json({ error: 'Selected address not found' });
+    }
+
+    // Get cart items with complete product details
+    const cart = await Cart.findOne({ userId }).populate('items.productId');
+    if (!cart || cart.items.length === 0) {
+      return res.status(400).json({ error: 'Cart is empty' });
+    }
+
+    // Calculate totals
+    let totalPrice = cart.items.reduce((sum, item) => sum + item.totalPrice, 0);
+    let shippingCharge = 0;
+    let discount = 0;
+
+    // Apply coupon if provided
+    if (couponCode) {
+      const coupon = await Coupon.findOne({
+        code: couponCode.toUpperCase(),
+        isListed: true,
+        isDeleted: false,
+        startOn: { $lte: new Date() },
+        expireOn: { $gte: new Date() }
+      });
+
+      if (coupon && totalPrice >= coupon.minimumPrice) {
+        discount = Math.min(coupon.offerPrice, totalPrice);
+        const userUsage = coupon.userUses.find(u => u.userId.toString() === userId.toString());
+        if (userUsage) {
+          userUsage.count += 1;
+        } else {
+          coupon.userUses.push({ userId, count: 1 });
         }
+        coupon.usesCount += 1;
+        if (coupon.usesCount >= coupon.maxUses) {
+          coupon.isDeleted = true;
+        }
+        await coupon.save();
       }
-  
-      const finalAmount = totalPrice + shippingCharge - discount;
+    }
+
+    const finalAmount = totalPrice + shippingCharge - discount;
   
       // Create order object (to be used by all payment methods)
       const order = new Order({
@@ -143,8 +139,8 @@ const placeOrder = async (req, res) => {
         })),
         totalPrice,
         shippingCharge,
-        discount,
-        finalAmount,
+        discount, // Ensure discount is saved
+        finalAmount, // Ensure finalAmount reflects the discount
         shippingAddress: {
           fullName: selectedAddress.fullName,
           address: selectedAddress.address,
