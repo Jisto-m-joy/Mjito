@@ -349,6 +349,8 @@
 <%- include("../../views/user/partials/footer") %>
 <script src="https://unpkg.com/izitoast/dist/js/iziToast.min.js"></script>
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> 
+
 <script>
   document.addEventListener("DOMContentLoaded", function () {
 
@@ -476,74 +478,92 @@
     }
 
     function openRazorpayModal(data, addressId, couponCode) {
-      const options = {
-        key: data.keyId,
-        amount: data.amount,
-        currency: "INR",
-        name: "GoalZone",
-        description: "Order Payment",
-        order_id: data.order.id,
-        handler: function (response) {
-          console.log('Payment successful:', response);
-          verifyPayment(response, addressId, couponCode);
-        },
-        prefill: {
-          name: "",
-          email: "",
-          contact: ""
-        },
-        theme: {
-          color: "#3399cc"
-        }
-      };
+    const options = {
+      key: data.keyId,
+      amount: data.amount,
+      currency: "INR",
+      name: "GoalZone",
+      description: "Order Payment",
+      order_id: data.order.id,
+      handler: function (response) {
+        console.log('Payment successful:', response);
+        verifyPayment(response, addressId, couponCode, 'success');
+      },
+      prefill: {
+        name: "",
+        email: "",
+        contact: ""
+      },
+      theme: {
+        color: "#3399cc"
+      }
+    };
 
-      console.log('Opening Razorpay with options:', options);
-      const rzp = new Razorpay(options);
-      rzp.on('payment.failed', function (response) {
-        console.error('Payment failed:', response.error);
+    console.log('Opening Razorpay with options:', options);
+    const rzp = new Razorpay(options);
+    rzp.on('payment.failed', function (response) {
+      console.error('Payment failed:', response.error);
+      // Call verifyPayment with 'failure' status
+      verifyPayment({
+        razorpay_order_id: data.order.id,
+        razorpay_payment_id: response.error.metadata.payment_id,
+        razorpay_signature: null // No signature on failure
+      }, addressId, couponCode, 'failure');
+    });
+    rzp.open();
+  }
+
+  function verifyPayment(response, addressId, couponCode, paymentStatus) {
+    fetch('/verify-razorpay', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        razorpay_payment_id: response.razorpay_payment_id,
+        razorpay_order_id: response.razorpay_order_id,
+        razorpay_signature: response.razorpay_signature,
+        addressId,
+        couponCode,
+        paymentStatus // Include payment status
+      })
+    })
+    .then(resp => resp.json())
+    .then(result => {
+      console.log('Verification response:', result);
+      if (result.success) {
+        window.location.href = result.redirect;
+      } else if (result.paymentFailed) {
+        // Show SweetAlert on payment failure
+        Swal.fire({
+          icon: 'error',
+          title: 'Payment Failed',
+          text: 'Your payment has failed. Please try again or contact support.',
+          showCancelButton: true,
+          confirmButtonText: 'View Orders',
+          cancelButtonText: 'Back to Home'
+        }).then((result) => {
+          if (result.isConfirmed) {
+            window.location.href = '/my-orders'; // Redirect to My Orders
+          } else if (result.dismiss === Swal.DismissReason.cancel) {
+            window.location.href = '/'; // Redirect to Home
+          }
+        });
+      } else {
         iziToast.error({
           title: 'Error',
-          message: 'Payment failed: ' + response.error.description,
+          message: result.error || 'Payment verification failed',
           position: 'topRight'
         });
+      }
+    })
+    .catch(error => {
+      console.error('Verification error:', error);
+      iziToast.error({
+        title: 'Error',
+        message: 'Error verifying payment. Please contact support.',
+        position: 'topRight'
       });
-      rzp.open();
-    }
-
-    function verifyPayment(response, addressId, couponCode) {
-      fetch('/verify-razorpay', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          razorpay_payment_id: response.razorpay_payment_id,
-          razorpay_order_id: response.razorpay_order_id,
-          razorpay_signature: response.razorpay_signature,
-          addressId,
-          couponCode
-        })
-      })
-      .then(resp => resp.json())
-      .then(result => {
-        console.log('Verification response:', result);
-        if (result.success) {
-          window.location.href = result.redirect;
-        } else {
-          iziToast.error({
-            title: 'Error',
-            message: result.error || 'Payment verification failed',
-            position: 'topRight'
-          });
-        }
-      })
-      .catch(error => {
-        console.error('Verification error:', error);
-        iziToast.error({
-          title: 'Error',
-          message: 'Error verifying payment. Please contact support.',
-          position: 'topRight'
-        });
-      });
-    }
+    });
+  }
 
     async function checkWalletBalance() {
       try {
