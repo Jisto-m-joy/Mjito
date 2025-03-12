@@ -58,7 +58,7 @@ const loadCheckoutPage = async (req, res, next) => {
           discount: discount.toFixed(2),
           finalAmount: finalAmount.toFixed(2),
           coupons: activeCoupons,
-          appliedCoupon // Pass the applied coupon to the view
+          appliedCoupon 
       });
       
   } catch (error) {
@@ -263,9 +263,7 @@ const placeOrder = async (req, res) => {
               productName: item.productId.name
             });
           }
-      
-          console.log('Product combos:', product.combos);
-      
+            
           let targetColor = item.color;
           let targetSize = item.size;
       
