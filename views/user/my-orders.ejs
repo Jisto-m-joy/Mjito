@@ -35,8 +35,8 @@
 
     .order-details {
       display: flex;
+      flex-wrap: wrap; 
       gap: 2rem;
-      align-items: center;
     }
 
     .product-image {
@@ -50,10 +50,19 @@
       flex: 1;
     }
 
+    .product-row {
+      display: flex;
+      flex-wrap: wrap; 
+      gap: 2rem;
+      width: 100%; 
+    }
+
     .product-item {
+      flex: 0 0 calc(50% - 1rem);
       display: flex;
       align-items: center;
       margin-bottom: 20px;
+      box-sizing: border-box; 
     }
     .product-item .product-image {
       width: 100px;
@@ -243,6 +252,12 @@
       max-height: 90vh;
     }
   }
+
+  @media (max-width: 768px) {
+    .product-item {
+      flex: 0 0 100%; /* On smaller screens, 1 item per row */
+    }
+  }
   </style>
 </head>
 
@@ -284,35 +299,40 @@
         </div>
       
         <div class="order-details">
-          <% order.products.forEach(product => { %>
-            <div class="product-item">
-              <img src="<%= product.image %>" alt="<%= product.name %>" class="product-image">
-              <div class="product-info">
-                <h4><%= product.name %></h4>
-                <p>Quantity: <%= product.quantity %></p>
-                <div class="status-tracker">
-                  <div class="status-line"></div>
-                  <div class="status-step <%= order.status >= 1 ? 'active' : '' %>">
-                    <div class="status-dot <%= order.status >= 1 ? 'active' : '' %>"></div>
-                    <span>Order_Placed</span>
-                  </div>
-                  <div class="status-step <%= order.status >= 2 ? 'active' : '' %>">
-                    <div class="status-dot <%= order.status >= 2 ? 'active' : '' %>"></div>
-                    <span>Processing</span>
-                  </div>
-                  <div class="status-step <%= order.status >= 3 ? 'active' : '' %>">
-                    <div class="status-dot <%= order.status >= 3 ? 'active' : '' %>"></div>
-                    <span>Shipped</span>
-                  </div>
-                  <div class="status-step <%= order.status >= 4 ? 'active' : '' %>">
-                    <div class="status-dot <%= order.status >= 4 ? 'active' : '' %>"></div>
-                    <span>Delivered</span>
+          <% let productIndex = 0; %>
+          <% while (productIndex < order.products.length) { %>
+            <div class="product-row">
+              <% for (let i = 0; i < 2 && productIndex < order.products.length; i++, productIndex++) { %>
+                <div class="product-item">
+                  <img src="<%= order.products[productIndex].image %>" alt="<%= order.products[productIndex].name %>" class="product-image">
+                  <div class="product-info">
+                    <h4><%= order.products[productIndex].name %></h4>
+                    <p>Quantity: <%= order.products[productIndex].quantity %></p>
+                    <div class="status-tracker">
+                      <div class="status-line"></div>
+                      <div class="status-step <%= order.status >= 1 ? 'active' : '' %>">
+                        <div class="status-dot <%= order.status >= 1 ? 'active' : '' %>"></div>
+                        <span>Order_Placed</span>
+                      </div>
+                      <div class="status-step <%= order.status >= 2 ? 'active' : '' %>">
+                        <div class="status-dot <%= order.status >= 2 ? 'active' : '' %>"></div>
+                        <span>Processing</span>
+                      </div>
+                      <div class="status-step <%= order.status >= 3 ? 'active' : '' %>">
+                        <div class="status-dot <%= order.status >= 3 ? 'active' : '' %>"></div>
+                        <span>Shipped</span>
+                      </div>
+                      <div class="status-step <%= order.status >= 4 ? 'active' : '' %>">
+                        <div class="status-dot <%= order.status >= 4 ? 'active' : '' %>"></div>
+                        <span>Delivered</span>
+                      </div>
+                    </div>
+                    <button class="btn btn-primary buy-again-btn" data-product-id="<%= order.products[productIndex]._id %>">Buy Again</button>
                   </div>
                 </div>
-                <button class="btn btn-primary buy-again-btn" data-product-id="<%= product._id %>">Buy Again</button>
-              </div>
+              <% } %>
             </div>
-          <% }) %>
+          <% } %>
         </div>
       
         <div class="action-buttons">
