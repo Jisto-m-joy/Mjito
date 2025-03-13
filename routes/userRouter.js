@@ -85,6 +85,7 @@ router.get('/order-details/:orderId', userAuth, orderController.getOrderDetails)
 router.get('/download-invoice/:orderId', userAuth, orderController.downloadInvoice);
 router.post('/retry-razorpay-payment', userAuth, orderController.retryRazorpayPayment); 
 router.post('/verify-retry-razorpay', userAuth, orderController.verifyRetryRazorpayPayment);
+router.get('/order-status/:orderId', userAuth, orderController.getorderStatus);
 
 // Forgot Password Management
 router.post('/reset-password',userAuth, profileController.resetPassword);

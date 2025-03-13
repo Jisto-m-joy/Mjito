@@ -283,19 +283,21 @@
             <p>Total Quantity: <%= order.quantity %></p>
             <p class="total-amount">Total Amount: ₹<%= order.totalAmount %></p>
           </div>
-          <% if (order.status === 'Failed') { %>
-            <button class="btn btn-primary pay-now-btn" data-order-id="<%= order.orderId %>" data-amount="<%= order.totalAmount %>">Pay Now</button>
-          <% } else if (order.status === 4 && !order.return_reason) { %>
-            <button class="btn btn-warning return-order-btn" data-order-id="<%= order.orderId %>">Return Order</button>
-          <% } else if (order.status === 5) { %>
-            <button class="btn btn-secondary return-order-btn" data-order-id="<%= order.orderId %>" disabled>Return request in process</button>
-          <% } else if (order.status === 6) { %> 
-            <button class="btn btn-success return-order-btn" data-order-id="<%= order.orderId %>" disabled>Returned</button>
-          <% } else if (order.cancellation_reason) { %>
-            <button class="btn btn-secondary cancel-order-btn" data-order-id="<%= order.orderId %>" disabled>Cancelled</button>
-          <% } else { %>
-            <button class="btn btn-danger cancel-order-btn" data-order-id="<%= order.orderId %>">Cancel Order</button>
-          <% } %>
+          <div class="button-container">
+            <% if (order.status === 'Failed') { %>
+              <button class="btn btn-primary pay-now-btn" data-order-id="<%= order.orderId %>" data-amount="<%= order.totalAmount %>">Pay Now</button>
+            <% } else if (order.statusNum === 4 && !order.return_reason) { %>
+              <button class="btn btn-warning return-order-btn" data-order-id="<%= order.orderId %>">Return Order</button>
+            <% } else if (order.statusNum === 5) { %>
+              <button class="btn btn-secondary return-order-btn" data-order-id="<%= order.orderId %>" disabled>Return request in process</button>
+            <% } else if (order.statusNum === 6) { %> 
+              <button class="btn btn-success return-order-btn" data-order-id="<%= order.orderId %>" disabled>Returned</button>
+            <% } else if (order.cancellation_reason) { %>
+              <button class="btn btn-secondary cancel-order-btn" data-order-id="<%= order.orderId %>" disabled>Cancelled</button>
+            <% } else { %>
+              <button class="btn btn-danger cancel-order-btn" data-order-id="<%= order.orderId %>">Cancel Order</button>
+            <% } %>
+          </div>
         </div>
       
         <div class="order-details">
@@ -448,7 +450,7 @@ document.querySelectorAll('.cancel-order-btn').forEach(button => {
     });
 
     // Handle cancel confirmation
-    document.getElementById('confirmCancel').addEventListener('click', async () => {
+    document.getElementById('confirmCancel').onclick = async () => {
       const cancellationReason = document.getElementById('cancellationReason').value.trim();
       
       if (!cancellationReason) {
@@ -462,32 +464,21 @@ document.querySelectorAll('.cancel-order-btn').forEach(button => {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ cancellationReason })
         });
-        console.log('Fetch response:', response); // Debugging
         const data = await response.json();
-        
         if (data.success) {
-          Swal.fire('Cancelled!', 'Your order has been cancelled.', 'success');
-          
-          // Update the button (use e.target or find the specific button by orderId)
-          const buttonToUpdate = document.querySelector(`.cancel-order-btn[data-order-id="${orderId}"]`);
-          if (buttonToUpdate) {
-            buttonToUpdate.textContent = 'Cancelled';
-            buttonToUpdate.disabled = true;
-            buttonToUpdate.classList.remove('btn-danger'); // Optional: Remove danger class
-            buttonToUpdate.classList.add('btn-secondary'); // Optional: Add a different style
-          } else {
-            console.error('Button not found for orderId:', orderId); // Debugging
-          }
-          
-          modal.style.display = 'none'; // Hide modal on success
+          Swal.fire('Cancelled!', data.message || 'Your order has been cancelled.', 'success');
+          newButton.textContent = 'Cancelled';
+          newButton.disabled = true;
+          newButton.classList.remove('btn-danger');
+          newButton.classList.add('btn-secondary');
+          modal.style.display = 'none';
         } else {
           Swal.fire('Error', data.message || 'Failed to cancel order', 'error');
         }
       } catch (error) {
-        console.error('Fetch error:', error); // Debugging
         Swal.fire('Error', 'Something went wrong', 'error');
       }
-    });
+    };
   });
 });
 
@@ -514,12 +505,11 @@ document.querySelectorAll('.return-order-btn').forEach(button => {
           body: JSON.stringify({ returnReason })
         });
         const data = await response.json();
-        
         if (data.success) {
-          Swal.fire('Success!', 'Your return request has been submitted.', 'success');
-          button.textContent = 'Return Request In Process';
-          button.disabled = true;
-          button.classList.replace('btn-warning', 'btn-secondary');
+          Swal.fire('Success!', data.message || 'Your return request has been submitted.', 'success');
+          newButton.textContent = 'Return Request In Process';
+          newButton.disabled = true;
+          newButton.classList.replace('btn-warning', 'btn-secondary');
           modal.style.display = 'none';
         } else {
           Swal.fire('Error', data.message || 'Failed to process return request', 'error');
@@ -684,4 +674,151 @@ function verifyRetryPayment(response, orderId) {
     Swal.fire('Error', 'Error verifying payment', 'error');
   });
 }
+
+// Function to update order status dynamically
+function updateOrderStatus(orderId, orderCard) {
+  fetch(`/order-status/${orderId}`, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' }
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      const status = data.status;
+      const statusTracker = orderCard.querySelector('.status-tracker');
+      const buttonContainer = orderCard.querySelector('.button-container');
+      const statusMap = {
+        'Pending': 1,
+        'Pending COD': 1,
+        'Processing': 2,
+        'Shipped': 3,
+        'Delivered': 4,
+        'Return Request': 5,
+        'Returned': 6,
+        'Cancelled': 0,
+        'Failed': 0
+      };
+      const statusValue = statusMap[status] || 0;
+
+      // Update status tracker
+      const statusSteps = statusTracker.querySelectorAll('.status-step');
+      statusSteps.forEach((step, index) => {
+        const dot = step.querySelector('.status-dot');
+        if (index < statusValue) {
+          step.classList.add('active');
+          dot.classList.add('active');
+        } else {
+          step.classList.remove('active');
+          dot.classList.remove('active');
+        }
+      });
+
+      // Update button dynamically
+      let newButtonHTML = '';
+      if (status === 'Failed') {
+        const totalAmount = orderCard.querySelector('.total-amount').textContent.replace('Total Amount: ₹', '');
+        newButtonHTML = `<button class="btn btn-primary pay-now-btn" data-order-id="${orderId}" data-amount="${totalAmount}">Pay Now</button>`;
+      } else if (statusValue === 4) { // Delivered
+        newButtonHTML = `<button class="btn btn-warning return-order-btn" data-order-id="${orderId}">Return Order</button>`;
+      } else if (statusValue === 5) { // Return Request
+        newButtonHTML = `<button class="btn btn-secondary return-order-btn" data-order-id="${orderId}" disabled>Return request in process</button>`;
+      } else if (statusValue === 6) { // Returned
+        newButtonHTML = `<button class="btn btn-success return-order-btn" data-order-id="${orderId}" disabled>Returned</button>`;
+      } else if (statusValue === 0 && status === 'Cancelled') { // Cancelled
+        newButtonHTML = `<button class="btn btn-secondary cancel-order-btn" data-order-id="${orderId}" disabled>Cancelled</button>`;
+      } else { // Pending, Processing, Shipped
+        newButtonHTML = `<button class="btn btn-danger cancel-order-btn" data-order-id="${orderId}">Cancel Order</button>`;
+      }
+
+      buttonContainer.innerHTML = newButtonHTML;
+
+      // Re-attach event listeners for the new button
+      const newButton = buttonContainer.querySelector('button');
+      if (newButton.classList.contains('cancel-order-btn')) {
+        newButton.addEventListener('click', async (e) => {
+          const modal = document.getElementById('cancelOrderModal');
+          modal.style.display = 'block';
+
+          document.getElementById('closeModal').onclick = () => modal.style.display = 'none';
+
+          document.getElementById('confirmCancel').onclick = async () => {
+            const cancellationReason = document.getElementById('cancellationReason').value.trim();
+            if (!cancellationReason) {
+              alert('Please provide a reason for cancellation.');
+              return;
+            }
+
+            try {
+              const response = await fetch(`/cancel-order/${orderId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ cancellationReason })
+              });
+              const data = await response.json();
+              if (data.success) {
+                Swal.fire('Cancelled!', 'Your order has been cancelled.', 'success');
+                newButton.textContent = 'Cancelled';
+                newButton.disabled = true;
+                newButton.classList.remove('btn-danger');
+                newButton.classList.add('btn-secondary');
+                modal.style.display = 'none';
+              } else {
+                Swal.fire('Error', data.message || 'Failed to cancel order', 'error');
+              }
+            } catch (error) {
+              Swal.fire('Error', 'Something went wrong', 'error');
+            }
+          };
+        });
+      } else if (newButton.classList.contains('return-order-btn') && !newButton.disabled) {
+        newButton.addEventListener('click', async (e) => {
+          const modal = document.getElementById('returnOrderModal');
+          modal.style.display = 'block';
+
+          document.getElementById('closeReturnModal').onclick = () => modal.style.display = 'none';
+
+          document.getElementById('confirmReturn').onclick = async () => {
+            const returnReason = document.getElementById('returnReason').value.trim();
+            if (!returnReason) {
+              alert('Please provide a reason for return.');
+              return;
+            }
+
+            try {
+              const response = await fetch(`/return-order/${orderId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ returnReason })
+              });
+              const data = await response.json();
+              if (data.success) {
+                Swal.fire('Success!', 'Your return request has been submitted.', 'success');
+                newButton.textContent = 'Return Request In Process';
+                newButton.disabled = true;
+                newButton.classList.replace('btn-warning', 'btn-secondary');
+                modal.style.display = 'none';
+              } else {
+                Swal.fire('Error', data.message || 'Failed to process return request', 'error');
+              }
+            } catch (error) {
+              Swal.fire('Error', 'Something went wrong', 'error');
+            }
+          };
+        });
+      }
+    }
+  })
+  .catch(error => console.error('Error fetching status:', error));
+}
+
+// Poll every 30 seconds for each order
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.order-card').forEach(orderCard => {
+    const orderId = orderCard.querySelector('.order-header h3').textContent.replace('Order #', '');
+    // Initial update
+    updateOrderStatus(orderId, orderCard);
+    // Poll every 30 seconds
+    setInterval(() => updateOrderStatus(orderId, orderCard), 30000);
+  });
+});
 </script>

@@ -1,6 +1,7 @@
 const Order = require("../../models/orderSchema");
 const Product = require("../../models/productSchema");
 const User = require("../../models/userSchema");
+const Wallet = require('../../models/walletSchema');
 const walletController = require('../../controllers/user/walletController');
 const PDFKit = require('pdfkit');
 const razorpay = require('../../config/razorpay');
@@ -12,7 +13,6 @@ const loadMyOrders = async (req, res, next) => {
     const page = parseInt(req.query.page) || 1;
     const limit = 10; // Orders per page
     
-    // Fetch orders with pagination and populate necessary fields
     const totalOrders = await Order.countDocuments({ userId });
     const totalPages = Math.ceil(totalOrders / limit);
     
@@ -21,16 +21,15 @@ const loadMyOrders = async (req, res, next) => {
         path: 'orderedItems.product',
         select: 'name images' 
       })
-      // .populate('address')
       .sort({ orderDate: -1 })
       .skip((page - 1) * limit)
       .limit(limit);
 
-    // Format orders for the template
     const formattedOrders = orders.map(order => ({
       orderId: order.orderId,
       placedOn: order.orderDate.toLocaleDateString(),
-      status: order.status, // Use raw string status instead of getOrderStatus
+      status: order.status, // Keep string status for reference
+      statusNum: getOrderStatus(order.status), // Add numeric status
       totalAmount: order.finalAmount,
       quantity: order.orderedItems.reduce((sum, item) => sum + item.quantity, 0),
       products: order.orderedItems.map(item => ({
@@ -72,40 +71,33 @@ function getOrderStatus(status) {
 const cancelOrder = async (req, res) => {
   try {
     const { orderId } = req.params;
-    const userId = req.user._id; // Use req.user._id to match walletController
-    const { cancellationReason } = req.body || {}; // Default to empty object if req.body is undefined
+    const userId = req.session.user?._id || req.user?._id; // Fallback for session or auth middleware
+    const { cancellationReason } = req.body || {};
 
-    // Find the order and ensure it’s not delivered (status < 4 based on your status mapping)
+    if (!userId) {
+      return res.status(401).json({ success: false, message: 'User not authenticated' });
+    }
+
     const order = await Order.findOne({ orderId, userId });
-    
     if (!order) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Order not found' 
-      });
+      return res.status(400).json({ success: false, message: 'Order not found' });
     }
 
-    // Check if order is not delivered (use numeric status from getOrderStatus)
     const currentStatus = getOrderStatus(order.status);
-    if (currentStatus >= 4) { // Assuming 4 is 'Delivered'
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Order cannot be cancelled after delivery' 
-      });
+    if (currentStatus >= 4) {
+      return res.status(400).json({ success: false, message: 'Order cannot be cancelled after delivery' });
     }
 
-    // Update order status and store cancellation reason
     order.status = 'Cancelled';
     order.cancellation_reason = cancellationReason || 'No reason provided';
     await order.save();
 
-    // Restore product quantities
+    // Restore product stock
     for (const item of order.orderedItems) {
       const product = await Product.findById(item.product);
       if (product) {
         const combo = product.combos.find(combo => 
-          combo.color === item.color && // Assuming orderedItems has color/size fields; adjust if needed
-          combo.size === item.size
+          combo.color === item.color && combo.size === item.size
         );
         if (combo) {
           combo.quantity += item.quantity;
@@ -114,18 +106,19 @@ const cancelOrder = async (req, res) => {
       }
     }
 
-    // Refund logic: If not COD, transfer amount to user's wallet using walletController
+    let refundMessage = '';
     if (order.paymentMethod !== 'cod') {
       await walletController.addToWallet({
-        user: userId, // Pass user ID as part of an object to match walletController's expected format
+        user: userId,
         amount: order.finalAmount,
-        description: `Refund from order #${order.orderId}`
+        description: `Refund for cancelled order #${order.orderId}`
       });
+      refundMessage = ' and amount refunded to your wallet';
     }
 
-    res.json({ success: true });
+    res.json({ success: true, message: `Order cancelled${refundMessage}` });
   } catch (error) {
-    console.error('Error in cancelOrder:', error); // Log the error for debugging
+    console.error('Error in cancelOrder:', error);
     res.status(500).json({ success: false, message: 'Server error: ' + error.message });
   }
 };
@@ -169,7 +162,6 @@ const approveReturn = async (req, res) => {
   try {
     const { orderId } = req.params;
 
-    // Find the order
     const order = await Order.findOne({ orderId });
     if (!order) {
       return res.status(404).json({ success: false, message: 'Order not found' });
@@ -179,23 +171,20 @@ const approveReturn = async (req, res) => {
       return res.status(400).json({ success: false, message: 'No return request pending' });
     }
 
-    // Check if already refunded to prevent duplicate refunds
     if (order.status === 'Returned') {
       return res.status(400).json({ success: false, message: 'Order already returned and refunded' });
     }
 
-    // Update status to Returned
     order.status = 'Returned';
     await order.save();
     console.log(`Order ${orderId} status updated to Returned`);
 
-    // Restore product quantities
+    // Restore product stock
     for (const item of order.orderedItems) {
       const product = await Product.findById(item.product);
       if (product) {
         const combo = product.combos.find(combo => 
-          combo.color === item.color && // Adjust based on your orderedItems schema
-          combo.size === item.size
+          combo.color === item.color && combo.size === item.size
         );
         if (combo) {
           combo.quantity += item.quantity;
@@ -204,33 +193,25 @@ const approveReturn = async (req, res) => {
       }
     }
 
-    // Refund to wallet if not COD (assuming COD orders don't need refunds)
+    let refundMessage = '';
     if (order.paymentMethod !== 'cod') {
-      try {
-        await walletController.addToWallet({
-          user: order.userId.toString(), // Ensure userId is a string to match wallet schema
-          amount: order.finalAmount,
-          description: `Refund for returned order #${order.orderId}`
-        });
-        console.log(`Refund processed for order ${orderId}: ₹${order.finalAmount} added to wallet`);
-      } catch (walletError) {
-        console.error('Wallet update failed:', walletError);
-        // Optionally revert the status change if refund fails
-        order.status = 'Return Request';
-        await order.save();
-        return res.status(500).json({ success: false, message: 'Return approved, but refund failed: ' + walletError.message });
-      }
+      await walletController.addToWallet({
+        user: order.userId.toString(),
+        amount: order.finalAmount,
+        description: `Refund for returned order #${order.orderId}`
+      });
+      refundMessage = ' and amount refunded to wallet';
+      console.log(`Refund processed for order ${orderId}: ₹${order.finalAmount} added to wallet`);
     } else {
       console.log(`No refund processed for order ${orderId} as payment method is COD`);
     }
 
-    res.json({ success: true, message: 'Return approved and amount refunded to wallet' });
+    res.json({ success: true, message: `Return approved${refundMessage}` });
   } catch (error) {
     console.error('Error in approveReturn:', error);
     res.status(500).json({ success: false, message: 'Server error: ' + error.message });
   }
 };
-
 const getOrderDetails = async (req, res) => {
   try {
     const orderId = req.params.orderId;
@@ -521,12 +502,30 @@ const downloadInvoice = async (req, res) => {
   }
 };
 
+const getorderStatus = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const userId = req.session.user._id;
+
+    const order = await Order.findOne({ orderId, userId }).select('status');
+    if (!order) {
+      return res.status(404).json({ success: false, message: 'Order not found' });
+    }
+
+    res.json({ success: true, status: order.status });
+  } catch (error) {
+    console.error('Error in getOrderStatus:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
 module.exports = {
   loadMyOrders,
   cancelOrder,
   returnOrder,
   approveReturn,
   getOrderDetails,
+  getorderStatus, 
   downloadInvoice,
   retryRazorpayPayment,
   verifyRetryRazorpayPayment
