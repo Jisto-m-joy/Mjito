@@ -11,7 +11,6 @@ passport.use(new GoogleStrategy({
 },
 async (accessToken, refreshToken, profile, done) => {
     try {
-        console.log('Google OAuth Profile:', profile); // Log the profile to debug
         let user = await User.findOne({ googleId: profile.id });
         if (user) {
             return done(null, user);
