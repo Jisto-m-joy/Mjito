@@ -4,12 +4,14 @@ const User = require("../models/userSchema");
 const env = require("dotenv").config();
 
 passport.use(new GoogleStrategy({
-    clientID: process.env.GOOGLE_CLIENT_ID,
-    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    callbackURL: 'https://goalzone.ajaiii.tech/auth/google/callback'
+    clientID: '***REMOVED***',
+    clientSecret: '***REMOVED***',
+    callbackURL: 'https://goalzone.ajaiii.tech/auth/google/callback',
+    scope: ['profile', 'email']
 },
 async (accessToken, refreshToken, profile, done) => {
     try {
+        console.log('Google OAuth Profile:', profile); // Log the profile to debug
         let user = await User.findOne({ googleId: profile.id });
         if (user) {
             return done(null, user);
@@ -23,6 +25,7 @@ async (accessToken, refreshToken, profile, done) => {
             return done(null, user);
         }
     } catch (error) {
+        console.error('Google OAuth Error:', error); // Log the error
         return done(error, null);
     }
 }
