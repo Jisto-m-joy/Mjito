@@ -35,8 +35,8 @@
 
     .order-details {
       display: flex;
+      flex-wrap: wrap; 
       gap: 2rem;
-      align-items: center;
     }
 
     .product-image {
@@ -50,22 +50,49 @@
       flex: 1;
     }
 
-    .status-tracker {
-    display: flex;
-    justify-content: space-between;
-    margin: 1.5rem 0;
-    position: relative;
-    align-items: center; /* Add this line */
-  }
+    .product-row {
+      display: flex;
+      flex-wrap: wrap; 
+      gap: 2rem;
+      width: 100%; 
+    }
 
-  .status-step {
-    text-align: center;
-    flex: 1;
-    position: relative;
-    display: flex; /* Add this line */
-    flex-direction: column; /* Add this line */
-    align-items: center; /* Add this line */
-  }
+    .product-item {
+      flex: 0 0 calc(50% - 1rem);
+      display: flex;
+      align-items: center;
+      margin-bottom: 20px;
+      box-sizing: border-box; 
+    }
+    .product-item .product-image {
+      width: 100px;
+      height: 100px;
+      object-fit: cover;
+      margin-right: 20px;
+    }
+    .product-item .product-info {
+      flex: 1;
+    }
+
+    .status-tracker {
+      display: flex;
+      justify-content: space-between;
+      margin: 1.5rem 0;
+      position: relative;
+      align-items: center;
+      min-width: 400px; /* Ensure enough width for spacing */
+    }
+
+    .status-step {
+      text-align: center;
+      flex: 1;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0 10px; /* Add padding to create space between steps */
+      min-width: 80px; /* Ensure each step has enough space */
+    }
 
   .status-step.active {
     color: var(--first-color);
@@ -143,6 +170,94 @@
       color: white;
       border-color: var(--first-color);
     }
+
+    .modal {
+      overflow-y: auto;
+    }
+
+    .modal:target,
+    .modal[style*="display: block"] {
+      display: block;
+    }
+
+    /* Prevent background scrolling when modal is open */
+    body.modal-open {
+      overflow: hidden;
+    }
+
+    body.modal-open .modal {
+      overflow-y: auto;
+      max-height: 80vh;
+    }
+
+    .modal-content {
+      padding: 20px;
+    }
+
+    .customer-info-section, .shipping-info-section, .order-items-section {
+      margin-bottom: 20px;
+      padding: 15px;
+      border: 1px solid #eee;
+      border-radius: 5px;
+      background-color: #f9f9f9;
+    }
+
+    .shipping-info-section p,
+    .customer-info-section p {
+      margin: 10px 0;
+      line-height: 1.5;
+    }
+
+    .order-items-section table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+
+    .order-items-section th,
+    .order-items-section td {
+      padding: 10px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+
+    .order-items-section th {
+      background-color: #f1f1f1;
+    }
+
+    .order-items-section tr:last-child td {
+      border-bottom: none;
+    }
+
+    .modal-buttons {
+      margin-top: 20px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    @media (max-width: 600px) {
+    .status-tracker {
+      min-width: 300px;
+    }
+    .status-step {
+      min-width: 60px;
+      padding: 0 5px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    #orderDetailsModal {
+      width: 90vw; /* Responsive width for smaller screens */
+      max-height: 90vh;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .product-item {
+      flex: 0 0 100%; /* On smaller screens, 1 item per row */
+    }
+  }
   </style>
 </head>
 
@@ -163,52 +278,67 @@
       <div class="order-card">
         <div class="order-header">
           <div>
-            <h3><%= order.product.name %></h3>
-            <p>Order #<%= order.orderId %></p>
+            <h3>Order #<%= order.orderId %></h3>
             <p>Placed on: <%= order.placedOn %></p>
             <p>Total Quantity: <%= order.quantity %></p>
             <p class="total-amount">Total Amount: ₹<%= order.totalAmount %></p>
           </div>
-          <% if (order.status === 4 && !order.return_reason) { %>
-            <button class="btn btn-warning return-order-btn" data-order-id="<%= order.orderId %>">Return Order</button>
-          <% } else if (order.status === 5) { %>
-            <button class="btn btn-secondary return-order-btn" data-order-id="<%= order.orderId %>" disabled>Return request in process</button>
-          <% } else if (order.status === 6) { %> 
-            <button class="btn btn-success return-order-btn" data-order-id="<%= order.orderId %>" disabled>Returned</button>
-          <% } else if (order.cancellation_reason) { %>
-            <button class="btn btn-secondary cancel-order-btn" data-order-id="<%= order.orderId %>" disabled>Cancelled</button>
-          <% } else { %>
-            <button class="btn btn-danger cancel-order-btn" data-order-id="<%= order.orderId %>">Cancel Order</button>
-          <% } %>
-        </div>
-
-        <div class="order-details">
-          <img src="<%= order.product.image %>" alt="<%= order.product.name %>" class="product-image">
-          <div class="product-info">
-            <div class="status-tracker">
-              <div class="status-line"></div>
-              <div class="status-step <%= order.status >= 1 ? 'active' : '' %>">
-                <div class="status-dot <%= order.status >= 1 ? 'active' : '' %>"></div>
-                <span>Order Placed</span>
-              </div>
-              <div class="status-step <%= order.status >= 2 ? 'active' : '' %>">
-                <div class="status-dot <%= order.status >= 2 ? 'active' : '' %>"></div>
-                <span>Processing</span>
-              </div>
-              <div class="status-step <%= order.status >= 3 ? 'active' : '' %>">
-                <div class="status-dot <%= order.status >= 3 ? 'active' : '' %>"></div>
-                <span>Shipped</span>
-              </div>
-              <div class="status-step <%= order.status >= 4 ? 'active' : '' %>">
-                <div class="status-dot <%= order.status >= 4 ? 'active' : '' %>"></div>
-                <span>Delivered</span>
-              </div>
-            </div>
+          <div class="button-container">
+            <% if (order.status === 'Failed') { %>
+              <button class="btn btn-primary pay-now-btn" data-order-id="<%= order.orderId %>" data-amount="<%= order.totalAmount %>">Pay Now</button>
+            <% } else if (order.statusNum === 4 && !order.return_reason) { %>
+              <button class="btn btn-warning return-order-btn" data-order-id="<%= order.orderId %>">Return Order</button>
+            <% } else if (order.statusNum === 5) { %>
+              <button class="btn btn-secondary return-order-btn" data-order-id="<%= order.orderId %>" disabled>Return request in process</button>
+            <% } else if (order.statusNum === 6) { %> 
+              <button class="btn btn-success return-order-btn" data-order-id="<%= order.orderId %>" disabled>Returned</button>
+            <% } else if (order.cancellation_reason) { %>
+              <button class="btn btn-secondary cancel-order-btn" data-order-id="<%= order.orderId %>" disabled>Cancelled</button>
+            <% } else { %>
+              <button class="btn btn-danger cancel-order-btn" data-order-id="<%= order.orderId %>">Cancel Order</button>
+            <% } %>
           </div>
         </div>
-
+      
+        <div class="order-details">
+          <% let productIndex = 0; %>
+          <% while (productIndex < order.products.length) { %>
+            <div class="product-row">
+              <% for (let i = 0; i < 2 && productIndex < order.products.length; i++, productIndex++) { %>
+                <div class="product-item">
+                  <img src="<%= order.products[productIndex].image %>" alt="<%= order.products[productIndex].name %>" class="product-image">
+                  <div class="product-info">
+                    <h4><%= order.products[productIndex].name %></h4>
+                    <p>Quantity: <%= order.products[productIndex].quantity %></p>
+                    <div class="status-tracker">
+                      <div class="status-line"></div>
+                      <div class="status-step <%= order.status >= 1 ? 'active' : '' %>">
+                        <div class="status-dot <%= order.status >= 1 ? 'active' : '' %>"></div>
+                        <span>Order_Placed</span>
+                      </div>
+                      <div class="status-step <%= order.status >= 2 ? 'active' : '' %>">
+                        <div class="status-dot <%= order.status >= 2 ? 'active' : '' %>"></div>
+                        <span>Processing</span>
+                      </div>
+                      <div class="status-step <%= order.status >= 3 ? 'active' : '' %>">
+                        <div class="status-dot <%= order.status >= 3 ? 'active' : '' %>"></div>
+                        <span>Shipped</span>
+                      </div>
+                      <div class="status-step <%= order.status >= 4 ? 'active' : '' %>">
+                        <div class="status-dot <%= order.status >= 4 ? 'active' : '' %>"></div>
+                        <span>Delivered</span>
+                      </div>
+                    </div>
+                    <button class="btn btn-primary buy-again-btn" data-product-id="<%= order.products[productIndex]._id %>">Buy Again</button>
+                  </div>
+                </div>
+              <% } %>
+            </div>
+          <% } %>
+        </div>
+      
         <div class="action-buttons">
-          <button class="btn btn-primary buy-again-btn" data-product-id="<%= order.product._id %>">Buy Again</button>
+          <button class="btn btn-info view-details-btn" data-order-id="<%= order.orderId %>">View Details</button>
         </div>
       </div>
     <% }) %>
@@ -250,10 +380,60 @@
   </div>
 </div>
 
+<!-- Order details modal  -->
+<div id="orderDetailsModal" class="modal" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); z-index: 1000; width: 700px; min-height: 400px; overflow-y: auto; max-height: 80vh; overflow-x: hidden;">  <div class="modal-content">
+    <h3>Order Details</h3>
+    <div class="order-info-section">
+      <h4>Order Information</h4>
+      <p><strong>Order ID:</strong> <span id="modal-order-id"></span></p>
+      <p><strong>Order Date:</strong> <span id="modal-order-date"></span></p>
+      <p><strong>Payment Method:</strong> <span id="modal-payment-method"></span></p>
+      <p><strong>Total Amount:</strong> <span id="modal-total-amount"></span></p>
+    </div>
+    <div class="customer-info-section">
+      <h4>Customer Information</h4>
+      <p><strong>Name:</strong> <span id="modal-customer-name"></span></p>
+      <p><strong>Email:</strong> <span id="modal-customer-email"></span></p>
+    </div>
+    <div class="shipping-info-section">
+      <h4>Shipping Address</h4>
+      <p><strong>Name:</strong> <span id="modal-shipping-name"></span></p>
+      <p><strong>Address:</strong> <span id="modal-shipping-address"></span></p>
+      <p><strong>Landmark:</strong> <span id="modal-shipping-landmark"></span></p>
+      <p><strong>City:</strong> <span id="modal-shipping-city"></span></p>
+      <p><strong>State:</strong> <span id="modal-shipping-state"></span></p>
+      <p><strong>Pincode:</strong> <span id="modal-shipping-pincode"></span></p>
+      <p><strong>Mobile:</strong> <span id="modal-shipping-mobile"></span></p>
+      <p><strong>Alternative Phone:</strong> <span id="modal-shipping-alt-phone"></span></p>
+    </div>
+    <div class="order-items-section">
+      <h4>Order Items</h4>
+      <table id="modal-order-items">
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Price</th>
+            <th>Quantity</th>
+            <th>Status</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div class="modal-buttons">
+      <button id="downloadInvoiceBtn" class="btn btn-success" style="padding: 8px 16px; border: none; border-radius: 4px; background: #28a745; color: white; cursor: pointer;">Download Invoice</button>
+      <button id="closeOrderModal" style="margin-right: 10px; padding: 8px 16px; border: none; border-radius: 4px; background: #f5f5f5; cursor: pointer;">Close</button>
+    </div>
+  </div>
+</div>
+
 </body>
 
 <%- include("../../views/user/partials/footer") %>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script> 
+
 <script>
 //Cancel Order Handler
 document.querySelectorAll('.cancel-order-btn').forEach(button => {
@@ -270,7 +450,7 @@ document.querySelectorAll('.cancel-order-btn').forEach(button => {
     });
 
     // Handle cancel confirmation
-    document.getElementById('confirmCancel').addEventListener('click', async () => {
+    document.getElementById('confirmCancel').onclick = async () => {
       const cancellationReason = document.getElementById('cancellationReason').value.trim();
       
       if (!cancellationReason) {
@@ -284,32 +464,21 @@ document.querySelectorAll('.cancel-order-btn').forEach(button => {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ cancellationReason })
         });
-        console.log('Fetch response:', response); // Debugging
         const data = await response.json();
-        
         if (data.success) {
-          Swal.fire('Cancelled!', 'Your order has been cancelled.', 'success');
-          
-          // Update the button (use e.target or find the specific button by orderId)
-          const buttonToUpdate = document.querySelector(`.cancel-order-btn[data-order-id="${orderId}"]`);
-          if (buttonToUpdate) {
-            buttonToUpdate.textContent = 'Cancelled';
-            buttonToUpdate.disabled = true;
-            buttonToUpdate.classList.remove('btn-danger'); // Optional: Remove danger class
-            buttonToUpdate.classList.add('btn-secondary'); // Optional: Add a different style
-          } else {
-            console.error('Button not found for orderId:', orderId); // Debugging
-          }
-          
-          modal.style.display = 'none'; // Hide modal on success
+          Swal.fire('Cancelled!', data.message || 'Your order has been cancelled.', 'success');
+          newButton.textContent = 'Cancelled';
+          newButton.disabled = true;
+          newButton.classList.remove('btn-danger');
+          newButton.classList.add('btn-secondary');
+          modal.style.display = 'none';
         } else {
           Swal.fire('Error', data.message || 'Failed to cancel order', 'error');
         }
       } catch (error) {
-        console.error('Fetch error:', error); // Debugging
         Swal.fire('Error', 'Something went wrong', 'error');
       }
-    });
+    };
   });
 });
 
@@ -336,12 +505,11 @@ document.querySelectorAll('.return-order-btn').forEach(button => {
           body: JSON.stringify({ returnReason })
         });
         const data = await response.json();
-        
         if (data.success) {
-          Swal.fire('Success!', 'Your return request has been submitted.', 'success');
-          button.textContent = 'Return Request In Process';
-          button.disabled = true;
-          button.classList.replace('btn-warning', 'btn-secondary');
+          Swal.fire('Success!', data.message || 'Your return request has been submitted.', 'success');
+          newButton.textContent = 'Return Request In Process';
+          newButton.disabled = true;
+          newButton.classList.replace('btn-warning', 'btn-secondary');
           modal.style.display = 'none';
         } else {
           Swal.fire('Error', data.message || 'Failed to process return request', 'error');
@@ -362,6 +530,295 @@ document.querySelectorAll('.buy-again-btn').forEach(button => {
     } else {
       Swal.fire('Error', 'Product ID not found', 'error');
     }
+  });
+});
+
+//View Order details modal functionality
+document.querySelectorAll('.view-details-btn').forEach(button => {
+  button.addEventListener('click', async (e) => {
+    const orderId = e.target.getAttribute('data-order-id');
+    const modal = document.getElementById('orderDetailsModal');
+    modal.style.display = 'block';
+    document.body.classList.add('modal-open'); // Add modal-open class to body
+
+    try {
+      const response = await fetch(`/order-details/${orderId}`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      const data = await response.json();
+
+      if (data.success) {
+        const order = data.order;
+        document.getElementById('modal-order-id').textContent = order.orderId;
+        document.getElementById('modal-order-date').textContent = new Date(order.orderDate).toLocaleDateString();
+        document.getElementById('modal-payment-method').textContent = order.paymentMethod;
+        document.getElementById('modal-total-amount').textContent = `₹${order.finalAmount}`;
+        document.getElementById('modal-customer-name').textContent = order.userName || 'N/A';
+        document.getElementById('modal-customer-email').textContent = order.userEmail || 'N/A';
+        document.getElementById('modal-shipping-name').textContent = order.shippingAddress.fullName;
+        document.getElementById('modal-shipping-address').textContent = order.shippingAddress.address;
+        document.getElementById('modal-shipping-landmark').textContent = order.shippingAddress.landmark || 'N/A';
+        document.getElementById('modal-shipping-city').textContent = order.shippingAddress.city;
+        document.getElementById('modal-shipping-state').textContent = order.shippingAddress.state;
+        document.getElementById('modal-shipping-pincode').textContent = order.shippingAddress.pincode;
+        document.getElementById('modal-shipping-mobile').textContent = order.shippingAddress.phone;
+        document.getElementById('modal-shipping-alt-phone').textContent = order.shippingAddress.altPhone || 'N/A';
+
+        const itemsTable = document.getElementById('modal-order-items').getElementsByTagName('tbody')[0];
+        itemsTable.innerHTML = '';
+        order.orderedItems.forEach(item => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${item.product.name} (Size: ${item.size || 'N/A'})</td>
+            <td>₹${item.price}</td>
+            <td>${item.quantity}</td>
+            <td>${order.status}</td>
+            <td>₹${item.price * item.quantity}</td>
+          `;
+          itemsTable.appendChild(row);
+        });
+
+        // Add download invoice handler
+        document.getElementById('downloadInvoiceBtn').onclick = () => {
+          window.location.href = `/download-invoice/${orderId}`;
+        };
+      } else {
+        Swal.fire('Error', 'Failed to load order details', 'error');
+      }
+    } catch (error) {
+      Swal.fire('Error', 'Something went wrong', 'error');
+    }
+
+    // Handle modal close
+    document.getElementById('closeOrderModal').addEventListener('click', () => {
+      modal.style.display = 'none';
+      document.body.classList.remove('modal-open'); // Remove modal-open class when closing
+    });
+  });
+});
+
+// Pay Now Handler
+document.querySelectorAll('.pay-now-btn').forEach(button => {
+  button.addEventListener('click', async (e) => {
+    const orderId = e.target.getAttribute('data-order-id');
+    const amount = e.target.getAttribute('data-amount');
+
+    try {
+      // Initiate Razorpay payment
+      const response = await fetch('/retry-razorpay-payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId, amount })
+      });
+      const data = await response.json();
+
+      if (data.success) {
+        const options = {
+          key: data.keyId,
+          amount: data.order.amount,
+          currency: "INR",
+          name: "GoalZone",
+          description: "Retry Order Payment",
+          order_id: data.order.id,
+          handler: function (response) {
+            verifyRetryPayment(response, orderId);
+          },
+          prefill: {
+            name: "",
+            email: "",
+            contact: ""
+          },
+          theme: {
+            color: "#3399cc"
+          }
+        };
+
+        const rzp = new Razorpay(options);
+        rzp.on('payment.failed', function (response) {
+          Swal.fire('Error', 'Payment failed: ' + response.error.description, 'error');
+        });
+        rzp.open();
+      } else {
+        Swal.fire('Error', data.error || 'Failed to initiate payment', 'error');
+      }
+    } catch (error) {
+      Swal.fire('Error', 'Something went wrong', 'error');
+    }
+  });
+});
+
+// Verify Retry Payment
+function verifyRetryPayment(response, orderId) {
+  fetch('/verify-retry-razorpay', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      razorpay_payment_id: response.razorpay_payment_id,
+      razorpay_order_id: response.razorpay_order_id,
+      razorpay_signature: response.razorpay_signature,
+      orderId
+    })
+  })
+  .then(resp => resp.json())
+  .then(result => {
+    if (result.success) {
+      Swal.fire('Success', 'Payment completed successfully!', 'success').then(() => {
+        window.location.reload(); // Refresh the page to update order status
+      });
+    } else {
+      Swal.fire('Error', result.error || 'Payment verification failed', 'error');
+    }
+  })
+  .catch(error => {
+    Swal.fire('Error', 'Error verifying payment', 'error');
+  });
+}
+
+// Function to update order status dynamically
+function updateOrderStatus(orderId, orderCard) {
+  fetch(`/order-status/${orderId}`, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' }
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      const status = data.status;
+      const statusTracker = orderCard.querySelector('.status-tracker');
+      const buttonContainer = orderCard.querySelector('.button-container');
+      const statusMap = {
+        'Pending': 1,
+        'Pending COD': 1,
+        'Processing': 2,
+        'Shipped': 3,
+        'Delivered': 4,
+        'Return Request': 5,
+        'Returned': 6,
+        'Cancelled': 0,
+        'Failed': 0
+      };
+      const statusValue = statusMap[status] || 0;
+
+      // Update status tracker
+      const statusSteps = statusTracker.querySelectorAll('.status-step');
+      statusSteps.forEach((step, index) => {
+        const dot = step.querySelector('.status-dot');
+        if (index < statusValue) {
+          step.classList.add('active');
+          dot.classList.add('active');
+        } else {
+          step.classList.remove('active');
+          dot.classList.remove('active');
+        }
+      });
+
+      // Update button dynamically
+      let newButtonHTML = '';
+      if (status === 'Failed') {
+        const totalAmount = orderCard.querySelector('.total-amount').textContent.replace('Total Amount: ₹', '');
+        newButtonHTML = `<button class="btn btn-primary pay-now-btn" data-order-id="${orderId}" data-amount="${totalAmount}">Pay Now</button>`;
+      } else if (statusValue === 4) { // Delivered
+        newButtonHTML = `<button class="btn btn-warning return-order-btn" data-order-id="${orderId}">Return Order</button>`;
+      } else if (statusValue === 5) { // Return Request
+        newButtonHTML = `<button class="btn btn-secondary return-order-btn" data-order-id="${orderId}" disabled>Return request in process</button>`;
+      } else if (statusValue === 6) { // Returned
+        newButtonHTML = `<button class="btn btn-success return-order-btn" data-order-id="${orderId}" disabled>Returned</button>`;
+      } else if (statusValue === 0 && status === 'Cancelled') { // Cancelled
+        newButtonHTML = `<button class="btn btn-secondary cancel-order-btn" data-order-id="${orderId}" disabled>Cancelled</button>`;
+      } else { // Pending, Processing, Shipped
+        newButtonHTML = `<button class="btn btn-danger cancel-order-btn" data-order-id="${orderId}">Cancel Order</button>`;
+      }
+
+      buttonContainer.innerHTML = newButtonHTML;
+
+      // Re-attach event listeners for the new button
+      const newButton = buttonContainer.querySelector('button');
+      if (newButton.classList.contains('cancel-order-btn')) {
+        newButton.addEventListener('click', async (e) => {
+          const modal = document.getElementById('cancelOrderModal');
+          modal.style.display = 'block';
+
+          document.getElementById('closeModal').onclick = () => modal.style.display = 'none';
+
+          document.getElementById('confirmCancel').onclick = async () => {
+            const cancellationReason = document.getElementById('cancellationReason').value.trim();
+            if (!cancellationReason) {
+              alert('Please provide a reason for cancellation.');
+              return;
+            }
+
+            try {
+              const response = await fetch(`/cancel-order/${orderId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ cancellationReason })
+              });
+              const data = await response.json();
+              if (data.success) {
+                Swal.fire('Cancelled!', 'Your order has been cancelled.', 'success');
+                newButton.textContent = 'Cancelled';
+                newButton.disabled = true;
+                newButton.classList.remove('btn-danger');
+                newButton.classList.add('btn-secondary');
+                modal.style.display = 'none';
+              } else {
+                Swal.fire('Error', data.message || 'Failed to cancel order', 'error');
+              }
+            } catch (error) {
+              Swal.fire('Error', 'Something went wrong', 'error');
+            }
+          };
+        });
+      } else if (newButton.classList.contains('return-order-btn') && !newButton.disabled) {
+        newButton.addEventListener('click', async (e) => {
+          const modal = document.getElementById('returnOrderModal');
+          modal.style.display = 'block';
+
+          document.getElementById('closeReturnModal').onclick = () => modal.style.display = 'none';
+
+          document.getElementById('confirmReturn').onclick = async () => {
+            const returnReason = document.getElementById('returnReason').value.trim();
+            if (!returnReason) {
+              alert('Please provide a reason for return.');
+              return;
+            }
+
+            try {
+              const response = await fetch(`/return-order/${orderId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ returnReason })
+              });
+              const data = await response.json();
+              if (data.success) {
+                Swal.fire('Success!', 'Your return request has been submitted.', 'success');
+                newButton.textContent = 'Return Request In Process';
+                newButton.disabled = true;
+                newButton.classList.replace('btn-warning', 'btn-secondary');
+                modal.style.display = 'none';
+              } else {
+                Swal.fire('Error', data.message || 'Failed to process return request', 'error');
+              }
+            } catch (error) {
+              Swal.fire('Error', 'Something went wrong', 'error');
+            }
+          };
+        });
+      }
+    }
+  })
+  .catch(error => console.error('Error fetching status:', error));
+}
+
+// Poll every 30 seconds for each order
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.order-card').forEach(orderCard => {
+    const orderId = orderCard.querySelector('.order-header h3').textContent.replace('Order #', '');
+    // Initial update
+    updateOrderStatus(orderId, orderCard);
+    // Poll every 30 seconds
+    setInterval(() => updateOrderStatus(orderId, orderCard), 30000);
   });
 });
 </script>
