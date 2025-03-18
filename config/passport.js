@@ -4,8 +4,8 @@ const User = require("../models/userSchema");
 const env = require("dotenv").config();
 
 passport.use(new GoogleStrategy({
-    clientID: '***REMOVED***',
-    clientSecret: '***REMOVED***',
+    clientID: process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     callbackURL: 'https://goalzone.ajaiii.tech/auth/google/callback',
     scope: ['profile', 'email']
 },
