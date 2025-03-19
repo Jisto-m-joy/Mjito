@@ -345,4 +345,34 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 });
+
+document.addEventListener('DOMContentLoaded', function() {
+    const filterForm = document.querySelector('.filter-form');
+    const clearFiltersButton = document.getElementById('clear-filters');
+    const searchInput = document.getElementById('search'); // Add this line
+
+    filterForm.addEventListener('submit', function(event) {
+        event.preventDefault();
+        const formData = new FormData(filterForm);
+        const queryParams = new URLSearchParams(formData).toString();
+        window.location.href = `/shop?${queryParams}`;
+    });
+
+    clearFiltersButton.addEventListener('click', function() {
+        window.location.href = '/shop';
+    });
+
+    // Add this new event listener for search input
+    searchInput.addEventListener('input', function() {
+        const searchTerm = this.value.trim();
+        if (searchTerm === '') {
+            // When search input is empty, remove search parameter and refresh
+            const urlParams = new URLSearchParams(window.location.search);
+            urlParams.delete('search'); // Remove search parameter
+            urlParams.set('page', '1'); // Reset to first page
+            const newUrl = urlParams.toString() ? `/shop?${urlParams.toString()}` : '/shop';
+            window.location.href = newUrl;
+        }
+    });
+});
 </script>

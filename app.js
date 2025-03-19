@@ -35,6 +35,13 @@ app.use((req, res, next) => {
 });
 app.use(passport.initialize());
 app.use(passport.session());
+app.use((req, res, next) => {
+  if (req.user && !req.session.user) {
+    req.session.user = req.user; 
+  }
+  res.locals.user = req.session.user || null;
+  next();
+});
 app.use(errorHandler,adminErrorHandler);
 
 app.set("view engine", "ejs");
